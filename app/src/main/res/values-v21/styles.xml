@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="BigButton" parent="android:Widget.Material.Button">
+        <item name="android:textSize">28sp</item>
+        <item name="android:layout_height">93dp</item>
+        <item name="android:layout_width">230dp</item>
+    </style>
+
+    <style name="BigTextInput" parent="android:Widget.Material.EditText">
+        <item name="android:textSize">24sp</item>
+    </style>
+
+    <style name="MediumTextView" parent="android:Widget.Material.TextView">
+        <item name="android:textSize">16sp</item>
+    </style>
+</resources>
