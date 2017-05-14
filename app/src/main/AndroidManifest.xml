@@ -9,15 +9,6 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".AddExerciseActivity"
-            android:label="@string/title_activity_add_exercise"
-            android:theme="@style/AppTheme.NoActionBar">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <action android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity
             android:name=".Start"
             android:label="@string/title_activity_start"
             android:theme="@style/AppTheme.NoActionBar">
@@ -27,7 +18,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".AddLiftToWorkoutActivity"
+            android:name="AddLiftToWorkoutActivity"
             android:label="@string/title_activity_add_lift_to_workout"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="adjustNothing">
