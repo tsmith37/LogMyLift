@@ -7,8 +7,14 @@ import android.database.MatrixCursor;
 import android.database.MergeCursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.support.annotation.NonNull;
+
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
 
 import static android.R.attr.id;
 
@@ -32,6 +38,7 @@ class LiftDbHelper extends SQLiteOpenHelper {
 
     static final String LIFT_TABLE_NAME = "Lift";
     static final String LIFT_COLUMN_LIFT_ID = "LiftId";
+    static final String LIFT_COLUMN_COMMENT = "Comment";
     static final String LIFT_COLUMN_EXERCISE_ID = "ExerciseId";
     static final String LIFT_COLUMN_REPS = "Reps";
     static final String LIFT_COLUMN_START_DATE = "StartDate";
@@ -56,6 +63,7 @@ class LiftDbHelper extends SQLiteOpenHelper {
     static final String CREATE_TABLE_LIFT =
             "CREATE TABLE Lift (" +
                     "LiftId INTEGER PRIMARY KEY," +
+                    "Comment TEXT," +
                     "ExerciseId INTEGER," +
                     "Reps INTEGER," +
                     "StartDate INTEGER," +
@@ -164,6 +172,7 @@ class LiftDbHelper extends SQLiteOpenHelper {
     long insertLift(Lift lift) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues insert_values = new ContentValues();
+        insert_values.put(LIFT_COLUMN_COMMENT, lift.getComment());
         insert_values.put(LIFT_COLUMN_EXERCISE_ID, lift.getExercise().getExerciseId());
         insert_values.put(LIFT_COLUMN_REPS, lift.getReps());
         insert_values.put(LIFT_COLUMN_START_DATE, lift.getStartDate().getTime());
@@ -197,16 +206,28 @@ class LiftDbHelper extends SQLiteOpenHelper {
         // TODO: Make this better overall. It works, but it's messy.
         final String SELECT_QUERY = "SELECT " +
                 LIFT_COLUMN_LIFT_ID + " AS _id, " +
+                EXERCISE_COLUMN_NAME + ", " +
+                LIFT_COLUMN_WEIGHT + ", " +
+                LIFT_COLUMN_REPS + ", " +
+                LIFT_COLUMN_COMMENT +
+                " FROM " +
+                LIFT_TABLE_NAME + " INNER JOIN " + EXERCISE_TABLE_NAME + " ON " + LIFT_TABLE_NAME + "." + LIFT_COLUMN_EXERCISE_ID + " = " + EXERCISE_TABLE_NAME + "." + EXERCISE_COLUMN_EXERCISE_ID +
+                " WHERE " + LIFT_COLUMN_WORKOUT_ID + " = ?" +
+                " GROUP BY " + EXERCISE_COLUMN_NAME + ", " + LIFT_COLUMN_WEIGHT + ", " + LIFT_COLUMN_REPS +
+                " ORDER BY " + LIFT_COLUMN_START_DATE + " DESC " +
+                " LIMIT 50;";
+       /* final String SELECT_QUERY = "SELECT " +
+                LIFT_COLUMN_LIFT_ID + " AS _id, " +
                 EXERCISE_COLUMN_NAME + " || ': ' || " + LIFT_COLUMN_WEIGHT + " || ' for ' || Count(" + LIFT_COLUMN_LIFT_ID + ") || 'x' || " + LIFT_COLUMN_REPS + " AS FullLiftDescription" +
                 " FROM " +
                 LIFT_TABLE_NAME + " INNER JOIN " + EXERCISE_TABLE_NAME + " ON " + LIFT_TABLE_NAME + "." + LIFT_COLUMN_EXERCISE_ID + " = " + EXERCISE_TABLE_NAME + "." + EXERCISE_COLUMN_EXERCISE_ID +
                 " WHERE " + LIFT_COLUMN_WORKOUT_ID + " = ?" +
                 " GROUP BY " + EXERCISE_COLUMN_NAME + ", " + LIFT_COLUMN_WEIGHT + ", " + LIFT_COLUMN_REPS +
                 " ORDER BY " + LIFT_COLUMN_START_DATE +
-                " LIMIT 50;";
+                " LIMIT 50;"; */
         Cursor database_results = db.rawQuery(SELECT_QUERY, new String[] {Long.toString(workout_id)});
-        MatrixCursor header_row = new MatrixCursor(new String[] {"_id", "FullLiftDescription"});
-        header_row.addRow(new Object[] {-1, "Lifts so far:"});
+        MatrixCursor header_row = new MatrixCursor(new String[] {"_id", EXERCISE_COLUMN_NAME, LIFT_COLUMN_WEIGHT, LIFT_COLUMN_REPS, LIFT_COLUMN_COMMENT});
+        header_row.addRow(new Object[] {-1, "Exercise", "Weight", "Reps", "Comment"});
         return new MergeCursor(new Cursor[] {header_row, database_results});
     }
 
@@ -240,6 +261,22 @@ class LiftDbHelper extends SQLiteOpenHelper {
         select_cursor.close();
 
         return lift_ids;
+    }
+
+    /**
+     * Selects the number of exercises in the SQLite database. This is used to avoid the case where
+     * no exercises are present but UI elements try to access the first one and other various problems
+     * of that nature.
+     * @return  The count of exercises.
+     */
+    int selectExerciseCount()
+    {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String select_all_exercises_query = "SELECT * FROM " + EXERCISE_TABLE_NAME;
+        Cursor select_cursor = db.rawQuery(select_all_exercises_query, null);
+        int exercise_count = select_cursor.getCount();
+        select_cursor.close();
+        return exercise_count;
     }
 
     /**
@@ -341,6 +378,37 @@ class LiftDbHelper extends SQLiteOpenHelper {
     }
 
     /**
+     * Selects all exercises, returned as a list.
+     */
+    List<Exercise> selectExerciseList(String filter) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] RETURN_COLUMNS = { EXERCISE_COLUMN_EXERCISE_ID, EXERCISE_COLUMN_NAME, EXERCISE_COLUMN_DESCRIPTION, EXERCISE_COLUMN_LAST_WORKOUT_ID, EXERCISE_COLUMN_MAX_LIFT_ID };
+        String WHERE = EXERCISE_COLUMN_NAME + " LIKE ?";
+        String[] where_args = { "%" + filter + "%" };
+        Cursor select_cursor = db.query(
+            EXERCISE_TABLE_NAME,
+            RETURN_COLUMNS,
+            WHERE,
+            where_args,
+            null,
+            null,
+            EXERCISE_COLUMN_NAME);
+        List<Exercise> exercise_list = new ArrayList<Exercise>();
+
+        while(select_cursor.moveToNext()) {
+            exercise_list.add(new Exercise(
+                    this,
+                    select_cursor.getLong(select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_EXERCISE_ID)),
+                    select_cursor.getString(select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_NAME)),
+                    select_cursor.getString(select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_DESCRIPTION)),
+                    select_cursor.getLong(select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_MAX_LIFT_ID)),
+                    select_cursor.getLong(select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_LAST_WORKOUT_ID))));
+        }
+        select_cursor.close();
+        return exercise_list;
+    }
+
+    /**
      * Selects the most recent workout.
      * @return  The most recent workout.
      */
@@ -396,6 +464,52 @@ class LiftDbHelper extends SQLiteOpenHelper {
         header_row.addRow(new Object[] {-1, exercise_name + " history:"});
 
         return new MergeCursor(new Cursor[] {header_row, database_results});
+    }
+
+    /**
+     * Selects the number of workouts stored in the SQLite database. This is used to avoid the case
+     * of the user trying to continue a workout that doesn't exist.
+     * @return  The count of workouts.
+     */
+    int selectWorkoutCount()
+    {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String select_all_workouts_query = "SELECT * FROM " + WORKOUT_TABLE_NAME;
+        Cursor select_cursor = db.rawQuery(select_all_workouts_query, null);
+        int workout_count = select_cursor.getCount();
+        select_cursor.close();
+        return workout_count;
+    }
+
+    /**
+     * Selects all workouts, returned as a list.
+     */
+    List<Workout> selectWorkoutList(String filter) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] RETURN_COLUMNS = { WORKOUT_COLUMN_WORKOUT_ID, WORKOUT_COLUMN_DESCRIPTION, WORKOUT_COLUMN_START_DATE };
+        String WHERE = WORKOUT_COLUMN_DESCRIPTION + " LIKE ?";
+        String SORT_ORDER = WORKOUT_COLUMN_START_DATE + " DESC";
+        String[] where_args = { "%" + filter + "%" };
+        Cursor select_cursor = db.query(
+                WORKOUT_TABLE_NAME,
+                RETURN_COLUMNS,
+                WHERE,
+                where_args,
+                null,
+                null,
+                SORT_ORDER);
+        List<Workout> workout_list = new ArrayList<Workout>();
+
+        while(select_cursor.moveToNext()) {
+            workout_list.add(new Workout(
+                    this,
+                    select_cursor.getLong(select_cursor.getColumnIndexOrThrow(WORKOUT_COLUMN_WORKOUT_ID)),
+                    select_cursor.getString(select_cursor.getColumnIndexOrThrow(WORKOUT_COLUMN_DESCRIPTION)),
+                    selectLiftsByWorkoutId(select_cursor.getLong(select_cursor.getColumnIndexOrThrow(WORKOUT_COLUMN_WORKOUT_ID))),
+                    new Date(select_cursor.getLong(select_cursor.getColumnIndexOrThrow(WORKOUT_COLUMN_START_DATE)))));
+        }
+        select_cursor.close();
+        return workout_list;
     }
 
     /**
@@ -531,7 +645,6 @@ class LiftDbHelper extends SQLiteOpenHelper {
     /**
      * Update the description of an exercise.
      * @param exercise      Exercise to update.
-     * @param description   Updated description.
      */
     void updateDescriptionOfExercise(Exercise exercise, String description)
     {
@@ -540,65 +653,104 @@ class LiftDbHelper extends SQLiteOpenHelper {
                 EXERCISE_COLUMN_EXERCISE_ID,
                 exercise.getExerciseId(),
                 EXERCISE_COLUMN_DESCRIPTION,
-                description);
+                exercise.getDescription());
     }
 
     /**
      * Update the most recent workout ID that an exercise was performed.
      * @param exercise      Exercise to update.
-     * @param workout_id    Workout ID that the exercise was performed.
      */
-    void updateLastWorkoutIdOfExercise(Exercise exercise, long workout_id)
+    void updateLastWorkoutIdOfExercise(Exercise exercise)
     {
         updateFieldLongFromId(
                 EXERCISE_TABLE_NAME,
                 EXERCISE_COLUMN_EXERCISE_ID,
                 exercise.getExerciseId(),
                 EXERCISE_COLUMN_LAST_WORKOUT_ID,
-                workout_id);
+                exercise.getLastWorkoutId());
     }
 
     /**
      * Update the ID of the maximum effort lift of the exercise.
      * @param exercise      Exercise to update.
-     * @param max_lift_id   ID of the maximum effort lift.
      */
-    void updateMaxLiftIdOfExercise(Exercise exercise, long max_lift_id)
+    void updateMaxLiftIdOfExercise(Exercise exercise)
     {
         updateFieldLongFromId(
                 EXERCISE_TABLE_NAME,
                 EXERCISE_COLUMN_EXERCISE_ID,
                 exercise.getExerciseId(),
                 EXERCISE_COLUMN_MAX_LIFT_ID,
-                max_lift_id);
+                exercise.getMaxLiftId());
     }
+
     /**
-     * Update the number of reps of a lift.
-     * @param lift  Lift to update.
-     * @param reps  Number of reps.
+     * Update the name of the exercise.
+     * @param exercise  Exercise to update.
      */
-    void updateRepsOfLift(Lift lift, int reps)
+    void updateNameOfExercise(Exercise exercise)
+    {
+        updateFieldStringFromId(
+                EXERCISE_TABLE_NAME,
+                EXERCISE_COLUMN_EXERCISE_ID,
+                exercise.getExerciseId(),
+                EXERCISE_COLUMN_NAME,
+                exercise.getName());
+    }
+
+    /**
+     * Update the comment of the lift. The comment should already be updated internally in the lift object.
+     * @param lift  Lift to update.
+     */
+    void updateCommentOfLift(Lift lift)
+    {
+        updateFieldStringFromId(
+                LIFT_TABLE_NAME,
+                LIFT_COLUMN_LIFT_ID,
+                lift.getLiftId(),
+                LIFT_COLUMN_COMMENT,
+                lift.getComment());
+    }
+
+    /**
+     * Update the number of reps of a lift. The lift object should already have the reps updated internally.
+     * @param lift  Lift to update.
+     */
+    void updateRepsOfLift(Lift lift)
     {
         updateFieldIntFromId(
                 LIFT_TABLE_NAME,
                 LIFT_COLUMN_LIFT_ID,
                 lift.getLiftId(),
                 LIFT_COLUMN_REPS,
-                reps);
+                lift.getReps());
     }
 
     /**
-     * Update the weight of a lift.
+     * Update the weight of a lift. The lift object should already have this weight updated internally.
      * @param lift      Lift to update.
-     * @param weight    Lift weight.
      */
-    void updateWeightOfLift(Lift lift, int weight)
+    void updateWeightOfLift(Lift lift)
     {
         updateFieldIntFromId(
                 LIFT_TABLE_NAME,
                 LIFT_COLUMN_LIFT_ID,
                 lift.getLiftId(),
                 LIFT_COLUMN_WEIGHT,
-                weight);
+                lift.getWeight());
+    }
+
+    /**
+     * Update the description of a workout. The worjout object should already have been updated internally.
+     * @param workout   Workout to update.
+     */
+    void updateDescriptionOfWorkout(Workout workout)
+    {
+        updateFieldStringFromId(
+                WORKOUT_TABLE_NAME,
+                WORKOUT_COLUMN_WORKOUT_ID,
+                workout.getWorkoutId(),
+                WORKOUT_COLUMN_DESCRIPTION,
+                workout.getDescription());
     }
 }

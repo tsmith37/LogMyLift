@@ -25,8 +25,20 @@ public class CurrentWorkoutCursorAdapter extends CursorAdapter {
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
-        TextView full_lift_description_text_view = (TextView) view.findViewById(R.id.full_exercise_description);
-        String full_lift_description = cursor.getString(cursor.getColumnIndexOrThrow("FullLiftDescription"));
-        full_lift_description_text_view.setText(full_lift_description);
+        try {
+            TextView exercise_text_view = (TextView) view.findViewById(R.id.exercise_name);
+            TextView weight_text_view = (TextView) view.findViewById(R.id.weight);
+            TextView reps_text_view = (TextView) view.findViewById(R.id.reps);
+            TextView comment_text_view = (TextView) view.findViewById(R.id.comment);
+
+            exercise_text_view.setText(cursor.getString(cursor.getColumnIndexOrThrow(LiftDbHelper.EXERCISE_COLUMN_NAME)));
+            weight_text_view.setText(cursor.getString(cursor.getColumnIndexOrThrow(LiftDbHelper.LIFT_COLUMN_WEIGHT)));
+            reps_text_view.setText(cursor.getString(cursor.getColumnIndexOrThrow(LiftDbHelper.LIFT_COLUMN_REPS)));
+            comment_text_view.setText(cursor.getString(cursor.getColumnIndexOrThrow(LiftDbHelper.LIFT_COLUMN_COMMENT)));
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 }

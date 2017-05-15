@@ -68,6 +68,8 @@ class Exercise {
 
     // Public access to read-only members.
     long getExerciseId() { return this.exercise_id; }
+    long getLastWorkoutId() { return this.last_workout_id; }
+    long getMaxLiftId() { return this.max_lift_id; }
     String getName() { return this.name; }
     String getDescription() { return this.description; }
 
@@ -86,7 +88,7 @@ class Exercise {
      */
     void setLastWorkoutId(long last_workout_id) {
         this.last_workout_id = last_workout_id;
-        lift_db.updateLastWorkoutIdOfExercise(this, this.last_workout_id);
+        lift_db.updateLastWorkoutIdOfExercise(this);
     }
 
     /**
@@ -95,6 +97,11 @@ class Exercise {
      */
     void setMaxLiftId(long max_lift_id) {
         this.max_lift_id = max_lift_id;
-        lift_db.updateMaxLiftIdOfExercise(this, this.max_lift_id);
+        lift_db.updateMaxLiftIdOfExercise(this);
+    }
+
+    void setName(String name) {
+        this.name = name;
+        lift_db.updateNameOfExercise(this);
     }
 }

@@ -13,7 +13,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.Date;
+import java.util.Locale;
 
 public class Start extends AppCompatActivity {
     private LiftDbHelper lift_db_helper;
@@ -46,6 +50,15 @@ public class Start extends AppCompatActivity {
             }
         });
 
+        Button view_workout_button = (Button) this.findViewById(R.id.view_workout_button);
+        view_workout_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v)
+            {
+                viewWorkout();
+            }
+        });
+
         Button add_exercise_button = (Button) this.findViewById(R.id.add_exercise_button);
         add_exercise_button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -57,13 +70,43 @@ public class Start extends AppCompatActivity {
     }
 
     private void startNewWorkout() {
-        Workout new_workout = new Workout(lift_db_helper);
-        goToWorkout(new_workout.getWorkoutId());
+        LayoutInflater li = LayoutInflater.from(this);
+        View add_workout_dialog_view = li.inflate(R.layout.add_workout_dialog, null);
+        AlertDialog.Builder add_workout_dialog_builder = new AlertDialog.Builder(this);
+        add_workout_dialog_builder.setTitle(R.string.create_workout_text);
+        add_workout_dialog_builder.setView(add_workout_dialog_view);
+        final TextView workout_date_text = (TextView) add_workout_dialog_view.findViewById(R.id.add_workout_date_text);
+        workout_date_text.setText(new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date()));
+        final EditText workout_description_text = (EditText) add_workout_dialog_view.findViewById(R.id.add_workout_description_dialog_text);
+        add_workout_dialog_builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Workout new_workout = new Workout(lift_db_helper, workout_description_text.getText().toString());
+                goToWorkout(new_workout.getWorkoutId());
+            }
+        });
+
+        add_workout_dialog_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Snackbar.make(findViewById(R.id.start_new_workout_button), "Workout not added.", Snackbar.LENGTH_LONG).show();
+            }
+        });
+
+        AlertDialog add_exercise_dialog = add_workout_dialog_builder.create();
+        add_exercise_dialog.show();
     }
 
     private void continueLastWorkout() {
         Workout last_workout = lift_db_helper.selectLastWorkout();
-        goToWorkout(last_workout.getWorkoutId());
+        if (last_workout != null) {
+            goToWorkout(last_workout.getWorkoutId());
+        }
+        else
+        {
+            // TODO: use this snackbar action to allow the user to start a new workout.
+            Snackbar.make(findViewById(R.id.continue_workout_button), "No workouts to continue.", Snackbar.LENGTH_LONG).show();
+        }
     }
 
     private void goToWorkout(long workout_id) {
@@ -74,7 +117,7 @@ public class Start extends AppCompatActivity {
     }
 
     private void showAddExerciseDialog() {
-        LayoutInflater li = LayoutInflater.from(this);
+        /*LayoutInflater li = LayoutInflater.from(this);
         View add_exercise_dialog_view = li.inflate(R.layout.add_exercise_dialog, null);
         AlertDialog.Builder add_exercise_dialog_builder = new AlertDialog.Builder(this);
         add_exercise_dialog_builder.setTitle(R.string.create_exercise_text);
@@ -104,5 +147,16 @@ public class Start extends AppCompatActivity {
 
         AlertDialog add_exercise_dialog = add_exercise_dialog_builder.create();
         add_exercise_dialog.show();
+        */
+        Intent exercise_list_intent = new Intent(current_context, ExerciseListActivity.class);
+        startActivity(exercise_list_intent);
+        finish();
+    }
+
+    private void viewWorkout()
+    {
+        Intent workout_list_intent = new Intent(current_context, WorkoutListActivity.class);
+        startActivity(workout_list_intent);
+        finish();
     }
 }

@@ -64,6 +64,7 @@ class Workout {
 
     // Public read-only access to members.
     Date getStartDate() { return this.start_date; }
+    String getReadableStartDate() { return new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).format(this.start_date); }
     String getDescription() { return this.description; }
     ArrayList getLiftIds() { return this.lift_ids; }
     long getWorkoutId() { return this.workout_id; }
@@ -71,13 +72,19 @@ class Workout {
     /**
      * Add a lift to the workout and return the lift.
      * @param exercise  The exercise of the new lift.
+     * @param comment   A comment for the lift.
      * @param reps      The number of reps of the new lift.
      * @param weight    The weight of the new lift.
      * @return          A newly created lift object with the contents described.
      */
-    Lift AddLift(Exercise exercise, int reps, int weight) {
-        Lift new_lift =  new Lift(lift_db_helper, exercise, reps, weight, this.workout_id);
+    Lift AddLift(Exercise exercise, int reps, int weight, String comment) {
+        Lift new_lift =  new Lift(lift_db_helper, exercise, reps, weight, this.workout_id, comment);
         this.lift_ids.add(new_lift.getLiftId());
         return new_lift;
+    }
+
+    void setDescription(String description) {
+        this.description = description;
+        this.lift_db_helper.updateDescriptionOfWorkout(this);
     }
 }
