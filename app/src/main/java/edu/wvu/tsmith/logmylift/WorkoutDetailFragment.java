@@ -1,12 +1,16 @@
 package edu.wvu.tsmith.logmylift;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.database.Cursor;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import edu.wvu.tsmith.logmylift.dummy.DummyContent;
@@ -57,11 +61,30 @@ public class WorkoutDetailFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.workout_detail, container, false);
 
-        // Show the dummy content as text in a TextView.
+        // Show the workout description in a TextView.
         if (current_workout != null) {
             ((TextView) rootView.findViewById(R.id.workout_detail)).setText(current_workout.getDescription());
-        }
 
+            ListView current_workout_list = (ListView) rootView.findViewById(R.id.current_workout_list);
+            Cursor current_workout_cursor = lift_db.selectLiftsFromWorkoutCursor(current_workout.getWorkoutId(), 50);
+            final CurrentWorkoutCursorAdapter current_workout_adapter = new CurrentWorkoutCursorAdapter(
+                    getContext(),
+                    current_workout_cursor);
+            if (current_workout_list != null)
+            {
+                current_workout_list.setAdapter(current_workout_adapter);
+            }
+
+            FloatingActionButton go_to_workout_button = (FloatingActionButton) rootView.findViewById(R.id.go_to_workout_button);
+            go_to_workout_button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent workout_intent = new Intent(getContext(), AddLiftToWorkoutActivity.class);
+                    workout_intent.putExtra(LiftDbHelper.WORKOUT_COLUMN_WORKOUT_ID, current_workout.getWorkoutId());
+                    startActivity(workout_intent);
+                }
+            });
+        }
         return rootView;
     }
 

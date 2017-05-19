@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -61,99 +62,104 @@ public class AddLiftToWorkoutActivity extends AppCompatActivity {
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // TODO: Figure out what this saved instance state does...
-        super.onCreate(savedInstanceState);
+        try {
+            // TODO: Figure out what this saved instance state does...
+            super.onCreate(savedInstanceState);
 
-        // SET THE LAYOUT OF THE ACTIVITY.
-        setContentView(R.layout.activity_add_lift_to_workout);
-        Context current_context = getApplicationContext();
-        lift_db_helper = new LiftDbHelper(current_context);
+            // SET THE LAYOUT OF THE ACTIVITY.
+            setContentView(R.layout.activity_add_lift_to_workout);
+            Context current_context = getApplicationContext();
+            lift_db_helper = new LiftDbHelper(current_context);
 
-        // GET THE CURRENT WORKOUT FROM THE INTENT PASSED TO THIS ACTIVITY.
-        Intent workout_intent = getIntent();
-        // TODO: maybe don't just set the default to 0...
-        long default_workout_id = 0;
-        long current_workout_id = workout_intent.getLongExtra(LiftDbHelper.WORKOUT_COLUMN_WORKOUT_ID, default_workout_id);
-        current_workout = lift_db_helper.selectWorkoutFromWorkoutId(current_workout_id);
+            // GET THE CURRENT WORKOUT FROM THE INTENT PASSED TO THIS ACTIVITY.
+            Intent workout_intent = getIntent();
+            // TODO: maybe don't just set the default to 0...
+            long default_workout_id = 0;
+            long current_workout_id = workout_intent.getLongExtra(LiftDbHelper.WORKOUT_COLUMN_WORKOUT_ID, default_workout_id);
+            current_workout = lift_db_helper.selectWorkoutFromWorkoutId(current_workout_id);
 
-        // SET UP THE TOOLBAR.
-        // The toolbar should show the date of the workout as well as the user-set description.
-        String activity_title = this.current_workout.getDescription() + " - " + this.current_workout.getReadableStartDate();
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle(activity_title);
+            // SET UP THE TOOLBAR.
+            // The toolbar should show the date of the workout as well as the user-set description.
+            String activity_title = this.current_workout.getDescription() + " - " + this.current_workout.getReadableStartDate();
+            Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+            setSupportActionBar(toolbar);
+            getSupportActionBar().setTitle(activity_title);
 
-        // SET UP EXERCISE SPINNER.
-        // If there are no exercises available, create some default ones. This fixes the problem
-        // of "what should we do about setting up the spinner when nothing is there?" and is an
-        // acceptable solution because there is no use case for the app when no exercises exist.
-        // The user can alter or delete the exercises later anyway.
-        if (lift_db_helper.selectExerciseCount() == 0)
+            // SET UP EXERCISE SPINNER.
+            // If there are no exercises available, create some default ones. This fixes the problem
+            // of "what should we do about setting up the spinner when nothing is there?" and is an
+            // acceptable solution because there is no use case for the app when no exercises exist.
+            // The user can alter or delete the exercises later anyway.
+            if (lift_db_helper.selectExerciseCount() == 0) {
+                Exercise bench_press = new Exercise(this.lift_db_helper, "Bench Press", "Flat barbell bench press");
+                Exercise squat = new Exercise(this.lift_db_helper, "Squat", "Barbell squat");
+                Exercise deadlift = new Exercise(this.lift_db_helper, "Deadlift", "Conventional deadlift");
+            }
+
+            reloadExerciseSpinner();
+            Spinner exercise_spinner = (Spinner) this.findViewById(R.id.exercise_spinner);
+            if (exercise_spinner != null) {
+                exercise_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        changeCurrentExercise(id);
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+                    }
+                });
+            }
+            changeCurrentExercise(exercise_spinner.getSelectedItemId());
+
+            // SET UP EXERCISE FILTERING.
+            final EditText exercise_filter_input = (EditText) this.findViewById(R.id.exercise_filter_input);
+            if (exercise_filter_input != null) {
+                exercise_filter_input.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+                        reloadExerciseSpinner();
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+
+                    }
+                });
+            }
+
+            Button clear_exercise_filter = (Button) this.findViewById(R.id.clear_exercise_filter);
+            if (clear_exercise_filter != null) {
+                clear_exercise_filter.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        exercise_filter_input.setText("");
+                    }
+                });
+            }
+
+            // SET UP CURRENT WORKOUT TABLE.
+            reloadCurrentWorkout();
+
+            // SET UP "ADD LIFT" BUTTON.
+            FloatingActionButton add_lift_button = (FloatingActionButton) this.findViewById(R.id.add_lift_button);
+            if (add_lift_button != null) {
+                add_lift_button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        addLift();
+                    }
+                });
+            }
+        }
+        catch (Exception e)
         {
-            Exercise bench_press = new Exercise(this.lift_db_helper, "Bench Press", "Flat barbell bench press");
-            Exercise squat = new Exercise(this.lift_db_helper, "Squat", "Barbell squat");
-            Exercise deadlift = new Exercise(this.lift_db_helper, "Deadlift", "Conventional deadlift");
-        }
-
-        reloadExerciseSpinner();
-        Spinner exercise_spinner = (Spinner) this.findViewById(R.id.exercise_spinner);
-        if (exercise_spinner != null) {
-            exercise_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    changeCurrentExercise(id);
-                }
-
-                @Override
-                public void onNothingSelected(AdapterView<?> parent) {
-                }
-            });
-        }
-        changeCurrentExercise(exercise_spinner.getSelectedItemId());
-
-        // SET UP EXERCISE FILTERING.
-        final EditText exercise_filter_input = (EditText) this.findViewById(R.id.exercise_filter_input);
-        if (exercise_filter_input != null) {
-            exercise_filter_input.addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-                }
-
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    reloadExerciseSpinner();
-                }
-
-                @Override
-                public void afterTextChanged(Editable s) {
-
-                }
-            });
-        }
-
-        Button clear_exercise_filter = (Button) this.findViewById(R.id.clear_exercise_filter);
-        if (clear_exercise_filter != null) {
-            clear_exercise_filter.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    exercise_filter_input.setText("");
-                }
-            });
-        }
-
-        // SET UP CURRENT WORKOUT TABLE.
-        reloadCurrentWorkout();
-
-        // SET UP "ADD LIFT" BUTTON.
-        Button add_lift_button = (Button) this.findViewById(R.id.add_lift_button);
-        if (add_lift_button != null) {
-            add_lift_button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    addLift();
-                }
-            });
+            e.printStackTrace();
         }
     }
 
@@ -163,15 +169,8 @@ public class AddLiftToWorkoutActivity extends AppCompatActivity {
     // The rest of this configuration is done in the onCreateOptionsMenu() and onOptionsItemSelected() handlers.
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        try {
-            getMenuInflater().inflate(R.menu.workout_toolbar, menu);
-            return true;
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-            return true;
-        }
+        getMenuInflater().inflate(R.menu.workout_toolbar, menu);
+        return true;
     }
 
     // HANDLE THE BUTTON PRESS OF THE TOOLBAR. SO FAR, THIS ONLY INCLUDES ADDING AN EXERCISE.
@@ -303,11 +302,12 @@ public class AddLiftToWorkoutActivity extends AppCompatActivity {
     private void reloadCurrentWorkout()
     {
         ListView current_workout_list = (ListView) this.findViewById(R.id.current_workout_list);
-        Cursor current_workout_cursor = lift_db_helper.selectLiftsFromWorkoutCursor(current_workout.getWorkoutId());
+        Cursor current_workout_cursor = lift_db_helper.selectLiftsFromWorkoutCursor(current_workout.getWorkoutId(), 50);
         final CurrentWorkoutCursorAdapter current_workout_adapter = new CurrentWorkoutCursorAdapter(
                 this,
                 current_workout_cursor);
-        if (current_workout_list != null) {
+        if (current_workout_list != null)
+        {
             current_workout_list.setAdapter(current_workout_adapter);
         }
     }

@@ -1,6 +1,7 @@
 package edu.wvu.tsmith.logmylift;
 
 import java.util.Date;
+import java.util.Locale;
 
 /**
  * Created by tmssm on 3/19/2017.
@@ -36,17 +37,50 @@ class Lift {
         this.weight = weight;
         this.workout_id = workout_id;
         this.lift_id = this.lift_db.insertLift(this);
+
         this.exercise.setLastWorkoutId(this.workout_id);
+
+        Lift exercise_max_effort_lift = this.lift_db.selectLiftFromLiftId(this.exercise.getMaxLiftId());
+        if (exercise_max_effort_lift != null) {
+            int exercise_current_max_effort = exercise_max_effort_lift.calculateMaxEffort();
+
+            if (calculateMaxEffort() > exercise_current_max_effort) {
+                this.exercise.setMaxLiftId(this.lift_id);
+            }
+        }
+        else
+        {
+            this.exercise.setMaxLiftId(this.lift_id);
+        }
+
+    }
+
+    Lift(LiftDbHelper lift_db_helper, long lift_id, Exercise exercise, int reps, Date start_date, int weight, long workout_id, String comment) {
+        this.comment = comment;
+        this.lift_id = lift_id;
+        this.exercise = exercise;
+        this.lift_db = lift_db_helper;
+        this.reps = reps;
+        this.start_date = start_date;
+        this.weight = weight;
+        this.workout_id = workout_id;
     }
 
     // Read-only access to members.
     String getComment() { return this.comment; }
     Exercise getExercise() { return this.exercise; }
     long getLiftId() { return this.lift_id; }
+    String getReadableStartDate() { return new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).format(this.start_date); }
     int getReps() { return this.reps; }
     Date getStartDate() { return this.start_date; }
     int getWeight() { return this.weight; }
     long getWorkoutId() { return this.workout_id; }
+
+    int calculateMaxEffort()
+    {
+        Double maximum_effort = this.weight/(1.0278-(0.278*this.reps));
+        return maximum_effort.intValue();
+    }
 
     void setComment(String comment)
     {
