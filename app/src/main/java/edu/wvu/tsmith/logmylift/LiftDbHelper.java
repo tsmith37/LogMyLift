@@ -226,9 +226,10 @@ class LiftDbHelper extends SQLiteOpenHelper {
                 " ORDER BY " + LIFT_COLUMN_START_DATE +
                 " LIMIT 50;"; */
         Cursor database_results = db.rawQuery(SELECT_QUERY, new String[] {Long.toString(workout_id)});
-        MatrixCursor header_row = new MatrixCursor(new String[] {"_id", EXERCISE_COLUMN_NAME, LIFT_COLUMN_WEIGHT, LIFT_COLUMN_REPS, LIFT_COLUMN_COMMENT});
-        header_row.addRow(new Object[] {-1, "Exercise", "Weight", "Reps", "Comment"});
-        return new MergeCursor(new Cursor[] {header_row, database_results});
+        //MatrixCursor header_row = new MatrixCursor(new String[] {"_id", EXERCISE_COLUMN_NAME, LIFT_COLUMN_WEIGHT, LIFT_COLUMN_REPS, LIFT_COLUMN_COMMENT});
+        //header_row.addRow(new Object[] {-1, "Exercise", "Weight", "Reps", "Comment"});
+        //return new MergeCursor(new Cursor[] {header_row, database_results});
+        return database_results;
     }
 
     /**
@@ -363,7 +364,7 @@ class LiftDbHelper extends SQLiteOpenHelper {
      */
     Cursor selectExercisesCursor(String filter) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String[] RETURN_COLUMNS = { EXERCISE_COLUMN_EXERCISE_ID + " AS _id", EXERCISE_COLUMN_NAME };
+        String[] RETURN_COLUMNS = { EXERCISE_COLUMN_EXERCISE_ID + " AS _id", EXERCISE_COLUMN_NAME, EXERCISE_COLUMN_DESCRIPTION };
         String WHERE = EXERCISE_COLUMN_NAME + " LIKE ?";
         String[] where_args = { "%" + filter + "%" };
 

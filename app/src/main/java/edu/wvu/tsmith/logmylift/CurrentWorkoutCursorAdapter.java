@@ -26,13 +26,15 @@ public class CurrentWorkoutCursorAdapter extends CursorAdapter {
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
         TextView exercise_text_view = (TextView) view.findViewById(R.id.exercise_name);
-        TextView weight_text_view = (TextView) view.findViewById(R.id.weight);
-        TextView reps_text_view = (TextView) view.findViewById(R.id.reps);
+        TextView weight_and_reps_text_view = (TextView) view.findViewById(R.id.weight_and_reps);
         TextView comment_text_view = (TextView) view.findViewById(R.id.comment);
 
+        String weight = cursor.getString(cursor.getColumnIndexOrThrow(LiftDbHelper.LIFT_COLUMN_WEIGHT));
+        String reps = cursor.getString(cursor.getColumnIndexOrThrow(LiftDbHelper.LIFT_COLUMN_REPS));
+        String weight_and_reps = "Weight: " + weight + ". Reps: " + reps + ".";
+
         exercise_text_view.setText(cursor.getString(cursor.getColumnIndexOrThrow(LiftDbHelper.EXERCISE_COLUMN_NAME)));
-        weight_text_view.setText(cursor.getString(cursor.getColumnIndexOrThrow(LiftDbHelper.LIFT_COLUMN_WEIGHT)));
-        reps_text_view.setText(cursor.getString(cursor.getColumnIndexOrThrow(LiftDbHelper.LIFT_COLUMN_REPS)));
+        weight_and_reps_text_view.setText(weight_and_reps);
         comment_text_view.setText(cursor.getString(cursor.getColumnIndexOrThrow(LiftDbHelper.LIFT_COLUMN_COMMENT)));
     }
 }

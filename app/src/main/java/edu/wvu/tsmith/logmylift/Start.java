@@ -113,7 +113,6 @@ public class Start extends AppCompatActivity {
         Intent workout_intent = new Intent(current_context, AddLiftToWorkoutActivity.class);
         workout_intent.putExtra(LiftDbHelper.WORKOUT_COLUMN_WORKOUT_ID, workout_id);
         startActivity(workout_intent);
-        finish();
     }
 
     private void showAddExerciseDialog() {
@@ -150,13 +149,11 @@ public class Start extends AppCompatActivity {
         */
         Intent exercise_list_intent = new Intent(current_context, ExerciseListActivity.class);
         startActivity(exercise_list_intent);
-        finish();
     }
 
     private void viewWorkout()
     {
         Intent workout_list_intent = new Intent(current_context, WorkoutListActivity.class);
         startActivity(workout_list_intent);
-        finish();
     }
 }

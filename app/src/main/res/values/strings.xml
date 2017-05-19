@@ -25,4 +25,8 @@
     <string name="title_exercise_detail">Exercise Detail</string>
     <string name="title_workout_list">Workouts</string>
     <string name="title_workout_detail">Workout Detail</string>
+    <string name="title_activity_bottom_navigation">BottomNavigationActivity</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
 </resources>
