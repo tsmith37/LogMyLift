@@ -67,7 +67,7 @@ public class AddLiftToWorkoutActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         // SET THE LAYOUT OF THE ACTIVITY.
-        setContentView(R.layout.activity_add_lift_to_workout);
+        setContentView(R.layout.add_lift_to_workout_layout);
         Context current_context = getApplicationContext();
         lift_db_helper = new LiftDbHelper(current_context);
 
@@ -247,10 +247,10 @@ public class AddLiftToWorkoutActivity extends AppCompatActivity {
     {
         this.current_exercise = lift_db_helper.selectExerciseFromExerciseId(exercise_id);
 
-        TextView exercise_description_text_view = (TextView) this.findViewById(R.id.exercise_description_text);
-        if (exercise_description_text_view != null) {
-            exercise_description_text_view.setText(this.current_exercise.getDescription());
-        }
+    //    TextView exercise_description_text_view = (TextView) this.findViewById(R.id.exercise_description_text);
+    //    if (exercise_description_text_view != null) {
+    //        exercise_description_text_view.setText(this.current_exercise.getDescription());
+    //    }
     }
 
     /**

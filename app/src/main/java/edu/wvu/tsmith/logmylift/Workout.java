@@ -2,6 +2,7 @@ package edu.wvu.tsmith.logmylift;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -68,6 +69,16 @@ class Workout {
     String getDescription() { return this.description; }
     ArrayList getLiftIds() { return this.lift_ids; }
     long getWorkoutId() { return this.workout_id; }
+
+    ArrayList<Lift> getLifts()
+    {
+        ArrayList<Lift> lifts = new ArrayList<>();
+        for (long lift_id: lift_ids)
+        {
+            lifts.add(lift_db_helper.selectLiftFromLiftId(lift_id));
+        }
+        return lifts;
+    }
 
     /**
      * Add a lift to the workout and return the lift.

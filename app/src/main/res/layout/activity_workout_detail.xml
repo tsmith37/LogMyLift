@@ -18,9 +18,10 @@
             android:id="@+id/toolbar_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:fitsSystemWindows="true"
+            android:fitsSystemWindows="false"
             app:contentScrim="?attr/colorPrimary"
             app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            app:expandedTitleTextAppearance="@style/HeaderTitle"
             app:toolbarId="@+id/toolbar">
 
             <android.support.v7.widget.Toolbar
@@ -46,8 +47,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical|start"
         android:layout_margin="@dimen/fab_margin"
+        app:srcCompat="@mipmap/ic_mode_edit_white_24dp"
         app:layout_anchor="@+id/workout_detail_container"
         app:layout_anchorGravity="top|end"
-        app:srcCompat="@mipmap/ic_mode_edit_white_24dp" />
-
+        app:useCompatPadding="true"/>
 </android.support.design.widget.CoordinatorLayout>

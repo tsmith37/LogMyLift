@@ -83,40 +83,8 @@ public class WorkoutDetailActivity extends AppCompatActivity {
     }
 
     private void editWorkout() {
-        LiftDbHelper lift_db_helper = new LiftDbHelper(getBaseContext());
-        final Workout current_workout = lift_db_helper.selectWorkoutFromWorkoutId(getIntent().getLongExtra(WorkoutDetailFragment.workout_id, 0));
-        LayoutInflater li = LayoutInflater.from(this);
-        // Re-use the add workout dialog. It contains the same fields we want to use here.
-        View edit_workout_dialog_view = li.inflate(R.layout.add_workout_dialog, null);
-        AlertDialog.Builder edit_workout_dialog_builder = new AlertDialog.Builder(this);
-        edit_workout_dialog_builder.setTitle(R.string.edit_workout_text);
-        edit_workout_dialog_builder.setView(edit_workout_dialog_view);
-        final TextView edit_workout_date_text = (TextView) edit_workout_dialog_view.findViewById(R.id.add_workout_date_text);
-        edit_workout_date_text.setText(current_workout.getReadableStartDate());
-        final EditText workout_description_text = (EditText) edit_workout_dialog_view.findViewById(R.id.add_workout_description_dialog_text);
-        workout_description_text.setText(current_workout.getDescription());
-        edit_workout_dialog_builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if (workout_description_text.getText().toString().isEmpty()) {
-                    Snackbar.make(findViewById(R.id.edit_workout_button), "Workout name not valid.", Snackbar.LENGTH_LONG).show();
-                }
-                else {
-                    current_workout.setDescription(workout_description_text.getText().toString());
-                    Snackbar.make(findViewById(R.id.edit_workout_button), "Workout updated.", Snackbar.LENGTH_LONG).show();
-
-                    WorkoutDetailFragment workout_detail_fragment = (WorkoutDetailFragment) getSupportFragmentManager().findFragmentByTag("detail_fragment");
-                    workout_detail_fragment.reload();
-                }
-            }
-        });
-        edit_workout_dialog_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Snackbar.make(findViewById(R.id.edit_workout_button), "Workout not updated.", Snackbar.LENGTH_LONG).show();
-            }
-        });
-        AlertDialog edit_workout_dialog = edit_workout_dialog_builder.create();
-        edit_workout_dialog.show();
+        Intent workout_intent = new Intent(getBaseContext(), AddLiftToWorkoutActivity.class);
+        workout_intent.putExtra(LiftDbHelper.WORKOUT_COLUMN_WORKOUT_ID, getIntent().getLongExtra(WorkoutDetailFragment.workout_id, 0));
+        startActivity(workout_intent);
     }
 }

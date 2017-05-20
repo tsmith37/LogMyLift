@@ -7,11 +7,15 @@ import android.support.design.widget.CollapsingToolbarLayout;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import java.util.ArrayList;
 
 import edu.wvu.tsmith.logmylift.dummy.DummyContent;
 
@@ -51,7 +55,7 @@ public class WorkoutDetailFragment extends Fragment {
             Activity activity = this.getActivity();
             CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
             if (appBarLayout != null) {
-                appBarLayout.setTitle(current_workout.getDescription() + " - " + current_workout.getReadableStartDate());
+                appBarLayout.setTitle(current_workout.getDescription());
             }
         }
     }
@@ -63,27 +67,12 @@ public class WorkoutDetailFragment extends Fragment {
 
         // Show the workout description in a TextView.
         if (current_workout != null) {
-            ((TextView) rootView.findViewById(R.id.workout_detail)).setText(current_workout.getDescription());
-
-            ListView current_workout_list = (ListView) rootView.findViewById(R.id.current_workout_list);
-            Cursor current_workout_cursor = lift_db.selectLiftsFromWorkoutCursor(current_workout.getWorkoutId(), 50);
-            final CurrentWorkoutCursorAdapter current_workout_adapter = new CurrentWorkoutCursorAdapter(
-                    getContext(),
-                    current_workout_cursor);
-            if (current_workout_list != null)
-            {
-                current_workout_list.setAdapter(current_workout_adapter);
-            }
-
-            FloatingActionButton go_to_workout_button = (FloatingActionButton) rootView.findViewById(R.id.go_to_workout_button);
-            go_to_workout_button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent workout_intent = new Intent(getContext(), AddLiftToWorkoutActivity.class);
-                    workout_intent.putExtra(LiftDbHelper.WORKOUT_COLUMN_WORKOUT_ID, current_workout.getWorkoutId());
-                    startActivity(workout_intent);
-                }
-            });
+            RecyclerView current_workout_list = (RecyclerView) rootView.findViewById(R.id.current_workout_list);
+            RecyclerView.LayoutManager current_workout_layout_manager = new LinearLayoutManager(getContext());
+            current_workout_list.setLayoutManager(current_workout_layout_manager);
+            ArrayList<Lift> current_workout_lifts = current_workout.getLifts();
+            WorkoutHistoryAdapter current_workout_history = new WorkoutHistoryAdapter(current_workout_lifts);
+            current_workout_list.setAdapter(current_workout_history);
         }
         return rootView;
     }
@@ -91,13 +80,10 @@ public class WorkoutDetailFragment extends Fragment {
     public void reload()
     {
         this.current_workout = lift_db.selectWorkoutFromWorkoutId(getArguments().getLong(workout_id));
-        View current_view = this.getView();
-        TextView workout_description_text_view = (TextView) current_view.findViewById(R.id.workout_detail);
         Activity activity = this.getActivity();
         CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
         if (appBarLayout != null) {
             appBarLayout.setTitle(current_workout.getDescription());
         }
-        workout_description_text_view.setText(current_workout.getDescription());
     }
 }

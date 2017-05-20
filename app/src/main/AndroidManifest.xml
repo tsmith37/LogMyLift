@@ -14,7 +14,6 @@
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -22,17 +21,18 @@
             android:name=".AddLiftToWorkoutActivity"
             android:label="@string/title_activity_add_lift_to_workout"
             android:theme="@style/AppTheme.NoActionBar"
-            android:windowSoftInputMode="adjustNothing">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            android:windowSoftInputMode="adjustResize">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="edu.wvu.tsmith.logmylift.Start" />
         </activity>
         <activity
             android:name=".ExerciseListActivity"
             android:label="@string/title_exercise_list"
             android:theme="@style/AppTheme.NoActionBar" />
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="edu.wvu.tsmith.logmylift.Start" />
         <activity
             android:name=".ExerciseDetailActivity"
             android:label="@string/title_exercise_detail"

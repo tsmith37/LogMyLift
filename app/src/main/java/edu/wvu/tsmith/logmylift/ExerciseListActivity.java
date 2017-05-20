@@ -161,14 +161,15 @@ public class ExerciseListActivity extends AppCompatActivity {
                         getSupportFragmentManager().beginTransaction()
                                 .replace(R.id.exercise_detail_container, fragment)
                                 .commit();
-                    } else {
+                    }
+                    else
+                    {
                         Context context = v.getContext();
                         Intent intent = new Intent(context, ExerciseDetailActivity.class);
                         intent.putExtra(ExerciseDetailFragment.exercise_id, holder.exercise.getExerciseId());
 
                         context.startActivity(intent);
-                    }
-                }
+                    }}
             });
         }
 

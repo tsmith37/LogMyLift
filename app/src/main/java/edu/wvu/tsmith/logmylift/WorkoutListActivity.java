@@ -1,9 +1,11 @@
 package edu.wvu.tsmith.logmylift;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -12,6 +14,7 @@ import android.support.design.widget.Snackbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import android.support.v7.app.ActionBar;
@@ -19,7 +22,9 @@ import android.view.MenuItem;
 
 import edu.wvu.tsmith.logmylift.dummy.DummyContent;
 
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * An activity representing a list of Workouts. This activity
@@ -51,8 +56,7 @@ public class WorkoutListActivity extends AppCompatActivity {
         add_workout_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                showNewWorkoutDialog();
             }
         });
 
@@ -156,5 +160,36 @@ public class WorkoutListActivity extends AppCompatActivity {
                 return super.toString() + " '" + workout_description_text_view.getText() + "'";
             }
         }
+    }
+
+    private void showNewWorkoutDialog()
+    {
+        LayoutInflater li = LayoutInflater.from(this);
+        View add_workout_dialog_view = li.inflate(R.layout.add_workout_dialog, null);
+        AlertDialog.Builder add_workout_dialog_builder = new AlertDialog.Builder(this);
+        add_workout_dialog_builder.setTitle(R.string.create_workout_text);
+        add_workout_dialog_builder.setView(add_workout_dialog_view);
+        final TextView workout_date_text = (TextView) add_workout_dialog_view.findViewById(R.id.add_workout_date_text);
+        workout_date_text.setText(new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date()));
+        final EditText workout_description_text = (EditText) add_workout_dialog_view.findViewById(R.id.add_workout_description_dialog_text);
+        add_workout_dialog_builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Workout new_workout = new Workout(lift_db, workout_description_text.getText().toString());
+                Intent workout_intent = new Intent(getBaseContext(), AddLiftToWorkoutActivity.class);
+                workout_intent.putExtra(LiftDbHelper.WORKOUT_COLUMN_WORKOUT_ID, new_workout.getWorkoutId());
+                startActivity(workout_intent);
+            }
+        });
+
+        add_workout_dialog_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Snackbar.make(findViewById(R.id.add_workout_button), "Workout not added.", Snackbar.LENGTH_LONG).show();
+            }
+        });
+
+        AlertDialog add_exercise_dialog = add_workout_dialog_builder.create();
+        add_exercise_dialog.show();
     }
 }

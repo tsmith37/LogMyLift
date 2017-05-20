@@ -37,8 +37,7 @@
     </FrameLayout>
     <Spinner
         android:id="@+id/exercise_spinner"
-        android:layout_height="90dp"
-        android:layout_width="368dp"
+        style="@style/BigSpinner"
         app:layout_constraintBottom_toTopOf="@+id/exercise_description_text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

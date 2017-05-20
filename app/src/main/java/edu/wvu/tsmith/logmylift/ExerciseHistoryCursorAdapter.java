@@ -26,14 +26,14 @@ public class ExerciseHistoryCursorAdapter  extends CursorAdapter {
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
-        TextView date_text_view = (TextView) view.findViewById(R.id.lift_date);
-        TextView weight_text_view = (TextView) view.findViewById(R.id.weight);
-        TextView reps_text_view = (TextView) view.findViewById(R.id.reps);
-        TextView comment_text_view = (TextView) view.findViewById(R.id.comment);
-        String readable_date = new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).format(cursor.getLong(cursor.getColumnIndexOrThrow(LiftDbHelper.LIFT_COLUMN_START_DATE)));
-        date_text_view.setText(readable_date);
-        weight_text_view.setText(cursor.getString(cursor.getColumnIndexOrThrow(LiftDbHelper.LIFT_COLUMN_WEIGHT)));
-        reps_text_view.setText(cursor.getString(cursor.getColumnIndexOrThrow(LiftDbHelper.LIFT_COLUMN_REPS)));
-        comment_text_view.setText(cursor.getString(cursor.getColumnIndexOrThrow(LiftDbHelper.LIFT_COLUMN_COMMENT)));
+      //  TextView date_text_view = (TextView) view.findViewById(R.id.lift_date);
+      //  TextView weight_text_view = (TextView) view.findViewById(R.id.weight);
+      //  TextView reps_text_view = (TextView) view.findViewById(R.id.reps);
+      //  TextView comment_text_view = (TextView) view.findViewById(R.id.comment);
+      //  String readable_date = new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).format(cursor.getLong(cursor.getColumnIndexOrThrow(LiftDbHelper.LIFT_COLUMN_START_DATE)));
+      //  date_text_view.setText(readable_date);
+      //  weight_text_view.setText(cursor.getString(cursor.getColumnIndexOrThrow(LiftDbHelper.LIFT_COLUMN_WEIGHT)));
+      //  reps_text_view.setText(cursor.getString(cursor.getColumnIndexOrThrow(LiftDbHelper.LIFT_COLUMN_REPS)));
+      //  comment_text_view.setText(cursor.getString(cursor.getColumnIndexOrThrow(LiftDbHelper.LIFT_COLUMN_COMMENT)));
     }
 }

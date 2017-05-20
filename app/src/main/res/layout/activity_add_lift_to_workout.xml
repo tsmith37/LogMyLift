@@ -20,5 +20,5 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_add_lift_to_workout" />
+    <include layout="@layout/add_lift_to_workout_layout" />
 </android.support.design.widget.CoordinatorLayout>

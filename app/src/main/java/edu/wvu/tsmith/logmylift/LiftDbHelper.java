@@ -485,6 +485,7 @@ class LiftDbHelper extends SQLiteOpenHelper {
 
         return new Lift(this, lift_id, exercise, reps, start_date, weight, workout_id, comment);
     }
+
     /**
      * Selects the history of a particular exercise. This history is returned as a cursor in a readable
      * format.
@@ -519,6 +520,30 @@ class LiftDbHelper extends SQLiteOpenHelper {
 //        header_row.addRow(new Object[] {-1, "Date", "Weight", "Reps", "Comment"});
         return database_results;
         //return new MergeCursor(new Cursor[] {header_row, database_results});
+    }
+
+    ArrayList<Lift> selectExerciseHistoryLifts(Exercise exercise) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] RETURN_COLUMNS = { LIFT_COLUMN_LIFT_ID };
+        String WHERE = LIFT_COLUMN_EXERCISE_ID + " LIKE ?";
+        String[] where_args = { Long.toString(exercise.getExerciseId()) };
+        String SORT_ORDER = LIFT_COLUMN_START_DATE + " DESC";
+        Cursor select_cursor = db.query(
+                LIFT_TABLE_NAME,
+                RETURN_COLUMNS,
+                WHERE,
+                where_args,
+                null,
+                null,
+                SORT_ORDER);
+        ArrayList<Lift> exercise_history_lifts = new ArrayList<Lift>();
+
+        while(select_cursor.moveToNext()) {
+            long current_lift_id = select_cursor.getLong(select_cursor.getColumnIndexOrThrow(LIFT_COLUMN_LIFT_ID));
+            exercise_history_lifts.add(selectLiftFromLiftId(current_lift_id));
+        }
+        select_cursor.close();
+        return exercise_history_lifts;
     }
 
     /**
@@ -604,7 +629,7 @@ class LiftDbHelper extends SQLiteOpenHelper {
 
         Date start_date = new Date(start_date_as_long);
 
-        return new Workout(this, workout_id, description, selectLiftsByWorkoutId(id),start_date);
+        return new Workout(this, workout_id, description, selectLiftsByWorkoutId(workout_id),start_date);
     }
 
     /**
