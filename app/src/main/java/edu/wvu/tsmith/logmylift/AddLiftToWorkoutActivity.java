@@ -1,5 +1,6 @@
 package edu.wvu.tsmith.logmylift;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -10,21 +11,23 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.CursorAdapter;
 import android.widget.EditText;
-import android.widget.ListView;
+import android.widget.ImageButton;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
-import android.widget.TextView;
+
+import java.util.ArrayList;
 
 /**
  * This class provides the activity to add a lift to the current workout, as well as providing
@@ -97,9 +100,9 @@ public class AddLiftToWorkoutActivity extends AppCompatActivity {
         // acceptable solution because there is no use case for the app when no exercises exist.
         // The user can alter or delete the exercises later anyway.
         if (lift_db_helper.selectExerciseCount() == 0) {
-            Exercise bench_press = new Exercise(this.lift_db_helper, "Bench Press", "Flat barbell bench press");
-            Exercise squat = new Exercise(this.lift_db_helper, "Squat", "Barbell squat");
-            Exercise deadlift = new Exercise(this.lift_db_helper, "Deadlift", "Conventional deadlift");
+            new Exercise(this.lift_db_helper, "Bench Press", "Flat barbell bench press");
+            new Exercise(this.lift_db_helper, "Squat", "Barbell squat");
+            new Exercise(this.lift_db_helper, "Deadlift", "Conventional deadlift");
         }
 
         reloadExerciseSpinner();
@@ -117,6 +120,15 @@ public class AddLiftToWorkoutActivity extends AppCompatActivity {
             });
         }
         changeCurrentExercise(exercise_spinner.getSelectedItemId());
+
+        // SET UP THE ADD EXERCISE BUTTON.
+        ImageButton add_exercise_button = (ImageButton) findViewById(R.id.add_exercise_button);
+        add_exercise_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showAddExerciseDialog();
+            }
+        });
 
         // SET UP EXERCISE FILTERING.
         final EditText exercise_filter_input = (EditText) this.findViewById(R.id.exercise_filter_input);
@@ -139,7 +151,7 @@ public class AddLiftToWorkoutActivity extends AppCompatActivity {
             });
         }
 
-        Button clear_exercise_filter = (Button) this.findViewById(R.id.clear_exercise_filter);
+        ImageButton clear_exercise_filter = (ImageButton) this.findViewById(R.id.clear_exercise_filter);
         if (clear_exercise_filter != null) {
             clear_exercise_filter.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -159,32 +171,19 @@ public class AddLiftToWorkoutActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     addLift();
+                    resetInputs(v);
                 }
             });
         }
     }
 
-    // ADDING AN EXERCISE IS DONE VIA THE TOOLBAR.
-    // Configure the toolbar. The toolbar contains a button that will bring up a dialog to allow
-    // the user to add an exercise, as well as the title of the activity.
-    // The rest of this configuration is done in the onCreateOptionsMenu() and onOptionsItemSelected() handlers.
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.workout_toolbar, menu);
-        return true;
-    }
-
-    // HANDLE THE BUTTON PRESS OF THE TOOLBAR. SO FAR, THIS ONLY INCLUDES ADDING AN EXERCISE.
+    // HANDLE THE BUTTON PRESS OF THE TOOLBAR.
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int toolbar_item_id = item.getItemId();
 
-        // Handle add exercise button.
-        if (toolbar_item_id == R.id.add_exercise_toolbar_item) {
-            showAddExerciseDialog();
-            return true;
-        }
-        else if (toolbar_item_id == android.R.id.home) {
+        // Handle the home bottom.
+        if (toolbar_item_id == android.R.id.home) {
             this.finish();
             return true;
         }
@@ -304,23 +303,30 @@ public class AddLiftToWorkoutActivity extends AppCompatActivity {
     /**
      * Reload the current workout table.
      */
-    private void reloadCurrentWorkout()
+    void reloadCurrentWorkout()
     {
-        ListView current_workout_list = (ListView) this.findViewById(R.id.current_workout_list);
-        Cursor current_workout_cursor = lift_db_helper.selectLiftsFromWorkoutCursor(current_workout.getWorkoutId(), 50);
-        final CurrentWorkoutCursorAdapter current_workout_adapter = new CurrentWorkoutCursorAdapter(
-                this,
-                current_workout_cursor);
-        if (current_workout_list != null)
-        {
-            current_workout_list.setAdapter(current_workout_adapter);
-        }
+        RecyclerView current_workout_list = (RecyclerView) this.findViewById(R.id.current_workout_list);
+        RecyclerView.LayoutManager current_workout_layout_manager = new LinearLayoutManager(getApplicationContext());
+        current_workout_list.setLayoutManager(current_workout_layout_manager);
+        ArrayList<Lift> current_workout_lifts = current_workout.getLifts();
+        WorkoutHistoryAdapter current_workout_history = new WorkoutHistoryAdapter(this, current_workout_lifts);
+        current_workout_list.setAdapter(current_workout_history);
+       // ListView current_workout_list = (ListView) this.findViewById(R.id.current_workout_list);
+       // Cursor current_workout_cursor = lift_db_helper.selectLiftsFromWorkoutCursor(current_workout.getWorkoutId(), 50);
+       // final CurrentWorkoutCursorAdapter current_workout_adapter = new CurrentWorkoutCursorAdapter(
+       //         this,
+       //         current_workout_cursor);
+       // if (current_workout_list != null)
+       // {
+       //     current_workout_list.setAdapter(current_workout_adapter);
+        // }
     }
 
     /**
      * Show the add exercise dialog. This allows the user to insert a new exercise into the database for selection.
      */
-    private void showAddExerciseDialog() {
+    private void showAddExerciseDialog()
+    {
         LayoutInflater li = LayoutInflater.from(this);
         View add_exercise_dialog_view = li.inflate(R.layout.add_exercise_dialog, null);
         AlertDialog.Builder add_exercise_dialog_builder = new AlertDialog.Builder(this);
@@ -333,24 +339,34 @@ public class AddLiftToWorkoutActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialog, int which) {
                 if (exercise_name_text.getText().toString().isEmpty())
                 {
-                    Snackbar.make(findViewById(R.id.add_exercise_toolbar_item), "Exercise name not valid.", Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(findViewById(R.id.add_exercise_button), "Exercise name not valid.", Snackbar.LENGTH_LONG).show();
                 }
                 else
                 {
-                    Exercise new_exercise = new Exercise(lift_db_helper, exercise_name_text.getText().toString(), exercise_description_text.getText().toString());
+                    new Exercise(lift_db_helper, exercise_name_text.getText().toString(), exercise_description_text.getText().toString());
                     reloadExerciseSpinner();
+                    Snackbar.make(findViewById(R.id.add_exercise_button), "Exercise added.", Snackbar.LENGTH_LONG).show();
                 }
+                dialog.dismiss();
             }
         });
 
         add_exercise_dialog_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Snackbar.make(findViewById(R.id.add_exercise_toolbar_item), "Exercise not added.", Snackbar.LENGTH_LONG).show();
+                Snackbar.make(findViewById(R.id.add_exercise_button), "Exercise not added.", Snackbar.LENGTH_LONG).show();
+                dialog.dismiss();
             }
         });
 
         AlertDialog add_exercise_dialog = add_exercise_dialog_builder.create();
         add_exercise_dialog.show();
+    }
+
+    void resetInputs(View view) {
+        InputMethodManager input_method_manager = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
+        input_method_manager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        EditText comment = (EditText) findViewById(R.id.comment_input);
+        comment.setText("");
     }
 }

@@ -22,6 +22,7 @@ import android.view.MenuItem;
 
 import edu.wvu.tsmith.logmylift.dummy.DummyContent;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -96,9 +97,9 @@ public class WorkoutListActivity extends AppCompatActivity {
     public class SimpleItemRecyclerViewAdapter
             extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
 
-        private final List<Workout> workout_list_values;
+        private final ArrayList<Workout> workout_list_values;
 
-        public SimpleItemRecyclerViewAdapter(List<Workout> workouts) {
+        public SimpleItemRecyclerViewAdapter(ArrayList<Workout> workouts) {
             workout_list_values = workouts;
         }
 
@@ -135,6 +136,14 @@ public class WorkoutListActivity extends AppCompatActivity {
                     }
                 }
             });
+
+            holder.workout_list_view.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    showEditWorkoutDialog(holder.workout);
+                    return false;
+                }
+            });
         }
 
         @Override
@@ -150,9 +159,10 @@ public class WorkoutListActivity extends AppCompatActivity {
 
             public ViewHolder(View view) {
                 super(view);
-                workout_list_view = view;
-                workout_description_text_view = (TextView) view.findViewById(R.id.workout_description_text_view);
-                workout_date_text_view = (TextView) view.findViewById(R.id.workout_date_text_view);
+                this.workout_list_view = view;
+                this.workout_description_text_view = (TextView) view.findViewById(R.id.workout_description_text_view);
+                this.workout_date_text_view = (TextView) view.findViewById(R.id.workout_date_text_view);
+
             }
 
             @Override
@@ -191,5 +201,39 @@ public class WorkoutListActivity extends AppCompatActivity {
 
         AlertDialog add_exercise_dialog = add_workout_dialog_builder.create();
         add_exercise_dialog.show();
+    }
+
+    private void showEditWorkoutDialog(final Workout current_workout)
+    {
+        LayoutInflater li = LayoutInflater.from(this);
+        // Re-use the add workout dialog here...
+        View edit_workout_dialog_view = li.inflate(R.layout.add_workout_dialog, null);
+        AlertDialog.Builder edit_workout_dialog_builder = new AlertDialog.Builder(this);
+        edit_workout_dialog_builder.setTitle("Edit Workout");
+        edit_workout_dialog_builder.setView(edit_workout_dialog_view);
+        final TextView workout_date_text = (TextView) edit_workout_dialog_view.findViewById(R.id.add_workout_date_text);
+        workout_date_text.setText(current_workout.getReadableStartDate());
+        final EditText workout_description_text = (EditText) edit_workout_dialog_view.findViewById(R.id.add_workout_description_dialog_text);
+        workout_description_text.setText(current_workout.getDescription());
+        edit_workout_dialog_builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                current_workout.setDescription(workout_description_text.getText().toString());
+                Snackbar.make(findViewById(R.id.add_workout_button), "Workout updated.", Snackbar.LENGTH_LONG).show();
+                RecyclerView recyclerView = (RecyclerView) findViewById(R.id.workout_list);
+                SimpleItemRecyclerViewAdapter recycler_view_adapter = (SimpleItemRecyclerViewAdapter) recyclerView.getAdapter();
+                recycler_view_adapter.notifyDataSetChanged();
+            }
+        });
+
+        edit_workout_dialog_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Snackbar.make(findViewById(R.id.add_workout_button), "Workout not updated.", Snackbar.LENGTH_LONG).show();
+            }
+        });
+
+        AlertDialog edit_workout_dialog = edit_workout_dialog_builder.create();
+        edit_workout_dialog.show();
     }
 }

@@ -3,21 +3,12 @@ package edu.wvu.tsmith.logmylift;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.MatrixCursor;
-import android.database.MergeCursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
-
-import static android.R.attr.id;
-
 
 /**
  * The LiftDbHelper class provides a public interface to the SQLite database used by the application.
@@ -192,44 +183,6 @@ class LiftDbHelper extends SQLiteOpenHelper {
         insert_values.put(WORKOUT_COLUMN_START_DATE, workout.getStartDate().getTime());
         insert_values.put(WORKOUT_COLUMN_DESCRIPTION, workout.getDescription());
         return db.insert(WORKOUT_TABLE_NAME, null, insert_values);
-    }
-
-    /**
-     * Selects all the lifts in the workout. These are returned as a cursor in a readable format.
-     * Some formatting is done to group together multiple lifts into number of sets if the weight
-     * and reps are the same.
-     * @param workout_id    The ID of the workout.
-     * @return              The cursor containing the lift of the workout.
-     */
-    Cursor selectLiftsFromWorkoutCursor(long workout_id, int limit) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        // TODO: Make this better overall. It works, but it's messy.
-        final String SELECT_QUERY = "SELECT " +
-                LIFT_COLUMN_LIFT_ID + " AS _id, " +
-                EXERCISE_COLUMN_NAME + ", " +
-                LIFT_COLUMN_WEIGHT + ", " +
-                LIFT_COLUMN_REPS + ", " +
-                LIFT_COLUMN_COMMENT +
-                " FROM " +
-                LIFT_TABLE_NAME + " INNER JOIN " + EXERCISE_TABLE_NAME + " ON " + LIFT_TABLE_NAME + "." + LIFT_COLUMN_EXERCISE_ID + " = " + EXERCISE_TABLE_NAME + "." + EXERCISE_COLUMN_EXERCISE_ID +
-                " WHERE " + LIFT_COLUMN_WORKOUT_ID + " = ?" +
-                " GROUP BY " + EXERCISE_COLUMN_NAME + ", " + LIFT_COLUMN_WEIGHT + ", " + LIFT_COLUMN_REPS +
-                " ORDER BY " + LIFT_COLUMN_START_DATE + " DESC " +
-                " LIMIT " + Integer.toString(limit) + ";";
-       /* final String SELECT_QUERY = "SELECT " +
-                LIFT_COLUMN_LIFT_ID + " AS _id, " +
-                EXERCISE_COLUMN_NAME + " || ': ' || " + LIFT_COLUMN_WEIGHT + " || ' for ' || Count(" + LIFT_COLUMN_LIFT_ID + ") || 'x' || " + LIFT_COLUMN_REPS + " AS FullLiftDescription" +
-                " FROM " +
-                LIFT_TABLE_NAME + " INNER JOIN " + EXERCISE_TABLE_NAME + " ON " + LIFT_TABLE_NAME + "." + LIFT_COLUMN_EXERCISE_ID + " = " + EXERCISE_TABLE_NAME + "." + EXERCISE_COLUMN_EXERCISE_ID +
-                " WHERE " + LIFT_COLUMN_WORKOUT_ID + " = ?" +
-                " GROUP BY " + EXERCISE_COLUMN_NAME + ", " + LIFT_COLUMN_WEIGHT + ", " + LIFT_COLUMN_REPS +
-                " ORDER BY " + LIFT_COLUMN_START_DATE +
-                " LIMIT 50;"; */
-        Cursor database_results = db.rawQuery(SELECT_QUERY, new String[] {Long.toString(workout_id)});
-        //MatrixCursor header_row = new MatrixCursor(new String[] {"_id", EXERCISE_COLUMN_NAME, LIFT_COLUMN_WEIGHT, LIFT_COLUMN_REPS, LIFT_COLUMN_COMMENT});
-        //header_row.addRow(new Object[] {-1, "Exercise", "Weight", "Reps", "Comment"});
-        //return new MergeCursor(new Cursor[] {header_row, database_results});
-        return database_results;
     }
 
     /**
@@ -486,48 +439,12 @@ class LiftDbHelper extends SQLiteOpenHelper {
         return new Lift(this, lift_id, exercise, reps, start_date, weight, workout_id, comment);
     }
 
-    /**
-     * Selects the history of a particular exercise. This history is returned as a cursor in a readable
-     * format.
-     * @param exercise  The exercise of which to retrieve its history.
-     * @return          A cursor containing the history of the exercise.
-     */
-    Cursor selectExerciseHistoryCursor(Exercise exercise, int limit) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        // TODO: Make this one better too...
-        final String SELECT_QUERY = "SELECT " +
-                EXERCISE_COLUMN_EXERCISE_ID + " AS _id, " +
-                LIFT_COLUMN_START_DATE + ", " +
-                LIFT_COLUMN_WEIGHT + ", " +
-                LIFT_COLUMN_REPS + ", " +
-                LIFT_COLUMN_COMMENT +
-                " FROM " + LIFT_TABLE_NAME +
-                " WHERE " + LIFT_COLUMN_EXERCISE_ID + " = ?" +
-                " ORDER BY " + LIFT_COLUMN_START_DATE +
-                " LIMIT " + Integer.toString(limit) + ";";
-      /*  final String SELECT_QUERY = "SELECT " +
-                EXERCISE_COLUMN_EXERCISE_ID + " AS _id, " +
-                LIFT_COLUMN_START_DATE + "/43200000 AS HalfDay, " +
-                LIFT_COLUMN_WEIGHT + " || ' for ' || Count(" + LIFT_COLUMN_LIFT_ID + ") || 'x' || " + LIFT_COLUMN_REPS + " || ' on ' || date(" + LIFT_COLUMN_START_DATE + "/1000, 'unixepoch') AS FullLiftDescription" +
-                " FROM " + LIFT_TABLE_NAME +
-                " WHERE " + LIFT_COLUMN_EXERCISE_ID + " = ?" +
-                " GROUP BY " + LIFT_COLUMN_REPS + ", " + LIFT_COLUMN_WEIGHT + ", HalfDay" +
-                " ORDER BY " + LIFT_COLUMN_START_DATE +
-                " LIMIT 50;"; */
-        Cursor database_results = db.rawQuery(SELECT_QUERY, new String[] {Long.toString(exercise.getExerciseId())});
- //       MatrixCursor header_row = new MatrixCursor(new String[] {"_id", LIFT_COLUMN_START_DATE, LIFT_COLUMN_WEIGHT, LIFT_COLUMN_REPS, LIFT_COLUMN_COMMENT});
-
-//        header_row.addRow(new Object[] {-1, "Date", "Weight", "Reps", "Comment"});
-        return database_results;
-        //return new MergeCursor(new Cursor[] {header_row, database_results});
-    }
-
     ArrayList<Lift> selectExerciseHistoryLifts(Exercise exercise) {
         SQLiteDatabase db = this.getReadableDatabase();
         String[] RETURN_COLUMNS = { LIFT_COLUMN_LIFT_ID };
         String WHERE = LIFT_COLUMN_EXERCISE_ID + " LIKE ?";
         String[] where_args = { Long.toString(exercise.getExerciseId()) };
-        String SORT_ORDER = LIFT_COLUMN_START_DATE + " DESC";
+        String SORT_ORDER = LIFT_COLUMN_LIFT_ID + " DESC";
         Cursor select_cursor = db.query(
                 LIFT_TABLE_NAME,
                 RETURN_COLUMNS,
@@ -564,7 +481,7 @@ class LiftDbHelper extends SQLiteOpenHelper {
     /**
      * Selects all workouts, returned as a list.
      */
-    List<Workout> selectWorkoutList(String filter) {
+    ArrayList<Workout> selectWorkoutList(String filter) {
         SQLiteDatabase db = this.getReadableDatabase();
         String[] RETURN_COLUMNS = { WORKOUT_COLUMN_WORKOUT_ID, WORKOUT_COLUMN_DESCRIPTION, WORKOUT_COLUMN_START_DATE };
         String WHERE = WORKOUT_COLUMN_DESCRIPTION + " LIKE ?";
@@ -578,7 +495,7 @@ class LiftDbHelper extends SQLiteOpenHelper {
                 null,
                 null,
                 SORT_ORDER);
-        List<Workout> workout_list = new ArrayList<Workout>();
+        ArrayList<Workout> workout_list = new ArrayList<Workout>();
 
         while(select_cursor.moveToNext()) {
             workout_list.add(new Workout(
@@ -762,6 +679,22 @@ class LiftDbHelper extends SQLiteOpenHelper {
                 exercise.getExerciseId(),
                 EXERCISE_COLUMN_MAX_LIFT_ID,
                 exercise.getMaxLiftId());
+    }
+
+    void updateMaxLiftIdOfExerciseToNull(Exercise exercise)
+    {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues update_values = new ContentValues();
+        update_values.putNull(EXERCISE_COLUMN_MAX_LIFT_ID);
+
+        String WHERE =  EXERCISE_COLUMN_EXERCISE_ID + " = ?";
+        String[] where_args = { Long.toString(exercise.getExerciseId())};
+        db.update(
+                EXERCISE_TABLE_NAME,
+                update_values,
+                WHERE,
+                where_args);
     }
 
     /**

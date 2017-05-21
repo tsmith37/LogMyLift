@@ -77,6 +77,7 @@ class Workout {
         {
             lifts.add(lift_db_helper.selectLiftFromLiftId(lift_id));
         }
+
         return lifts;
     }
 
@@ -90,7 +91,7 @@ class Workout {
      */
     Lift AddLift(Exercise exercise, int reps, int weight, String comment) {
         Lift new_lift =  new Lift(lift_db_helper, exercise, reps, weight, this.workout_id, comment);
-        this.lift_ids.add(new_lift.getLiftId());
+        this.lift_ids.add(0, new_lift.getLiftId());
         return new_lift;
     }
 

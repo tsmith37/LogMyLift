@@ -1,16 +1,15 @@
 <resources>
-    <string name="add_exercise_button_text">Add Exercise</string>
     <string name="add_lift_button_text">Add Lift</string>
     <string name="add_lift_to_workout_text">Add Lift to Workout</string>
     <string name="workout_description_text">Enter Workout Description</string>
     <string name="app_name">Log My Lift</string>
     <string name="clear_text">Clear</string>
     <string name="comment_text">Comment...</string>
-    <string name="continue_workout_button_text">Continue Workout</string>
+    <string name="continue_workout_button_text">Continue Previous Workout</string>
     <string name="create_exercise_text">Create Exercise</string>
     <string name="create_workout_text">New Workout</string>
     <string name="edit_exercise_text">Edit Exercise</string>
-    <string name="edit_workout_text">Edit Workout</string>
+    <string name="exercise_button_text">View Exercises</string>
     <string name="exercise_description_text">Exercise Description</string>
     <string name="exercise_name_text">Exercise Name</string>
     <string name="filter_exercises_text">Filter Exercises...</string>
@@ -21,6 +20,7 @@
     <string name="title_activity_start">Start</string>
     <string name="view_workout_button_text">View Workout</string>
     <string name="weight_text">Weight</string>
+    <string name="workout_history_button_text">Workout History</string>
     <string name="title_exercise_list">Exercises</string>
     <string name="title_exercise_detail">Exercise Detail</string>
     <string name="title_workout_list">Workouts</string>

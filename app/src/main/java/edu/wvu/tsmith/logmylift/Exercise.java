@@ -100,6 +100,11 @@ class Exercise {
         lift_db.updateMaxLiftIdOfExercise(this);
     }
 
+    void clearMaxLiftId() {
+        this.max_lift_id = -1;
+        lift_db.updateMaxLiftIdOfExerciseToNull(this);
+    }
+
     void setName(String name) {
         this.name = name;
         lift_db.updateNameOfExercise(this);

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:id="@+id/weight_reps_horizontal_layout"
+        android:paddingBottom="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/exercise_frame"
+        android:orientation="horizontal">
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1"/>
+        <EditText
+            android:id="@+id/weight_input"
+            android:hint="@string/weight_text"
+            android:inputType="number"
+            style="@style/Widget.AppCompat.EditText"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:ellipsize="start"
+            android:gravity="center_horizontal"
+            android:textSize="22sp"/>
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1"/>
+        <EditText
+            android:id="@+id/reps_input"
+            android:hint="@string/reps_text"
+            android:inputType="number"
+            style="@style/Widget.AppCompat.EditText"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:ellipsize="start"
+            android:gravity="center_horizontal"
+            android:textSize="22sp"/>
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1"/>
+    </LinearLayout>
+    <TextView
+        android:text="@string/comment_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/ListMinorTextView"/>
+    <EditText
+        android:id="@+id/comment_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+</LinearLayout>

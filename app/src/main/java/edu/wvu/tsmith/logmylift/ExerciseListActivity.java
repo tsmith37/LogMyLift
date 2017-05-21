@@ -18,8 +18,8 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 
@@ -102,7 +102,7 @@ public class ExerciseListActivity extends AppCompatActivity {
             });
         }
 
-        Button clear_exercise_filter = (Button) this.findViewById(R.id.clear_exercise_filter);
+        ImageButton clear_exercise_filter = (ImageButton) this.findViewById(R.id.clear_exercise_filter);
         if (clear_exercise_filter != null) {
             clear_exercise_filter.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -145,7 +145,7 @@ public class ExerciseListActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onBindViewHolder(final ViewHolder holder, int position) {
+        public void onBindViewHolder(final ViewHolder holder, final int position) {
             holder.exercise = exercise_list_values.get(position);
             holder.exercise_name_text_view.setText(exercise_list_values.get(position).getName());
             holder.exercise_description_text_view.setText(exercise_list_values.get(position).getDescription());
@@ -170,6 +170,14 @@ public class ExerciseListActivity extends AppCompatActivity {
 
                         context.startActivity(intent);
                     }}
+            });
+
+            holder.exercise_list_view.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    showEditExerciseDialog(holder.exercise, position);
+                    return false;
+                }
             });
         }
 
@@ -198,7 +206,7 @@ public class ExerciseListActivity extends AppCompatActivity {
         }
     }
 
-    void showAddExerciseDialog()
+    private void showAddExerciseDialog()
     {
         LayoutInflater li = LayoutInflater.from(this);
         View add_exercise_dialog_view = li.inflate(R.layout.add_exercise_dialog, null);
@@ -228,11 +236,53 @@ public class ExerciseListActivity extends AppCompatActivity {
         add_exercise_dialog_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Snackbar.make(findViewById(R.id.add_exercise_toolbar_item), "Exercise not added.", Snackbar.LENGTH_LONG).show();
+                Snackbar.make(findViewById(R.id.add_exercise_button), "Exercise not added.", Snackbar.LENGTH_LONG).show();
             }
         });
 
         AlertDialog add_exercise_dialog = add_exercise_dialog_builder.create();
         add_exercise_dialog.show();
+    }
+
+    private void showEditExerciseDialog(final Exercise current_exercise, final int exercise_position_in_adapter)
+    {
+        LayoutInflater li = LayoutInflater.from(this);
+        // Re-use the add exercise dialog here...
+        View edit_exercise_dialog_view = li.inflate(R.layout.add_exercise_dialog, null);
+        AlertDialog.Builder edit_exercise_dialog_builder = new AlertDialog.Builder(this);
+        edit_exercise_dialog_builder.setTitle("Edit Exercise");
+        edit_exercise_dialog_builder.setView(edit_exercise_dialog_view);
+        final EditText exercise_name_text = (EditText) edit_exercise_dialog_view.findViewById(R.id.add_exercise_name_dialog_text);
+        exercise_name_text.setText(current_exercise.getName());
+        final EditText exercise_description_text = (EditText) edit_exercise_dialog_view.findViewById(R.id.add_exercise_description_dialog_text);
+        exercise_description_text.setText(current_exercise.getDescription());
+        edit_exercise_dialog_builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String edited_exercise_name = exercise_name_text.getText().toString();
+                if (!edited_exercise_name.isEmpty())
+                {
+                    current_exercise.setName(edited_exercise_name);
+                    current_exercise.setDescription(exercise_description_text.getText().toString());
+                    Snackbar.make(findViewById(R.id.add_exercise_button), "Exercise updated.", Snackbar.LENGTH_LONG).show();
+                    RecyclerView recyclerView = (RecyclerView) findViewById(R.id.exercise_list);
+                    SimpleItemRecyclerViewAdapter recycler_view_adapter = (SimpleItemRecyclerViewAdapter) recyclerView.getAdapter();
+                    recycler_view_adapter.notifyItemChanged(exercise_position_in_adapter);
+                }
+                else
+                {
+                    Snackbar.make(findViewById(R.id.add_exercise_button), "Exercise name not valid.", Snackbar.LENGTH_LONG).show();
+                }
+            }});
+
+        edit_exercise_dialog_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Snackbar.make(findViewById(R.id.add_exercise_button), "Exercise not updated.", Snackbar.LENGTH_LONG).show();
+            }
+        });
+
+        AlertDialog edit_exercise_dialog = edit_exercise_dialog_builder.create();
+        edit_exercise_dialog.show();
     }
 }

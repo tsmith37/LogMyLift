@@ -26,9 +26,7 @@ public class Start extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_start);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        setContentView(R.layout.start_layout);
 
         current_context = getApplicationContext();
         lift_db_helper = new LiftDbHelper(current_context);
@@ -50,21 +48,21 @@ public class Start extends AppCompatActivity {
             }
         });
 
-        Button view_workout_button = (Button) this.findViewById(R.id.view_workout_button);
-        view_workout_button.setOnClickListener(new View.OnClickListener() {
+        Button workout_history_button = (Button) this.findViewById(R.id.workout_history_button);
+        workout_history_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v)
             {
-                viewWorkout();
+                showWorkoutHistory();
             }
         });
 
-        Button add_exercise_button = (Button) this.findViewById(R.id.add_exercise_button);
-        add_exercise_button.setOnClickListener(new View.OnClickListener() {
+        Button exercise_history_button = (Button) this.findViewById(R.id.exercise_button);
+        exercise_history_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v)
             {
-                showAddExerciseDialog();
+                showExerciseHistory();
             }
         });
     }
@@ -115,7 +113,7 @@ public class Start extends AppCompatActivity {
         startActivity(workout_intent);
     }
 
-    private void showAddExerciseDialog() {
+    private void showExerciseHistory() {
         /*LayoutInflater li = LayoutInflater.from(this);
         View add_exercise_dialog_view = li.inflate(R.layout.add_exercise_dialog, null);
         AlertDialog.Builder add_exercise_dialog_builder = new AlertDialog.Builder(this);
@@ -151,7 +149,7 @@ public class Start extends AppCompatActivity {
         startActivity(exercise_list_intent);
     }
 
-    private void viewWorkout()
+    private void showWorkoutHistory()
     {
         Intent workout_list_intent = new Intent(current_context, WorkoutListActivity.class);
         startActivity(workout_list_intent);

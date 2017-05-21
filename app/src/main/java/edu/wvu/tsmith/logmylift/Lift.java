@@ -1,5 +1,6 @@
 package edu.wvu.tsmith.logmylift;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
@@ -71,6 +72,7 @@ class Lift {
     Exercise getExercise() { return this.exercise; }
     long getLiftId() { return this.lift_id; }
     String getReadableStartDate() { return new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).format(this.start_date); }
+    String getReadableStartTime() { return new java.text.SimpleDateFormat("hh:mm aa", Locale.US).format(this.start_date); }
     int getReps() { return this.reps; }
     Date getStartDate() { return this.start_date; }
     int getWeight() { return this.weight; }
@@ -80,6 +82,29 @@ class Lift {
     {
         Double maximum_effort = this.weight/(1.0278-(0.278*this.reps));
         return maximum_effort.intValue();
+    }
+
+    void delete()
+    {
+        lift_db.deleteLift(this);
+        ArrayList<Lift> exercise_history = lift_db.selectExerciseHistoryLifts(this.exercise);
+
+        if (0 == exercise_history.size())
+        {
+            this.exercise.clearMaxLiftId();
+        }
+        else
+        {
+            Lift max_effort_lift_found = exercise_history.get(0);
+            for (Lift current_lift : exercise_history)
+            {
+                if (current_lift.calculateMaxEffort() > max_effort_lift_found.calculateMaxEffort())
+                {
+                    max_effort_lift_found = current_lift;
+                }
+            }
+            this.exercise.setMaxLiftId(max_effort_lift_found.getLiftId());
+        }
     }
 
     void setComment(String comment)

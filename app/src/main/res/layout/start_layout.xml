@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <Space
+        android:layout_width="1dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:textAlignment="center"
+        android:text="@string/app_name"
+        android:textAllCaps="true"
+        android:textSize="24sp"/>
+    <Space
+        android:layout_width="1dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+    <Button
+        android:id="@+id/start_new_workout_button"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:text="@string/start_new_workout_button_text"
+        android:layout_height="@dimen/big_button_height"
+        android:layout_width="@dimen/big_button_width"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp" />
+    <Space
+        android:layout_width="1dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+    <Button
+        android:id="@+id/continue_workout_button"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:text="@string/continue_workout_button_text"
+        android:layout_height="@dimen/big_button_height"
+        android:layout_width="@dimen/big_button_width"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp" />
+    <Space
+        android:layout_width="1dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+    <Button
+        android:id="@+id/workout_history_button"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:text="@string/workout_history_button_text"
+        android:layout_height="@dimen/big_button_height"
+        android:layout_width="@dimen/big_button_width"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp" />
+    <Space
+        android:layout_width="1dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+    <Button
+        android:id="@+id/exercise_button"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:text="@string/exercise_button_text"
+        android:layout_height="@dimen/big_button_height"
+        android:layout_width="@dimen/big_button_width"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp" />
+    <Space
+        android:layout_width="1dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+</LinearLayout>

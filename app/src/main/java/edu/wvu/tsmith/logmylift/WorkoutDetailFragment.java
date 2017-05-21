@@ -71,7 +71,7 @@ public class WorkoutDetailFragment extends Fragment {
             RecyclerView.LayoutManager current_workout_layout_manager = new LinearLayoutManager(getContext());
             current_workout_list.setLayoutManager(current_workout_layout_manager);
             ArrayList<Lift> current_workout_lifts = current_workout.getLifts();
-            WorkoutHistoryAdapter current_workout_history = new WorkoutHistoryAdapter(current_workout_lifts);
+            WorkoutHistoryAdapter current_workout_history = new WorkoutHistoryAdapter(this.getActivity(), current_workout_lifts);
             current_workout_list.setAdapter(current_workout_history);
         }
         return rootView;
