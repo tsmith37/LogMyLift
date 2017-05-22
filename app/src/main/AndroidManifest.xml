@@ -18,7 +18,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".AddLiftToWorkoutActivity"
+            android:name=".lift.AddLiftToWorkoutActivity"
             android:label="@string/title_activity_add_lift_to_workout"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="adjustResize">
@@ -27,23 +27,23 @@
                 android:value="edu.wvu.tsmith.logmylift.Start" />
         </activity>
         <activity
-            android:name=".ExerciseListActivity"
+            android:name=".exercise.ExerciseListActivity"
             android:label="@string/title_exercise_list"
             android:theme="@style/AppTheme.NoActionBar" />
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="edu.wvu.tsmith.logmylift.Start" />
         <activity
-            android:name=".ExerciseDetailActivity"
+            android:name=".exercise.ExerciseDetailActivity"
             android:label="@string/title_exercise_detail"
-            android:parentActivityName=".ExerciseListActivity"
+            android:parentActivityName=".exercise.ExerciseListActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="edu.wvu.tsmith.logmylift.ExerciseListActivity" />
+                android:value="edu.wvu.tsmith.logmylift.exercise.ExerciseListActivity" />
         </activity>
         <activity
-            android:name=".WorkoutListActivity"
+            android:name=".workout.WorkoutListActivity"
             android:label="@string/title_workout_list"
             android:parentActivityName=".Start"
             android:theme="@style/AppTheme.NoActionBar">
@@ -52,13 +52,13 @@
                 android:value="edu.wvu.tsmith.logmylift.Start" />
         </activity>
         <activity
-            android:name=".WorkoutDetailActivity"
+            android:name=".workout.WorkoutDetailActivity"
             android:label="@string/title_workout_detail"
-            android:parentActivityName=".WorkoutListActivity"
+            android:parentActivityName=".workout.WorkoutListActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="edu.wvu.tsmith.logmylift.WorkoutListActivity" />
+                android:value="edu.wvu.tsmith.logmylift.workout.WorkoutListActivity" />
         </activity>
     </application>
 

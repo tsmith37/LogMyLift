@@ -7,7 +7,7 @@
     android:focusable="true"
     android:focusableInTouchMode="true"
     android:fitsSystemWindows="true"
-    tools:context="edu.wvu.tsmith.logmylift.ExerciseListActivity">
+    tools:context="edu.wvu.tsmith.logmylift.exercise.ExerciseListActivity">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/app_bar"

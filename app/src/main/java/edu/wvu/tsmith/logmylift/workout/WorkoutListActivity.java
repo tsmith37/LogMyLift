@@ -1,4 +1,4 @@
-package edu.wvu.tsmith.logmylift;
+package edu.wvu.tsmith.logmylift.workout;
 
 import android.content.Context;
 import android.content.DialogInterface;
@@ -16,16 +16,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
-
 import android.support.v7.app.ActionBar;
 import android.view.MenuItem;
 
-import edu.wvu.tsmith.logmylift.dummy.DummyContent;
-
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
+
+import edu.wvu.tsmith.logmylift.lift.AddLiftToWorkoutActivity;
+import edu.wvu.tsmith.logmylift.LiftDbHelper;
+import edu.wvu.tsmith.logmylift.R;
 
 /**
  * An activity representing a list of Workouts. This activity
@@ -94,12 +94,12 @@ public class WorkoutListActivity extends AppCompatActivity {
         recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(lift_db.selectWorkoutList("")));
     }
 
-    public class SimpleItemRecyclerViewAdapter
+    class SimpleItemRecyclerViewAdapter
             extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
 
         private final ArrayList<Workout> workout_list_values;
 
-        public SimpleItemRecyclerViewAdapter(ArrayList<Workout> workouts) {
+        SimpleItemRecyclerViewAdapter(ArrayList<Workout> workouts) {
             workout_list_values = workouts;
         }
 
@@ -151,13 +151,13 @@ public class WorkoutListActivity extends AppCompatActivity {
             return workout_list_values.size();
         }
 
-        public class ViewHolder extends RecyclerView.ViewHolder {
-            public final View workout_list_view;
-            public final TextView workout_description_text_view;
-            public final TextView workout_date_text_view;
+        class ViewHolder extends RecyclerView.ViewHolder {
+            final View workout_list_view;
+            final TextView workout_description_text_view;
+            final TextView workout_date_text_view;
             public Workout workout;
 
-            public ViewHolder(View view) {
+            ViewHolder(View view) {
                 super(view);
                 this.workout_list_view = view;
                 this.workout_description_text_view = (TextView) view.findViewById(R.id.workout_description_text_view);
@@ -172,6 +172,9 @@ public class WorkoutListActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Allow the user to start a new workout.
+     */
     private void showNewWorkoutDialog()
     {
         LayoutInflater li = LayoutInflater.from(this);
@@ -182,6 +185,8 @@ public class WorkoutListActivity extends AppCompatActivity {
         final TextView workout_date_text = (TextView) add_workout_dialog_view.findViewById(R.id.add_workout_date_text);
         workout_date_text.setText(new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date()));
         final EditText workout_description_text = (EditText) add_workout_dialog_view.findViewById(R.id.add_workout_description_dialog_text);
+
+       // Handle a positive button press.
         add_workout_dialog_builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -192,6 +197,7 @@ public class WorkoutListActivity extends AppCompatActivity {
             }
         });
 
+        // Handle a negative button press.
         add_workout_dialog_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -203,9 +209,14 @@ public class WorkoutListActivity extends AppCompatActivity {
         add_exercise_dialog.show();
     }
 
+    /**
+     * Allow the user to edit the workout description via a dialog.
+     * @param current_workout   The workout to edit.
+     */
     private void showEditWorkoutDialog(final Workout current_workout)
     {
         LayoutInflater li = LayoutInflater.from(this);
+
         // Re-use the add workout dialog here...
         View edit_workout_dialog_view = li.inflate(R.layout.add_workout_dialog, null);
         AlertDialog.Builder edit_workout_dialog_builder = new AlertDialog.Builder(this);
@@ -215,6 +226,8 @@ public class WorkoutListActivity extends AppCompatActivity {
         workout_date_text.setText(current_workout.getReadableStartDate());
         final EditText workout_description_text = (EditText) edit_workout_dialog_view.findViewById(R.id.add_workout_description_dialog_text);
         workout_description_text.setText(current_workout.getDescription());
+
+        // Handle the positive button press.
         edit_workout_dialog_builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -226,6 +239,7 @@ public class WorkoutListActivity extends AppCompatActivity {
             }
         });
 
+        // Handle the negative button press.
         edit_workout_dialog_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {

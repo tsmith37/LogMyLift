@@ -1,19 +1,17 @@
-package edu.wvu.tsmith.logmylift;
+package edu.wvu.tsmith.logmylift.workout;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.ActionBar;
 import android.view.MenuItem;
-import android.widget.EditText;
-import android.widget.TextView;
+
+import edu.wvu.tsmith.logmylift.lift.AddLiftToWorkoutActivity;
+import edu.wvu.tsmith.logmylift.LiftDbHelper;
+import edu.wvu.tsmith.logmylift.R;
 
 /**
  * An activity representing a single Workout detail screen. This
@@ -82,6 +80,9 @@ public class WorkoutDetailActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Edit the content of the workout. This is really just a link to the AddLiftToWorkoutActivity.
+     */
     private void editWorkout() {
         Intent workout_intent = new Intent(getBaseContext(), AddLiftToWorkoutActivity.class);
         workout_intent.putExtra(LiftDbHelper.WORKOUT_COLUMN_WORKOUT_ID, getIntent().getLongExtra(WorkoutDetailFragment.workout_id, 0));

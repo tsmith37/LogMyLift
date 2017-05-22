@@ -1,4 +1,4 @@
-package edu.wvu.tsmith.logmylift;
+package edu.wvu.tsmith.logmylift.exercise;
 
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -13,6 +13,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.ActionBar;
 import android.view.MenuItem;
 import android.widget.EditText;
+
+import edu.wvu.tsmith.logmylift.LiftDbHelper;
+import edu.wvu.tsmith.logmylift.R;
 
 /**
  * An activity representing a single Exercise detail screen. This
@@ -82,6 +85,9 @@ public class ExerciseDetailActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Show the dialog to edit the current exercise description and update it acordingly.
+     */
     private void editExercise() {
         LiftDbHelper lift_db_helper = new LiftDbHelper(getBaseContext());
         final Exercise current_exercise = lift_db_helper.selectExerciseFromExerciseId(getIntent().getLongExtra(ExerciseDetailFragment.exercise_id, 0));
@@ -95,6 +101,8 @@ public class ExerciseDetailActivity extends AppCompatActivity {
         exercise_name_text.setText(current_exercise.getName());
         final EditText exercise_description_text = (EditText) edit_exercise_dialog_view.findViewById(R.id.add_exercise_description_dialog_text);
         exercise_description_text.setText(current_exercise.getDescription());
+
+        // Handle the positive button press.
         edit_exercise_dialog_builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -111,6 +119,8 @@ public class ExerciseDetailActivity extends AppCompatActivity {
                 }
             }
         });
+
+        // Handle the negative button press.
         edit_exercise_dialog_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {

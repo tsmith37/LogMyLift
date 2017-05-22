@@ -10,7 +10,7 @@
         android:layout_height="match_parent"
         style="@style/ListMajorTextView"
         android:textIsSelectable="true"
-        tools:context="edu.wvu.tsmith.logmylift.ExerciseDetailFragment" />
+        tools:context="edu.wvu.tsmith.logmylift.exercise.ExerciseDetailFragment" />
     <TextView
         android:text="Max Effort:"
         android:layout_width="match_parent"

@@ -1,4 +1,4 @@
-package edu.wvu.tsmith.logmylift;
+package edu.wvu.tsmith.logmylift.workout;
 
 import android.app.Activity;
 import android.content.DialogInterface;
@@ -13,8 +13,14 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import edu.wvu.tsmith.logmylift.lift.Lift;
+import edu.wvu.tsmith.logmylift.R;
+
 /**
  * Created by tmssm on 5/19/2017.
+ * The adapter linking the data from a workout to the user (specifically, via a RecyclerView). This
+ * holds every lift in a workout and displays it via the current workout layout. It offers the option
+ * to edit any of the lifts via a dialog on click, and delete any of the lifts via a long click.
  */
 
 public class WorkoutHistoryAdapter extends RecyclerView.Adapter<WorkoutHistoryAdapter.WorkoutHistoryViewHolder> {
@@ -27,14 +33,17 @@ public class WorkoutHistoryAdapter extends RecyclerView.Adapter<WorkoutHistoryAd
         this.lifts_in_workout_history = lifts_in_workout_history;
     }
 
-    public static class WorkoutHistoryViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
-        public TextView exercise_name_text_view;
-        public TextView weight_and_reps_text_view;
-        public TextView lift_time_text_view;
-        public TextView comment_text_view;
-        public IWorkoutHistoryViewHolderClicks workout_history_listener;
+    /**
+     * Holder of the workout history view.
+     */
+    static class WorkoutHistoryViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
+        TextView exercise_name_text_view;
+        TextView weight_and_reps_text_view;
+        TextView lift_time_text_view;
+        TextView comment_text_view;
+        IWorkoutHistoryViewHolderClicks workout_history_listener;
 
-        public WorkoutHistoryViewHolder(View view, IWorkoutHistoryViewHolderClicks workout_history_listener) {
+        WorkoutHistoryViewHolder(View view, IWorkoutHistoryViewHolderClicks workout_history_listener) {
             super(view);
             this.workout_history_listener = workout_history_listener;
             this.exercise_name_text_view = (TextView) view.findViewById(R.id.exercise_name);
@@ -66,7 +75,7 @@ public class WorkoutHistoryAdapter extends RecyclerView.Adapter<WorkoutHistoryAd
             return false;
         }
 
-        public interface IWorkoutHistoryViewHolderClicks
+        interface IWorkoutHistoryViewHolderClicks
         {
             void editLift(View caller, int position);
             void deleteLift(View caller, int position);
@@ -76,7 +85,7 @@ public class WorkoutHistoryAdapter extends RecyclerView.Adapter<WorkoutHistoryAd
     @Override
     public WorkoutHistoryAdapter.WorkoutHistoryViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         final View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.current_workout_layout, parent, false);
-        WorkoutHistoryViewHolder view_holder = new WorkoutHistoryViewHolder(view, new WorkoutHistoryViewHolder.IWorkoutHistoryViewHolderClicks() {
+        return new WorkoutHistoryViewHolder(view, new WorkoutHistoryViewHolder.IWorkoutHistoryViewHolderClicks() {
             @Override
             public void editLift(View caller, int position)
             {
@@ -89,7 +98,6 @@ public class WorkoutHistoryAdapter extends RecyclerView.Adapter<WorkoutHistoryAd
                 showDeleteLiftDialog(lifts_in_workout_history.get(position), position);
             }
         });
-        return view_holder;
     }
 
     @Override
@@ -111,6 +119,13 @@ public class WorkoutHistoryAdapter extends RecyclerView.Adapter<WorkoutHistoryAd
         return 0;
     }
 
+    /**
+     * ALlows the user to edit a lift weight, reps, ro comment via a popup dialog.
+     * @param lift_to_edit              Lift for the user to edit.
+     * @param lift_position_in_adapter  Position in the adapter of the lift to edit. This is helpful
+     *                                  because the adapter can be notified of a change at this position,
+     *                                  allowing it to reflect the user changes.
+     */
     private void showEditLiftDialog(final Lift lift_to_edit, final int lift_position_in_adapter)
     {
         LayoutInflater li = LayoutInflater.from(parent_activity);
@@ -125,15 +140,16 @@ public class WorkoutHistoryAdapter extends RecyclerView.Adapter<WorkoutHistoryAd
         reps_text.setText(Integer.toString(lift_to_edit.getReps()));
         comment_text.setText(lift_to_edit.getComment());
 
+        // Handle the positive button press.
         edit_lift_dialog_builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 int weight = -1;
                 try {weight = Integer.parseInt(weight_text.getText().toString());}
-                catch (Throwable e) {}
+                catch (Throwable ignored) {}
                 int reps = -1;
                 try {reps = Integer.parseInt(reps_text.getText().toString());}
-                catch (Throwable e) {}
+                catch (Throwable ignored) {}
 
                 if ((weight > 0) && (reps > 0))
                 {
@@ -151,6 +167,7 @@ public class WorkoutHistoryAdapter extends RecyclerView.Adapter<WorkoutHistoryAd
             }
         });
 
+        // Handle the negative button press.
         edit_lift_dialog_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -163,9 +180,17 @@ public class WorkoutHistoryAdapter extends RecyclerView.Adapter<WorkoutHistoryAd
         edit_dialog.show();
     }
 
+    /**
+     * Allow the user to delete a lift. Shows a confirmation dialog and then handles the deleting of
+     * the lift from the workout.
+     * @param lift_to_delete            Lift to delete.
+     * @param lift_position_in_adapter  The position of the lift to delete in the adapter. This allows
+     *                                  the lift to be graphically removed from the user.
+     * @return                          Not really sure what the point of this is...always true.
+     */
     private boolean showDeleteLiftDialog(final Lift lift_to_delete, final int lift_position_in_adapter)
     {
-        AlertDialog.Builder delete_lift_dialog_builder = new AlertDialog.Builder(parent_activity);;
+        AlertDialog.Builder delete_lift_dialog_builder = new AlertDialog.Builder(parent_activity);
         delete_lift_dialog_builder.setTitle("Delete Lift");
         delete_lift_dialog_builder.setMessage("Are you sure you want to delete this lift?");
         delete_lift_dialog_builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {

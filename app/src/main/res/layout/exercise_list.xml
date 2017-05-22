@@ -9,5 +9,5 @@
     android:layout_marginLeft="16dp"
     android:layout_marginRight="16dp"
     app:layoutManager="LinearLayoutManager"
-    tools:context="edu.wvu.tsmith.logmylift.ExerciseListActivity"
+    tools:context="edu.wvu.tsmith.logmylift.exercise.ExerciseListActivity"
     tools:listitem="@layout/exercise_list_content" />

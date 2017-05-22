@@ -1,7 +1,6 @@
-    package edu.wvu.tsmith.logmylift;
+    package edu.wvu.tsmith.logmylift.exercise;
 
 import android.app.Activity;
-import android.database.Cursor;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -10,15 +9,15 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
 import android.widget.TextView;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
-import edu.wvu.tsmith.logmylift.dummy.DummyContent;
+import edu.wvu.tsmith.logmylift.lift.Lift;
+import edu.wvu.tsmith.logmylift.LiftDbHelper;
+import edu.wvu.tsmith.logmylift.R;
 
-/**
+    /**
  * A fragment representing a single Exercise detail screen.
  * This fragment is either contained in a {@link ExerciseListActivity}
  * in two-pane mode (on tablets) or a {@link ExerciseDetailActivity}
@@ -89,16 +88,24 @@ public class ExerciseDetailFragment extends Fragment {
             return rootView;
     }
 
+        /**
+         * Reload the exercise.
+         */
     public void reload()
     {
         this.current_exercise = lift_db.selectExerciseFromExerciseId(getArguments().getLong(exercise_id));
         View current_view = this.getView();
-        TextView exercise_detail_text_view = (TextView) current_view.findViewById(R.id.exercise_detail);
+        TextView exercise_detail_text_view;
+        if (current_view != null)
+        {
+            exercise_detail_text_view = (TextView) current_view.findViewById(R.id.exercise_detail);
+            exercise_detail_text_view.setText(current_exercise.getDescription());
+        }
         Activity activity = this.getActivity();
         CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
-        if (appBarLayout != null) {
+        if (appBarLayout != null)
+        {
             appBarLayout.setTitle(current_exercise.getName());
         }
-        exercise_detail_text_view.setText(current_exercise.getDescription());
     }
 }

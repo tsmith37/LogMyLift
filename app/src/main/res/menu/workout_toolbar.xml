@@ -2,7 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".AddLiftToWorkoutActivity">
+    tools:context=".lift.AddLiftToWorkoutActivity">
     <item
         android:id="@+id/add_exercise_toolbar_item"
         android:orderInCategory="300"

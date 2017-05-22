@@ -1,23 +1,20 @@
-package edu.wvu.tsmith.logmylift;
+package edu.wvu.tsmith.logmylift.workout;
 
 import android.app.Activity;
-import android.content.Intent;
-import android.database.Cursor;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
-import android.widget.TextView;
 
 import java.util.ArrayList;
 
-import edu.wvu.tsmith.logmylift.dummy.DummyContent;
+import edu.wvu.tsmith.logmylift.lift.Lift;
+import edu.wvu.tsmith.logmylift.LiftDbHelper;
+import edu.wvu.tsmith.logmylift.R;
 
 /**
  * A fragment representing a single Workout detail screen.
@@ -75,15 +72,5 @@ public class WorkoutDetailFragment extends Fragment {
             current_workout_list.setAdapter(current_workout_history);
         }
         return rootView;
-    }
-
-    public void reload()
-    {
-        this.current_workout = lift_db.selectWorkoutFromWorkoutId(getArguments().getLong(workout_id));
-        Activity activity = this.getActivity();
-        CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
-        if (appBarLayout != null) {
-            appBarLayout.setTitle(current_workout.getDescription());
-        }
     }
 }

@@ -1,4 +1,4 @@
-package edu.wvu.tsmith.logmylift;
+package edu.wvu.tsmith.logmylift.exercise;
 
 import android.content.Context;
 import android.content.DialogInterface;
@@ -22,8 +22,8 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-
-import edu.wvu.tsmith.logmylift.dummy.DummyContent;
+import edu.wvu.tsmith.logmylift.LiftDbHelper;
+import edu.wvu.tsmith.logmylift.R;
 
 import java.util.List;
 
@@ -107,7 +107,10 @@ public class ExerciseListActivity extends AppCompatActivity {
             clear_exercise_filter.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    exercise_filter_input.setText("");
+                    if (exercise_filter_input != null)
+                    {
+                        exercise_filter_input.setText("");
+                    }
                 }
             });
         }
@@ -127,12 +130,12 @@ public class ExerciseListActivity extends AppCompatActivity {
         recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(lift_db.selectExerciseList(filter)));
     }
 
-    public class SimpleItemRecyclerViewAdapter
+    class SimpleItemRecyclerViewAdapter
             extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
 
         private final List<Exercise> exercise_list_values;
 
-        public SimpleItemRecyclerViewAdapter(List<Exercise> exercises)
+        SimpleItemRecyclerViewAdapter(List<Exercise> exercises)
         {
             exercise_list_values = exercises;
         }
@@ -145,7 +148,7 @@ public class ExerciseListActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onBindViewHolder(final ViewHolder holder, final int position) {
+        public void onBindViewHolder(final ViewHolder holder, int position) {
             holder.exercise = exercise_list_values.get(position);
             holder.exercise_name_text_view.setText(exercise_list_values.get(position).getName());
             holder.exercise_description_text_view.setText(exercise_list_values.get(position).getDescription());
@@ -175,7 +178,7 @@ public class ExerciseListActivity extends AppCompatActivity {
             holder.exercise_list_view.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    showEditExerciseDialog(holder.exercise, position);
+                    showEditExerciseDialog(holder.exercise, holder.getAdapterPosition());
                     return false;
                 }
             });
@@ -186,13 +189,13 @@ public class ExerciseListActivity extends AppCompatActivity {
             return exercise_list_values.size();
         }
 
-        public class ViewHolder extends RecyclerView.ViewHolder {
-            public final View exercise_list_view;
-            public final TextView exercise_name_text_view;
-            public final TextView exercise_description_text_view;
+        class ViewHolder extends RecyclerView.ViewHolder {
+            final View exercise_list_view;
+            final TextView exercise_name_text_view;
+            final TextView exercise_description_text_view;
             public Exercise exercise;
 
-            public ViewHolder(View view) {
+            ViewHolder(View view) {
                 super(view);
                 exercise_list_view = view;
                 exercise_name_text_view = (TextView) view.findViewById(R.id.exercise_name_text);
@@ -206,6 +209,9 @@ public class ExerciseListActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Show the dialog to add a new exercise, and add the exercise if prompted by the user.
+     */
     private void showAddExerciseDialog()
     {
         LayoutInflater li = LayoutInflater.from(this);
@@ -215,6 +221,8 @@ public class ExerciseListActivity extends AppCompatActivity {
         add_exercise_dialog_builder.setView(add_exercise_dialog_view);
         final EditText exercise_name_text = (EditText) add_exercise_dialog_view.findViewById(R.id.add_exercise_name_dialog_text);
         final EditText exercise_description_text = (EditText) add_exercise_dialog_view.findViewById(R.id.add_exercise_description_dialog_text);
+
+        // Handle the positive button press.
         add_exercise_dialog_builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -224,7 +232,7 @@ public class ExerciseListActivity extends AppCompatActivity {
                 }
                 else
                 {
-                    Exercise new_exercise = new Exercise(lift_db, exercise_name_text.getText().toString(), exercise_description_text.getText().toString());
+                    new Exercise(lift_db, exercise_name_text.getText().toString(), exercise_description_text.getText().toString());
                     Snackbar.make(findViewById(R.id.add_exercise_button), "Exercise added.", Snackbar.LENGTH_LONG).show();
                     View recyclerView = findViewById(R.id.exercise_list);
                     assert recyclerView != null;
@@ -233,6 +241,7 @@ public class ExerciseListActivity extends AppCompatActivity {
             }
         });
 
+        // Handle the negative button press.
         add_exercise_dialog_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -244,9 +253,16 @@ public class ExerciseListActivity extends AppCompatActivity {
         add_exercise_dialog.show();
     }
 
+    /**
+     * Show the dialog to edit an exercise, and act according to the user input.
+     * @param current_exercise              The exercise to edit.
+     * @param exercise_position_in_adapter  The position of the exercise in the adapter holding the data.
+     *                                      This is used to reload the adapter if the exercise is updated.
+     */
     private void showEditExerciseDialog(final Exercise current_exercise, final int exercise_position_in_adapter)
     {
         LayoutInflater li = LayoutInflater.from(this);
+
         // Re-use the add exercise dialog here...
         View edit_exercise_dialog_view = li.inflate(R.layout.add_exercise_dialog, null);
         AlertDialog.Builder edit_exercise_dialog_builder = new AlertDialog.Builder(this);
@@ -256,6 +272,8 @@ public class ExerciseListActivity extends AppCompatActivity {
         exercise_name_text.setText(current_exercise.getName());
         final EditText exercise_description_text = (EditText) edit_exercise_dialog_view.findViewById(R.id.add_exercise_description_dialog_text);
         exercise_description_text.setText(current_exercise.getDescription());
+
+        // Handle the positive button press.
         edit_exercise_dialog_builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -275,6 +293,7 @@ public class ExerciseListActivity extends AppCompatActivity {
                 }
             }});
 
+        // Handle the negative button press.
         edit_exercise_dialog_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {

@@ -1,4 +1,6 @@
-package edu.wvu.tsmith.logmylift;
+package edu.wvu.tsmith.logmylift.exercise;
+
+import edu.wvu.tsmith.logmylift.LiftDbHelper;
 
 /**
  * Created by tmssm on 3/19/2017.
@@ -13,7 +15,7 @@ package edu.wvu.tsmith.logmylift;
  * @author Tommy Smith
  */
 
-class Exercise {
+public class Exercise {
     private String description;
     private long exercise_id;
     private long max_lift_id;
@@ -29,7 +31,7 @@ class Exercise {
      * @param name              Name of the exercise.
      * @param description       Exercise description.
      */
-    Exercise(LiftDbHelper lift_db_helper, String name, String description) {
+    public Exercise(LiftDbHelper lift_db_helper, String name, String description) {
         // TODO: Should we check if an exercise with this name already exists?
         this.name = name;
         this.description = description;
@@ -43,7 +45,7 @@ class Exercise {
      * @param lift_db_helper    SQLite database helper.
      * @param name              Name of the exercise.
      */
-    Exercise(LiftDbHelper lift_db_helper, String name) {
+    public Exercise(LiftDbHelper lift_db_helper, String name) {
         this(lift_db_helper, name, "");
     }
 
@@ -57,7 +59,7 @@ class Exercise {
      * @param max_lift_id       Lift of the maximum effort of the exercise.
      * @param last_workout_id   Most recent workout ID that the exercise was performed.
      */
-    Exercise(LiftDbHelper lift_db_helper, long exercise_id, String name, String description, long max_lift_id, long last_workout_id) {
+    public Exercise(LiftDbHelper lift_db_helper, long exercise_id, String name, String description, long max_lift_id, long last_workout_id) {
         this.lift_db = lift_db_helper;
         this.exercise_id = exercise_id;
         this.name = name;
@@ -67,11 +69,11 @@ class Exercise {
     }
 
     // Public access to read-only members.
-    long getExerciseId() { return this.exercise_id; }
-    long getLastWorkoutId() { return this.last_workout_id; }
-    long getMaxLiftId() { return this.max_lift_id; }
-    String getName() { return this.name; }
-    String getDescription() { return this.description; }
+    public long getExerciseId() { return this.exercise_id; }
+    public long getLastWorkoutId() { return this.last_workout_id; }
+    public long getMaxLiftId() { return this.max_lift_id; }
+    public String getName() { return this.name; }
+    public String getDescription() { return this.description; }
 
     /**
      * Updates the description of the exercise.
@@ -79,34 +81,42 @@ class Exercise {
      */
     void setDescription(String description) {
         this.description = description;
-        lift_db.updateDescriptionOfExercise(this, this.description);
+        lift_db.updateDescriptionOfExercise(this);
     }
 
     /**
      * Updates the most recent workout ID of the exercise.
      * @param last_workout_id   Workout ID.
      */
-    void setLastWorkoutId(long last_workout_id) {
+    public void setLastWorkoutId(long last_workout_id) {
         this.last_workout_id = last_workout_id;
         lift_db.updateLastWorkoutIdOfExercise(this);
     }
 
     /**
      * Updates the ID of the maximum effort lift of the exercise.
-     * @param max_lift_id
+     * @param max_lift_id   The ID of the maximum effort lift.
      */
-    void setMaxLiftId(long max_lift_id) {
+    public void setMaxLiftId(long max_lift_id) {
         this.max_lift_id = max_lift_id;
         lift_db.updateMaxLiftIdOfExercise(this);
     }
 
-    void clearMaxLiftId() {
-        this.max_lift_id = -1;
-        lift_db.updateMaxLiftIdOfExerciseToNull(this);
-    }
-
-    void setName(String name) {
+    /**
+     * Sets the name of this exercise.
+     * @param name  The new name of the exercise.
+     */
+    public void setName(String name) {
         this.name = name;
         lift_db.updateNameOfExercise(this);
+    }
+
+    /**
+     * Clears the ID of the maximum effort lift. This should only happen if the only instance of a
+     * lift with this exercise is deleted.
+     */
+    public void clearMaxLiftId() {
+        this.max_lift_id = -1;
+        lift_db.updateMaxLiftIdOfExerciseToNull(this);
     }
 }

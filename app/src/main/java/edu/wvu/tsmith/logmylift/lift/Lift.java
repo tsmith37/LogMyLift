@@ -1,8 +1,11 @@
-package edu.wvu.tsmith.logmylift;
+package edu.wvu.tsmith.logmylift.lift;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
+
+import edu.wvu.tsmith.logmylift.LiftDbHelper;
+import edu.wvu.tsmith.logmylift.exercise.Exercise;
 
 /**
  * Created by tmssm on 3/19/2017.
@@ -11,7 +14,7 @@ import java.util.Locale;
  * @author Tommy Smith
  */
 
-class Lift {
+public class Lift {
     private String comment;
     private Exercise exercise;
     private LiftDbHelper lift_db;
@@ -29,7 +32,7 @@ class Lift {
      * @param weight            Weight of the lift.
      * @param workout_id        ID of the workout that the lift occured during.
      */
-    Lift(LiftDbHelper lift_db_helper, Exercise exercise, int reps, int weight, long workout_id, String comment) {
+    public Lift(LiftDbHelper lift_db_helper, Exercise exercise, int reps, int weight, long workout_id, String comment) {
         this.comment = comment;
         this.exercise = exercise;
         this.lift_db = lift_db_helper;
@@ -56,7 +59,18 @@ class Lift {
 
     }
 
-    Lift(LiftDbHelper lift_db_helper, long lift_id, Exercise exercise, int reps, Date start_date, int weight, long workout_id, String comment) {
+    /**
+     * Construct an already existing lift from parts.
+     * @param lift_db_helper    The SQLite database helper.
+     * @param lift_id           Unique ID of the lift used to identify it in the database.
+     * @param exercise          The exercise that was done during the lift.
+     * @param reps              The number of reps done during the lift.
+     * @param start_date        The datetime that the lift was done.
+     * @param weight            The weight which was lifted.
+     * @param workout_id        The unique ID of the workout during which the lift was done.
+     * @param comment           User-specified comment of the lift.
+     */
+    public Lift(LiftDbHelper lift_db_helper, long lift_id, Exercise exercise, int reps, Date start_date, int weight, long workout_id, String comment) {
         this.comment = comment;
         this.lift_id = lift_id;
         this.exercise = exercise;
@@ -68,23 +82,31 @@ class Lift {
     }
 
     // Read-only access to members.
-    String getComment() { return this.comment; }
-    Exercise getExercise() { return this.exercise; }
-    long getLiftId() { return this.lift_id; }
-    String getReadableStartDate() { return new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).format(this.start_date); }
-    String getReadableStartTime() { return new java.text.SimpleDateFormat("hh:mm aa", Locale.US).format(this.start_date); }
-    int getReps() { return this.reps; }
-    Date getStartDate() { return this.start_date; }
-    int getWeight() { return this.weight; }
-    long getWorkoutId() { return this.workout_id; }
+    public String getComment() { return this.comment; }
+    public Exercise getExercise() { return this.exercise; }
+    public long getLiftId() { return this.lift_id; }
+    public String getReadableStartDate() { return new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).format(this.start_date); }
+    public String getReadableStartTime() { return new java.text.SimpleDateFormat("hh:mm aa", Locale.US).format(this.start_date); }
+    public int getReps() { return this.reps; }
+    public Date getStartDate() { return this.start_date; }
+    public int getWeight() { return this.weight; }
+    public long getWorkoutId() { return this.workout_id; }
 
-    int calculateMaxEffort()
+    /**
+     * Calculate the maximum effort of this lift.
+     * @return  The "max effort" that results from this lift. If there was only one rep, then
+     *          the max effort is identical to the amount of weight lifted.
+     */
+    private int calculateMaxEffort()
     {
         Double maximum_effort = this.weight/(1.0278-(0.278*this.reps));
         return maximum_effort.intValue();
     }
 
-    void delete()
+    /**
+     * Delete the lift. This removes it from the database, and recalculates the maximum effort lift.
+     */
+    public void delete()
     {
         lift_db.deleteLift(this);
         ArrayList<Lift> exercise_history = lift_db.selectExerciseHistoryLifts(this.exercise);
@@ -107,16 +129,21 @@ class Lift {
         }
     }
 
-    void setComment(String comment)
+    /**
+     * Set the comment of the lift.
+     * @param comment   New comment of the lift.
+     */
+    public void setComment(String comment)
     {
         this.comment = comment;
         lift_db.updateCommentOfLift(this);
     }
+
     /**
      * Update the number of reps of the lift.
      * @param reps  Number of reps.
      */
-    void setReps(int reps)
+    public void setReps(int reps)
     {
         this.reps = reps;
         lift_db.updateRepsOfLift(this);
@@ -126,7 +153,7 @@ class Lift {
      * Update the weight of the lift.
      * @param weight    Weight of the lift.
      */
-    void setWeight(int weight)
+    public void setWeight(int weight)
     {
         this.weight = weight;
         lift_db.updateWeightOfLift(this);

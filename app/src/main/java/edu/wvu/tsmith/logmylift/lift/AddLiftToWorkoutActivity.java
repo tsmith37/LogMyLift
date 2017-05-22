@@ -1,4 +1,4 @@
-package edu.wvu.tsmith.logmylift;
+package edu.wvu.tsmith.logmylift.lift;
 
 import android.app.Activity;
 import android.content.Context;
@@ -28,6 +28,12 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
 
 import java.util.ArrayList;
+
+import edu.wvu.tsmith.logmylift.LiftDbHelper;
+import edu.wvu.tsmith.logmylift.R;
+import edu.wvu.tsmith.logmylift.exercise.Exercise;
+import edu.wvu.tsmith.logmylift.workout.Workout;
+import edu.wvu.tsmith.logmylift.workout.WorkoutHistoryAdapter;
 
 /**
  * This class provides the activity to add a lift to the current workout, as well as providing
@@ -118,8 +124,9 @@ public class AddLiftToWorkoutActivity extends AppCompatActivity {
                 public void onNothingSelected(AdapterView<?> parent) {
                 }
             });
+
+            changeCurrentExercise(exercise_spinner.getSelectedItemId());
         }
-        changeCurrentExercise(exercise_spinner.getSelectedItemId());
 
         // SET UP THE ADD EXERCISE BUTTON.
         ImageButton add_exercise_button = (ImageButton) findViewById(R.id.add_exercise_button);
@@ -152,11 +159,15 @@ public class AddLiftToWorkoutActivity extends AppCompatActivity {
         }
 
         ImageButton clear_exercise_filter = (ImageButton) this.findViewById(R.id.clear_exercise_filter);
-        if (clear_exercise_filter != null) {
+        if (clear_exercise_filter != null)
+        {
             clear_exercise_filter.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    exercise_filter_input.setText("");
+                    if (exercise_filter_input != null)
+                    {
+                        exercise_filter_input.setText("");
+                    }
                 }
             });
         }
@@ -202,7 +213,7 @@ public class AddLiftToWorkoutActivity extends AppCompatActivity {
             int reps = Integer.parseInt(reps_text.getText().toString());
             EditText comment_text = (EditText) findViewById(R.id.comment_input);
             String comment = comment_text.getText().toString();
-            current_workout.AddLift(current_exercise, reps, weight, comment);
+            current_workout.addLift(current_exercise, reps, weight, comment);
             Snackbar.make(findViewById(R.id.add_lift_button), current_exercise.getName() + ": " + Integer.toString(weight) + "x" + Integer.toString(reps) + " added.", Snackbar.LENGTH_LONG).show();
             reloadCurrentWorkout();
         }
@@ -245,11 +256,6 @@ public class AddLiftToWorkoutActivity extends AppCompatActivity {
     private void changeCurrentExercise(long exercise_id)
     {
         this.current_exercise = lift_db_helper.selectExerciseFromExerciseId(exercise_id);
-
-    //    TextView exercise_description_text_view = (TextView) this.findViewById(R.id.exercise_description_text);
-    //    if (exercise_description_text_view != null) {
-    //        exercise_description_text_view.setText(this.current_exercise.getDescription());
-    //    }
     }
 
     /**
@@ -278,28 +284,6 @@ public class AddLiftToWorkoutActivity extends AppCompatActivity {
         }
     }
 
-    /*
-     * Reload the exercise history based on the current exercise.
-
-    private void reloadExerciseHistory()
-    {
-        try {
-            ListView exercise_history_list = (ListView) this.findViewById(R.id.exercise_history_list);
-            Cursor exercise_history_cursor = lift_db_helper.selectExerciseHistoryCursor(current_exercise);
-            final CurrentWorkoutCursorAdapter exercise_history_adapter = new CurrentWorkoutCursorAdapter(
-                    this,
-                    exercise_history_cursor);
-            if (exercise_history_list != null) {
-                exercise_history_list.setAdapter(exercise_history_adapter);
-            }
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-    }
-    */
-
     /**
      * Reload the current workout table.
      */
@@ -311,15 +295,6 @@ public class AddLiftToWorkoutActivity extends AppCompatActivity {
         ArrayList<Lift> current_workout_lifts = current_workout.getLifts();
         WorkoutHistoryAdapter current_workout_history = new WorkoutHistoryAdapter(this, current_workout_lifts);
         current_workout_list.setAdapter(current_workout_history);
-       // ListView current_workout_list = (ListView) this.findViewById(R.id.current_workout_list);
-       // Cursor current_workout_cursor = lift_db_helper.selectLiftsFromWorkoutCursor(current_workout.getWorkoutId(), 50);
-       // final CurrentWorkoutCursorAdapter current_workout_adapter = new CurrentWorkoutCursorAdapter(
-       //         this,
-       //         current_workout_cursor);
-       // if (current_workout_list != null)
-       // {
-       //     current_workout_list.setAdapter(current_workout_adapter);
-        // }
     }
 
     /**
@@ -334,6 +309,8 @@ public class AddLiftToWorkoutActivity extends AppCompatActivity {
         add_exercise_dialog_builder.setView(add_exercise_dialog_view);
         final EditText exercise_name_text = (EditText) add_exercise_dialog_view.findViewById(R.id.add_exercise_name_dialog_text);
         final EditText exercise_description_text = (EditText) add_exercise_dialog_view.findViewById(R.id.add_exercise_description_dialog_text);
+
+        // Handle the positive button press.
         add_exercise_dialog_builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -351,6 +328,7 @@ public class AddLiftToWorkoutActivity extends AppCompatActivity {
             }
         });
 
+        // Handle the negative button press.
         add_exercise_dialog_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -363,6 +341,10 @@ public class AddLiftToWorkoutActivity extends AppCompatActivity {
         add_exercise_dialog.show();
     }
 
+    /**
+     * Reset the inputs of the activity. Used after a lift is added to improve the user experience.
+     * @param view  The view which calls this method. Not really used, other than to hide the keyboard.
+     */
     void resetInputs(View view) {
         InputMethodManager input_method_manager = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
         input_method_manager.hideSoftInputFromWindow(view.getWindowToken(), 0);
