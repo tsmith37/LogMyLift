@@ -9,6 +9,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
@@ -48,12 +49,7 @@ public class WorkoutDetailFragment extends Fragment {
         lift_db = new LiftDbHelper(getContext());
         if (getArguments().containsKey(workout_id)) {
             // Load the workout from the database based on the ID bundled with the fragment.
-            current_workout = lift_db.selectWorkoutFromWorkoutId(getArguments().getLong(workout_id));
-            Activity activity = this.getActivity();
-            CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
-            if (appBarLayout != null) {
-                appBarLayout.setTitle(current_workout.getDescription());
-            }
+            reload();
         }
     }
 
@@ -72,5 +68,18 @@ public class WorkoutDetailFragment extends Fragment {
             current_workout_list.setAdapter(current_workout_history);
         }
         return rootView;
+    }
+
+    /**
+     * Reload the exercise.
+     */
+    public void reload()
+    {
+        this.current_workout = lift_db.selectWorkoutFromWorkoutId(getArguments().getLong(workout_id));
+        Activity activity = this.getActivity();
+        CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
+        if (appBarLayout != null) {
+            appBarLayout.setTitle(current_workout.getDescription());
+        }
     }
 }

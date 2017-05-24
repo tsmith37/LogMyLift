@@ -9,6 +9,7 @@
     <string name="create_exercise_text">Create Exercise</string>
     <string name="create_workout_text">New Workout</string>
     <string name="edit_exercise_text">Edit Exercise</string>
+    <string name="edit_workout_text">Edit Workout</string>
     <string name="exercise_button_text">View Exercises</string>
     <string name="exercise_description_text">Exercise Description</string>
     <string name="exercise_name_text">Exercise Name</string>
@@ -29,4 +30,5 @@
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
+    <string name="undo_text">Undo</string>
 </resources>

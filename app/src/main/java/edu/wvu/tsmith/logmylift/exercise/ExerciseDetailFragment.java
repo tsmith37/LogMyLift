@@ -88,9 +88,9 @@ public class ExerciseDetailFragment extends Fragment {
             return rootView;
     }
 
-        /**
-         * Reload the exercise.
-         */
+    /**
+     * Reload the exercise.
+     */
     public void reload()
     {
         this.current_exercise = lift_db.selectExerciseFromExerciseId(getArguments().getLong(exercise_id));

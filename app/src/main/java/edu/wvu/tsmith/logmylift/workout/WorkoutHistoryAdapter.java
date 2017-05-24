@@ -8,11 +8,13 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import edu.wvu.tsmith.logmylift.lift.AddLiftToWorkoutActivity;
 import edu.wvu.tsmith.logmylift.lift.Lift;
 import edu.wvu.tsmith.logmylift.R;
 
@@ -163,6 +165,8 @@ public class WorkoutHistoryAdapter extends RecyclerView.Adapter<WorkoutHistoryAd
                 {
                     Snackbar.make(parent_activity.findViewById(R.id.exercise_name), "Lift not valid.", Snackbar.LENGTH_LONG).show();
                 }
+                InputMethodManager input_method_manager = (InputMethodManager) parent_activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+                input_method_manager.hideSoftInputFromWindow(edit_lift_dialog_view.getWindowToken(), 0);
                 dialog.dismiss();
             }
         });

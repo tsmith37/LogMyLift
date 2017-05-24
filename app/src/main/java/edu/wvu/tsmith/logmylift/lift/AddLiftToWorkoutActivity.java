@@ -166,7 +166,10 @@ public class AddLiftToWorkoutActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     if (exercise_filter_input != null)
                     {
-                        exercise_filter_input.setText("");
+                        if (!exercise_filter_input.getText().toString().isEmpty())
+                        {
+                            exercise_filter_input.setText("");
+                        }
                     }
                 }
             });
@@ -182,7 +185,8 @@ public class AddLiftToWorkoutActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     addLift();
-                    resetInputs(v);
+                    hideKeyboard(v);
+                    resetComment();
                 }
             });
         }
@@ -279,6 +283,7 @@ public class AddLiftToWorkoutActivity extends AppCompatActivity {
         exercise_adapter.setDropDownViewResource(R.layout.big_spinner_item);
 
         Spinner exercise_spinner = (Spinner) this.findViewById(R.id.exercise_spinner);
+
         if (exercise_spinner != null) {
             exercise_spinner.setAdapter(exercise_adapter);
         }
@@ -320,9 +325,17 @@ public class AddLiftToWorkoutActivity extends AppCompatActivity {
                 }
                 else
                 {
+                    // Add the exercise to the database, reload the spinner, filter by the new exercise
+                    // (this is really just a cheap way to select it), and reset any comment, weight
+                    // and reps.
                     new Exercise(lift_db_helper, exercise_name_text.getText().toString(), exercise_description_text.getText().toString());
                     reloadExerciseSpinner();
+                    EditText exercise_filter_input = (EditText) findViewById(R.id.exercise_filter_input);
+                    exercise_filter_input.setText(exercise_name_text.getText().toString());
                     Snackbar.make(findViewById(R.id.add_exercise_button), "Exercise added.", Snackbar.LENGTH_LONG).show();
+                    hideKeyboard(exercise_name_text);
+                    resetComment();
+                    resetWeightAndReps();
                 }
                 dialog.dismiss();
             }
@@ -342,13 +355,33 @@ public class AddLiftToWorkoutActivity extends AppCompatActivity {
     }
 
     /**
-     * Reset the inputs of the activity. Used after a lift is added to improve the user experience.
-     * @param view  The view which calls this method. Not really used, other than to hide the keyboard.
+     * Reset the comment to blank. This is done after a lift is added, because it's not likely that
+     * the user will have the same comment for multiple lifts in a row. This is also done separately
+     * from resetting the weight & reps because we don't want to reset those in between lifts.
      */
-    void resetInputs(View view) {
-        InputMethodManager input_method_manager = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
-        input_method_manager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    void resetComment() {
         EditText comment = (EditText) findViewById(R.id.comment_input);
         comment.setText("");
+    }
+
+    /**
+     * Reset the comment to blank. This is done after a lift is added, because it's not likely that
+     * the user will have the same comment for multiple lifts in a row.
+     */
+    void resetWeightAndReps() {
+        EditText weight = (EditText) findViewById(R.id.weight_input);
+        weight.setText("");
+        EditText reps = (EditText) findViewById(R.id.reps_input);
+        reps.setText("");
+    }
+
+    /**
+     * Hides the keyboard from the user.
+     * @param view  The view that calls the function. Not really sure if it's important.
+     */
+    public void hideKeyboard(View view)
+    {
+        InputMethodManager input_method_manager = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
+        input_method_manager.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 }
