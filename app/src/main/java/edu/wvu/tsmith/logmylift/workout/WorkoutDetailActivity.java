@@ -139,7 +139,7 @@ public class WorkoutDetailActivity extends AppCompatActivity {
         edit_workout_dialog.show();
     }
 
-    class UndoUpdateWorkoutListener implements View.OnClickListener
+    private class UndoUpdateWorkoutListener implements View.OnClickListener
     {
         Workout current_workout;
         String old_description;

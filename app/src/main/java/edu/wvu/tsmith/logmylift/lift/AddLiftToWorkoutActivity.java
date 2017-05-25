@@ -292,7 +292,7 @@ public class AddLiftToWorkoutActivity extends AppCompatActivity {
     /**
      * Reload the current workout table.
      */
-    void reloadCurrentWorkout()
+    public void reloadCurrentWorkout()
     {
         RecyclerView current_workout_list = (RecyclerView) this.findViewById(R.id.current_workout_list);
         RecyclerView.LayoutManager current_workout_layout_manager = new LinearLayoutManager(getApplicationContext());

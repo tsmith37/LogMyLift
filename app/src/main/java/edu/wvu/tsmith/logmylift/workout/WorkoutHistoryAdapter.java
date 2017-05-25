@@ -14,7 +14,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-import edu.wvu.tsmith.logmylift.lift.AddLiftToWorkoutActivity;
+import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.lift.Lift;
 import edu.wvu.tsmith.logmylift.R;
 
@@ -44,8 +44,9 @@ public class WorkoutHistoryAdapter extends RecyclerView.Adapter<WorkoutHistoryAd
         TextView lift_time_text_view;
         TextView comment_text_view;
         IWorkoutHistoryViewHolderClicks workout_history_listener;
+        WorkoutHistoryAdapter workout_history_adapter;
 
-        WorkoutHistoryViewHolder(View view, IWorkoutHistoryViewHolderClicks workout_history_listener) {
+        WorkoutHistoryViewHolder(View view, WorkoutHistoryAdapter workout_history_adapter, IWorkoutHistoryViewHolderClicks workout_history_listener) {
             super(view);
             this.workout_history_listener = workout_history_listener;
             this.exercise_name_text_view = (TextView) view.findViewById(R.id.exercise_name);
@@ -60,6 +61,7 @@ public class WorkoutHistoryAdapter extends RecyclerView.Adapter<WorkoutHistoryAd
             this.comment_text_view = (TextView) view.findViewById(R.id.comment);
             this.comment_text_view.setOnClickListener(this);
             this.comment_text_view.setOnLongClickListener(this);
+            this.workout_history_adapter = workout_history_adapter;
             view.setOnClickListener(this);
             view.setOnLongClickListener(this);
         }
@@ -73,21 +75,21 @@ public class WorkoutHistoryAdapter extends RecyclerView.Adapter<WorkoutHistoryAd
         @Override
         public boolean onLongClick(View v)
         {
-            workout_history_listener.deleteLift(v, this.getAdapterPosition());
+            workout_history_listener.deleteLift(v, this.workout_history_adapter, this.getAdapterPosition());
             return false;
         }
 
         interface IWorkoutHistoryViewHolderClicks
         {
             void editLift(View caller, int position);
-            void deleteLift(View caller, int position);
+            void deleteLift(View caller, WorkoutHistoryAdapter workout_history_adapter, int position);
         }
     }
 
     @Override
     public WorkoutHistoryAdapter.WorkoutHistoryViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         final View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.current_workout_layout, parent, false);
-        return new WorkoutHistoryViewHolder(view, new WorkoutHistoryViewHolder.IWorkoutHistoryViewHolderClicks() {
+        return new WorkoutHistoryViewHolder(view, this, new WorkoutHistoryViewHolder.IWorkoutHistoryViewHolderClicks() {
             @Override
             public void editLift(View caller, int position)
             {
@@ -95,9 +97,9 @@ public class WorkoutHistoryAdapter extends RecyclerView.Adapter<WorkoutHistoryAd
             }
 
             @Override
-            public void deleteLift(View caller, int position)
+            public void deleteLift(View caller, WorkoutHistoryAdapter workout_history_adapter, int position)
             {
-                showDeleteLiftDialog(lifts_in_workout_history.get(position), position);
+                showDeleteLiftDialog(workout_history_adapter, lifts_in_workout_history.get(position), position);
             }
         });
     }
@@ -192,7 +194,7 @@ public class WorkoutHistoryAdapter extends RecyclerView.Adapter<WorkoutHistoryAd
      *                                  the lift to be graphically removed from the user.
      * @return                          Not really sure what the point of this is...always true.
      */
-    private boolean showDeleteLiftDialog(final Lift lift_to_delete, final int lift_position_in_adapter)
+    private boolean showDeleteLiftDialog(final WorkoutHistoryAdapter workout_history_adapter, final Lift lift_to_delete, final int lift_position_in_adapter)
     {
         AlertDialog.Builder delete_lift_dialog_builder = new AlertDialog.Builder(parent_activity);
         delete_lift_dialog_builder.setTitle("Delete Lift");
@@ -201,7 +203,9 @@ public class WorkoutHistoryAdapter extends RecyclerView.Adapter<WorkoutHistoryAd
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 lift_to_delete.delete();
-                Snackbar.make(parent_activity.findViewById(R.id.exercise_name), "Lift deleted.", Snackbar.LENGTH_LONG).show();
+                Snackbar delete_lift_snackbar = Snackbar.make(parent_activity.findViewById(R.id.exercise_name), "Lift deleted.", Snackbar.LENGTH_LONG);
+                delete_lift_snackbar.setAction(R.string.undo_text, new UndoDeleteLiftListener(workout_history_adapter, lift_to_delete));
+                delete_lift_snackbar.show();
                 notifyItemRemoved(lift_position_in_adapter);
                 dialog.dismiss();
             }
@@ -218,5 +222,26 @@ public class WorkoutHistoryAdapter extends RecyclerView.Adapter<WorkoutHistoryAd
         AlertDialog delete_dialog = delete_lift_dialog_builder.create();
         delete_dialog.show();
         return true;
+    }
+
+    private class UndoDeleteLiftListener implements View.OnClickListener
+    {
+        Lift current_lift;
+        WorkoutHistoryAdapter workout_history_adapter;
+
+        UndoDeleteLiftListener(WorkoutHistoryAdapter workout_history_adapter, Lift current_lift)
+        {
+            super();
+            this.current_lift = current_lift;
+            this.workout_history_adapter = workout_history_adapter;
+        }
+
+        @Override
+        public void onClick(View v)
+        {
+            LiftDbHelper lift_db_helper = new LiftDbHelper(parent_activity.getBaseContext());
+            lift_db_helper.insertLift(current_lift);
+            workout_history_adapter.notifyDataSetChanged();
+        }
     }
 }
