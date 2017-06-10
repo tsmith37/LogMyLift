@@ -116,6 +116,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         String WHERE = id_column_name + " = ?";
         String[] where_args = {Long.toString(id)};
         db.delete(table_name, WHERE, where_args);
+        db.close();
     }
 
     /**
@@ -138,7 +139,9 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         ContentValues insert_values = new ContentValues();
         insert_values.put(EXERCISE_COLUMN_NAME, exercise.getName());
         insert_values.put(EXERCISE_COLUMN_DESCRIPTION, exercise.getDescription());
-        return db.insert(EXERCISE_TABLE_NAME, null, insert_values);
+        long exercise_id = db.insert(EXERCISE_TABLE_NAME, null, insert_values);
+        db.close();
+        return exercise_id;
     }
 
     /**
@@ -155,7 +158,9 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         insert_values.put(LIFT_COLUMN_START_DATE, lift.getStartDate().getTime());
         insert_values.put(LIFT_COLUMN_WEIGHT, lift.getWeight());
         insert_values.put(LIFT_COLUMN_WORKOUT_ID, lift.getWorkoutId());
-        return db.insert(LIFT_TABLE_NAME, null, insert_values);
+        long lift_id = db.insert(LIFT_TABLE_NAME, null, insert_values);
+        db.close();
+        return lift_id;
     }
 
     /**
@@ -168,7 +173,9 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         ContentValues insert_values = new ContentValues();
         insert_values.put(WORKOUT_COLUMN_START_DATE, workout.getStartDate().getTime());
         insert_values.put(WORKOUT_COLUMN_DESCRIPTION, workout.getDescription());
-        return db.insert(WORKOUT_TABLE_NAME, null, insert_values);
+        long workout_id = db.insert(WORKOUT_TABLE_NAME, null, insert_values);
+        db.close();
+        return workout_id;
     }
 
     /**
@@ -199,7 +206,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
             lift_ids.add(lift_id);
         }
         select_cursor.close();
-
+        db.close();
         return lift_ids;
     }
 
@@ -216,6 +223,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         Cursor select_cursor = db.rawQuery(select_all_exercises_query, null);
         int exercise_count = select_cursor.getCount();
         select_cursor.close();
+        db.close();
         return exercise_count;
     }
 
@@ -259,7 +267,50 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         long last_workout_id = select_cursor.getLong(
                 select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_LAST_WORKOUT_ID));
         select_cursor.close();
+        db.close();
+        return new Exercise(this, exercise_id, name, description, max_lift_id, last_workout_id);
+    }
 
+    public Exercise selectExerciseFromName(String exercise_name)
+    {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] RETURN_COLUMNS = {
+                EXERCISE_COLUMN_EXERCISE_ID,
+                EXERCISE_COLUMN_NAME,
+                EXERCISE_COLUMN_DESCRIPTION,
+                EXERCISE_COLUMN_MAX_LIFT_ID,
+                EXERCISE_COLUMN_LAST_WORKOUT_ID
+        };
+
+        String WHERE = EXERCISE_COLUMN_NAME + " LIKE ?";
+        String[] where_args = { exercise_name.toLowerCase() };
+
+        Cursor select_cursor = db.query(
+                EXERCISE_TABLE_NAME,
+                RETURN_COLUMNS,
+                WHERE,
+                where_args,
+                null,
+                null,
+                null);
+
+        boolean name_in_db = select_cursor.moveToFirst();
+        if (!name_in_db) {
+            return null;
+        }
+
+        long exercise_id = select_cursor.getLong(
+                select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_EXERCISE_ID));
+        String name = select_cursor.getString(
+                select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_NAME));
+        String description = select_cursor.getString(
+                select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_DESCRIPTION));
+        long max_lift_id = select_cursor.getLong(
+                select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_MAX_LIFT_ID));
+        long last_workout_id = select_cursor.getLong(
+                select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_LAST_WORKOUT_ID));
+        select_cursor.close();
+        db.close();
         return new Exercise(this, exercise_id, name, description, max_lift_id, last_workout_id);
     }
 
@@ -274,7 +325,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         String WHERE = EXERCISE_COLUMN_NAME + " LIKE ?";
         String[] where_args = { "%" + filter + "%" };
 
-        return db.query(
+        Cursor exercises_cursor = db.query(
                 EXERCISE_TABLE_NAME,
                 RETURN_COLUMNS,
                 WHERE,
@@ -282,6 +333,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                 null,
                 null,
                 EXERCISE_COLUMN_NAME);
+        return exercises_cursor;
     }
 
     /**
@@ -312,6 +364,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                     select_cursor.getLong(select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_LAST_WORKOUT_ID))));
         }
         select_cursor.close();
+        db.close();
         return exercise_list;
     }
 
@@ -342,7 +395,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         long workout_id = select_cursor.getLong(
                 select_cursor.getColumnIndexOrThrow(WORKOUT_COLUMN_WORKOUT_ID));
         select_cursor.close();
-
+        db.close();
         return selectWorkoutFromWorkoutId(workout_id);
     }
 
@@ -393,7 +446,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                 select_cursor.getColumnIndexOrThrow(WORKOUT_COLUMN_START_DATE));
         Date start_date = new Date(start_date_as_long);
         select_cursor.close();
-
+        db.close();
         return new Lift(this, lift_id, exercise, reps, start_date, weight, workout_id, comment);
     }
 
@@ -423,6 +476,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
             exercise_history_lifts.add(selectLiftFromLiftId(current_lift_id));
         }
         select_cursor.close();
+        db.close();
         return exercise_history_lifts;
     }
 
@@ -456,6 +510,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                     new Date(select_cursor.getLong(select_cursor.getColumnIndexOrThrow(WORKOUT_COLUMN_START_DATE)))));
         }
         select_cursor.close();
+        db.close();
         return workout_list;
     }
 
@@ -495,7 +550,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         select_cursor.close();
 
         Date start_date = new Date(start_date_as_long);
-
+        db.close();
         return new Workout(this, workout_id, description, selectLiftsByWorkoutId(workout_id),start_date);
     }
 
@@ -522,11 +577,13 @@ public class LiftDbHelper extends SQLiteOpenHelper {
 
         String WHERE =  id_column_name + " = ?";
         String[] where_args = { Long.toString(id)};
-        return db.update(
+        int to_return = db.update(
                 table_name,
                 update_values,
                 WHERE,
                 where_args);
+        db.close();
+        return to_return;
     }
 
     /**
@@ -552,11 +609,13 @@ public class LiftDbHelper extends SQLiteOpenHelper {
 
         String WHERE =  id_column_name + " = ?";
         String[] where_args = { Long.toString(id)};
-        return db.update(
+        int to_return = db.update(
                 table_name,
                 update_values,
                 WHERE,
                 where_args);
+        db.close();
+        return to_return;
     }
 
     /**
@@ -582,11 +641,13 @@ public class LiftDbHelper extends SQLiteOpenHelper {
 
         String WHERE = id_column_name + " = ?";
         String[] where_args = { Long.toString(id)};
-        return db.update(
+        int to_return = db.update(
                 table_name,
                 update_values,
                 WHERE,
                 where_args);
+        db.close();
+        return to_return;
     }
 
     /**
@@ -645,6 +706,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                 update_values,
                 WHERE,
                 where_args);
+        db.close();
     }
 
     /**

@@ -18,6 +18,7 @@ import android.widget.TextView;
 import java.util.Date;
 import java.util.Locale;
 
+import edu.wvu.tsmith.logmylift.lift.AddLift;
 import edu.wvu.tsmith.logmylift.lift.AddLiftToWorkoutActivity;
 import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
@@ -115,7 +116,7 @@ public class WorkoutDetailActivity extends AppCompatActivity {
                 update_workout_snackbar.setAction(R.string.undo_text, new UndoUpdateWorkoutListener(current_workout, workout_before_editing_description, workout_detail_fragment));
                 update_workout_snackbar.show();
                 current_workout.setDescription(workout_description_text.getText().toString());
-                workout_detail_fragment.reload();
+                workout_detail_fragment.reloadWorkoutDetails();
             }
         });
 
@@ -129,8 +130,13 @@ public class WorkoutDetailActivity extends AppCompatActivity {
         edit_workout_dialog_builder.setNeutralButton("Go to workout.", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Intent workout_intent = new Intent(getBaseContext(), AddLiftToWorkoutActivity.class);
+           /*     Intent workout_intent = new Intent(getBaseContext(), AddLiftToWorkoutActivity.class);
                 workout_intent.putExtra(LiftDbHelper.WORKOUT_COLUMN_WORKOUT_ID, current_workout.getWorkoutId());
+                startActivity(workout_intent); */
+
+                Intent workout_intent = new Intent(getBaseContext(), AddLift.class);
+                workout_intent.putExtra(WorkoutDetailFragment.workout_id, current_workout.getWorkoutId());
+
                 startActivity(workout_intent);
             }
         });
@@ -157,7 +163,7 @@ public class WorkoutDetailActivity extends AppCompatActivity {
         public void onClick(View v)
         {
             this.current_workout.setDescription(old_description);
-            this.workout_detail_fragment.reload();
+            this.workout_detail_fragment.reloadWorkoutDetails();
         }
     }
 }

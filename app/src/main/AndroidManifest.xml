@@ -27,6 +27,15 @@
                 android:value="edu.wvu.tsmith.logmylift.Start" />
         </activity>
         <activity
+            android:name=".lift.AddLift"
+            android:label="@string/title_add_lift"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustResize">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="edu.wvu.tsmith.logmylift.Start" />
+        </activity>
+        <activity
             android:name=".exercise.ExerciseListActivity"
             android:label="@string/title_exercise_list"
             android:theme="@style/AppTheme.NoActionBar" />

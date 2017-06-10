@@ -17,6 +17,7 @@
     <string name="reps_text">Reps</string>
     <string name="start_new_workout_button_text">Start New Workout</string>
     <string name="title_activity_add_exercise">AddExerciseActivity</string>
+    <string name="title_add_lift">AddLift</string>
     <string name="title_activity_add_lift_to_workout">AddLiftToWorkoutActivity</string>
     <string name="title_activity_start">Start</string>
     <string name="view_workout_button_text">View Workout</string>

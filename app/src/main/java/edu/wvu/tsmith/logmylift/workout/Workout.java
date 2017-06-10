@@ -91,11 +91,35 @@ public class Workout {
         return new_lift;
     }
 
+    public void reAddLift(Lift lift, int old_position)
+    {
+        this.lift_ids.add(old_position, lift.getLiftId());
+    }
+
+    public void removeLiftInMemory(long lift_id)
+    {
+        this.lift_ids.remove(lift_id);
+    };
+
+    public boolean deleteLift(Lift lift)
+    {
+        lift.delete();
+        if (this.lift_ids.contains(lift.getLiftId())) {
+            int lift_index = this.lift_ids.indexOf(lift.getLiftId());
+            this.lift_ids.remove(lift_index);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     /**
      * Set the description of the workout.
      * @param description   The new description of the workout.
      */
-    void setDescription(String description) {
+    public void setDescription(String description) {
         this.description = description;
         this.lift_db_helper.updateDescriptionOfWorkout(this);
     }

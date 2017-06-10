@@ -17,8 +17,10 @@ import java.util.Date;
 import java.util.Locale;
 
 import edu.wvu.tsmith.logmylift.exercise.ExerciseListActivity;
+import edu.wvu.tsmith.logmylift.lift.AddLift;
 import edu.wvu.tsmith.logmylift.lift.AddLiftToWorkoutActivity;
 import edu.wvu.tsmith.logmylift.workout.Workout;
+import edu.wvu.tsmith.logmylift.workout.WorkoutDetailFragment;
 import edu.wvu.tsmith.logmylift.workout.WorkoutListActivity;
 
 public class Start extends AppCompatActivity {
@@ -120,8 +122,14 @@ public class Start extends AppCompatActivity {
      * @param workout_id    The ID of the workout.
      */
     private void goToWorkout(long workout_id) {
-        Intent workout_intent = new Intent(current_context, AddLiftToWorkoutActivity.class);
+        /*Intent workout_intent = new Intent(current_context, AddLift.class);
         workout_intent.putExtra(LiftDbHelper.WORKOUT_COLUMN_WORKOUT_ID, workout_id);
+        startActivity(workout_intent);
+
+        Context context = v.getContext(); */
+        Intent workout_intent = new Intent(current_context, AddLift.class);
+        workout_intent.putExtra(WorkoutDetailFragment.workout_id, workout_id);
+
         startActivity(workout_intent);
     }
 
