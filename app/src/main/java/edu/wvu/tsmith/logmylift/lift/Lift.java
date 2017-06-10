@@ -1,7 +1,9 @@
 package edu.wvu.tsmith.logmylift.lift;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import edu.wvu.tsmith.logmylift.LiftDbHelper;
@@ -99,7 +101,7 @@ public class Lift {
      */
     private int calculateMaxEffort()
     {
-        Double maximum_effort = this.weight/(1.0278-(0.278*this.reps));
+        Double maximum_effort = this.weight/(1.0278-(0.0278*this.reps));
         return maximum_effort.intValue();
     }
 
