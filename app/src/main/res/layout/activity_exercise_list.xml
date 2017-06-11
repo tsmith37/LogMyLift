@@ -8,19 +8,16 @@
     android:focusableInTouchMode="true"
     android:fitsSystemWindows="true"
     tools:context="edu.wvu.tsmith.logmylift.exercise.ExerciseListActivity">
-
     <android.support.design.widget.AppBarLayout
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:theme="@style/AppTheme.AppBarOverlay">
-
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:popupTheme="@style/AppTheme.PopupOverlay" />
-
     </android.support.design.widget.AppBarLayout>
     <FrameLayout
         android:id="@+id/exercise_filter_frame"
@@ -31,8 +28,8 @@
         android:paddingBottom="10dp">
         <EditText
             android:ems="10"
-            android:hint="@string/filter_exercises_text"
-            android:id="@+id/exercise_filter_input"
+            android:hint="@string/filter_exercises"
+            android:id="@+id/exercise_filter_edit_text"
             android:layout_height="60dp"
             android:layout_width="match_parent"
             android:inputType="text"/>
@@ -42,7 +39,8 @@
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             android:src="@drawable/ic_clear_black_24dp"
-            android:background="@null"/>
+            android:background="@null"
+            android:contentDescription="@string/clear_exercise_filter" />
     </FrameLayout>
     <FrameLayout
         android:id="@+id/frameLayout"
@@ -51,7 +49,6 @@
         android:layout_marginTop="50dp"
         android:paddingTop="10dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
         <include layout="@layout/exercise_list" />
     </FrameLayout>
 
@@ -61,7 +58,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@mipmap/ic_add_white_24dp" />
+        app:srcCompat="@drawable/ic_add_white_24dp" />
 
 
 </android.support.design.widget.CoordinatorLayout>

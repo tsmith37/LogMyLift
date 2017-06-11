@@ -13,7 +13,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
             <TextView
-                android:id="@+id/date"
+                android:id="@+id/date_text_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 style="@style/ListMajorTextView"/>
@@ -21,17 +21,17 @@
                 android:id="@+id/weight_reps_horizontal_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/date"
+                android:layout_below="@id/date_text_view"
                 android:weightSum="2">
                 <TextView
-                    android:id="@+id/weight_and_reps"
+                    android:id="@+id/weight_and_reps_text_view"
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:layout_gravity="start"
                     style="@style/ListMinorTextView"/>
                 <TextView
-                    android:id="@+id/lift_time"
+                    android:id="@+id/lift_time_text_view"
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
@@ -40,7 +40,7 @@
                     style="@style/ListMinorTextView"/>
             </LinearLayout>
             <TextView
-                android:id="@+id/comment"
+                android:id="@+id/comment_text_view"
                 android:layout_below="@id/weight_reps_horizontal_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

@@ -9,18 +9,18 @@ import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.exercise.Exercise;
 
 /**
- * Created by tmssm on 3/19/2017.
+ * Created by Tommy Smith on 3/19/2017.
  * Interface to create and modify workouts. Each workout consists of one or more lifts,
  * the start date, and possibly a description. Workouts may be continue on separate
  * instances by the users and support the ability to be deleted from the database.
  * @author Tommy Smith
  */
 public class Workout {
-    private long workout_id;
+    private final long workout_id;
     private String description;
     private ArrayList<Long> lift_ids = new ArrayList<>();
-    private Date start_date;
-    private LiftDbHelper lift_db_helper;
+    private final Date start_date;
+    private final LiftDbHelper lift_db_helper;
 
     /**
      * Construct a new workout with a description and insert it into the database.
@@ -66,7 +66,7 @@ public class Workout {
      * Get an ArrayList of the lifts done during the workout.
      * @return  An ArrayList of the lifts.
      */
-    public ArrayList<Lift> getLifts()
+    ArrayList<Lift> getLifts()
     {
         ArrayList<Lift> lifts = new ArrayList<>();
         for (long lift_id: lift_ids)
@@ -80,39 +80,34 @@ public class Workout {
     /**
      * Add a lift to the workout and return the lift.
      * @param exercise  The exercise of the new lift.
-     * @param comment   A comment for the lift.
      * @param reps      The number of reps of the new lift.
      * @param weight    The weight of the new lift.
-     * @return          A newly created lift object with the contents described.
+     * @param comment   A comment for the lift.
      */
-    public Lift addLift(Exercise exercise, int reps, int weight, String comment) {
+    void addLift(Exercise exercise, int reps, int weight, String comment) {
         Lift new_lift =  new Lift(lift_db_helper, exercise, reps, weight, this.workout_id, comment);
         this.lift_ids.add(0, new_lift.getLiftId());
-        return new_lift;
     }
 
-    public void reAddLift(Lift lift, int old_position)
+    /**
+     * Readd a lift to the workout without adding it back into the database.
+     * @param lift          Lift to readd.
+     * @param old_position  The position in which to re-add the lift.
+     */
+    void reAddLift(Lift lift, int old_position)
     {
         this.lift_ids.add(old_position, lift.getLiftId());
     }
 
-    public void removeLiftInMemory(long lift_id)
+    /**
+     * Remove a lift from memory. Deleting a lift from the database is done separately because that
+     * operation is slower, so to undo a deletion, it is only removed from memory until it is sure
+     * that the lift should be deleted.
+     * @param lift_id   ID of the lift to remove.
+     */
+    void removeLiftInMemory(long lift_id)
     {
         this.lift_ids.remove(lift_id);
-    };
-
-    public boolean deleteLift(Lift lift)
-    {
-        lift.delete();
-        if (this.lift_ids.contains(lift.getLiftId())) {
-            int lift_index = this.lift_ids.indexOf(lift.getLiftId());
-            this.lift_ids.remove(lift_index);
-            return true;
-        }
-        else
-        {
-            return false;
-        }
     }
 
     /**

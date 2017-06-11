@@ -22,7 +22,7 @@
     <Button
         android:id="@+id/start_new_workout_button"
         style="@style/Widget.AppCompat.Button.Colored"
-        android:text="@string/start_new_workout_button_text"
+        android:text="@string/start_new_workout"
         android:layout_height="@dimen/big_button_height"
         android:layout_width="@dimen/big_button_width"
         android:layout_gravity="center_horizontal"
@@ -35,7 +35,7 @@
     <Button
         android:id="@+id/continue_workout_button"
         style="@style/Widget.AppCompat.Button.Colored"
-        android:text="@string/continue_workout_button_text"
+        android:text="@string/continue_previous_workout"
         android:layout_height="@dimen/big_button_height"
         android:layout_width="@dimen/big_button_width"
         android:layout_gravity="center_horizontal"
@@ -48,7 +48,7 @@
     <Button
         android:id="@+id/workout_history_button"
         style="@style/Widget.AppCompat.Button.Colored"
-        android:text="@string/workout_history_button_text"
+        android:text="@string/workout_history"
         android:layout_height="@dimen/big_button_height"
         android:layout_width="@dimen/big_button_width"
         android:layout_gravity="center_horizontal"
@@ -61,7 +61,7 @@
     <Button
         android:id="@+id/exercise_button"
         style="@style/Widget.AppCompat.Button.Colored"
-        android:text="@string/exercise_button_text"
+        android:text="@string/view_exercises"
         android:layout_height="@dimen/big_button_height"
         android:layout_width="@dimen/big_button_width"
         android:layout_gravity="center_horizontal"

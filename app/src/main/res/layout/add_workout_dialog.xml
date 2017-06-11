@@ -3,21 +3,9 @@
     android:layout_height="match_parent"
     android:layout_width="match_parent"
     android:orientation="vertical">
-    <TextView
-        android:hint="Date"
-        android:id="@+id/add_workout_date_text"
-        style="@style/ListMajorTextView"
-        android:textAlignment="textStart"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginStart="10dp"
-        android:paddingStart="10dp"
-        android:layout_marginRight="4dp"
-        android:layout_marginBottom="4dp"
-        android:layout_width="match_parent"/>
     <EditText
-        android:hint="@string/workout_description_text"
-        android:id="@+id/add_workout_description_dialog_text"
+        android:hint="@string/workout_description"
+        android:id="@+id/workout_description_edit_text"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:layout_marginLeft="4dp"

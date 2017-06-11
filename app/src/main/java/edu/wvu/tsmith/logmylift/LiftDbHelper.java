@@ -15,9 +15,9 @@ import edu.wvu.tsmith.logmylift.lift.Lift;
 import edu.wvu.tsmith.logmylift.workout.Workout;
 
 /**
+ * Created by Tommy Smith on 3/19/2017.
  * The LiftDbHelper class provides a public interface to the SQLite database used by the application.
  * This is helpful because all database operations should be central to this class.
- * Created by tmssm on 3/19/2017.
  * @author Tommy Smith
  */
 public class LiftDbHelper extends SQLiteOpenHelper {
@@ -325,7 +325,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         String WHERE = EXERCISE_COLUMN_NAME + " LIKE ?";
         String[] where_args = { "%" + filter + "%" };
 
-        Cursor exercises_cursor = db.query(
+        return db.query(
                 EXERCISE_TABLE_NAME,
                 RETURN_COLUMNS,
                 WHERE,
@@ -333,7 +333,6 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                 null,
                 null,
                 EXERCISE_COLUMN_NAME);
-        return exercises_cursor;
     }
 
     /**
@@ -562,9 +561,8 @@ public class LiftDbHelper extends SQLiteOpenHelper {
      * @param id                    ID to identify the row to update.
      * @param field_column_name     Column name to update.
      * @param field_int             Value to update.
-     * @return  Not really sure...
      */
-    private int updateFieldIntFromId(
+    private void updateFieldIntFromId(
             String table_name,
             String id_column_name,
             long id,
@@ -577,13 +575,12 @@ public class LiftDbHelper extends SQLiteOpenHelper {
 
         String WHERE =  id_column_name + " = ?";
         String[] where_args = { Long.toString(id)};
-        int to_return = db.update(
+        db.update(
                 table_name,
                 update_values,
                 WHERE,
                 where_args);
         db.close();
-        return to_return;
     }
 
     /**
@@ -594,9 +591,8 @@ public class LiftDbHelper extends SQLiteOpenHelper {
      * @param id                    ID to identify the row to update.
      * @param field_column_name     Column name to update.
      * @param field_long            Value to update.
-     * @return  The number of rows updated? Not quite sure...
      */
-    private int updateFieldLongFromId(
+    private void updateFieldLongFromId(
             String table_name,
             String id_column_name,
             long id,
@@ -609,13 +605,12 @@ public class LiftDbHelper extends SQLiteOpenHelper {
 
         String WHERE =  id_column_name + " = ?";
         String[] where_args = { Long.toString(id)};
-        int to_return = db.update(
+        db.update(
                 table_name,
                 update_values,
                 WHERE,
                 where_args);
         db.close();
-        return to_return;
     }
 
     /**
@@ -626,9 +621,8 @@ public class LiftDbHelper extends SQLiteOpenHelper {
      * @param id                    ID to identify the row to update.
      * @param field_column_name     Column name to update.
      * @param field_string          Value to update.
-     * @return  The number of rows updated? Not quite sure...
      */
-    private int updateFieldStringFromId(
+    private void updateFieldStringFromId(
             String table_name,
             String id_column_name,
             long id,
@@ -641,13 +635,12 @@ public class LiftDbHelper extends SQLiteOpenHelper {
 
         String WHERE = id_column_name + " = ?";
         String[] where_args = { Long.toString(id)};
-        int to_return = db.update(
+        db.update(
                 table_name,
                 update_values,
                 WHERE,
                 where_args);
         db.close();
-        return to_return;
     }
 
     /**

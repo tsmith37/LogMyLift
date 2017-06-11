@@ -4,6 +4,7 @@
 
     <application
         android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_scheme"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
@@ -18,17 +19,8 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".lift.AddLiftToWorkoutActivity"
-            android:label="@string/title_activity_add_lift_to_workout"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:windowSoftInputMode="adjustResize">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="edu.wvu.tsmith.logmylift.Start" />
-        </activity>
-        <activity
             android:name=".lift.AddLift"
-            android:label="@string/title_add_lift"
+            android:label="@string/add_lift"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="adjustResize">
             <meta-data
@@ -37,14 +29,14 @@
         </activity>
         <activity
             android:name=".exercise.ExerciseListActivity"
-            android:label="@string/title_exercise_list"
+            android:label="@string/exercises"
             android:theme="@style/AppTheme.NoActionBar" />
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="edu.wvu.tsmith.logmylift.Start" />
         <activity
             android:name=".exercise.ExerciseDetailActivity"
-            android:label="@string/title_exercise_detail"
+            android:label="@string/exercise_detail"
             android:parentActivityName=".exercise.ExerciseListActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
@@ -53,7 +45,7 @@
         </activity>
         <activity
             android:name=".workout.WorkoutListActivity"
-            android:label="@string/title_workout_list"
+            android:label="@string/workouts"
             android:parentActivityName=".Start"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
@@ -62,7 +54,7 @@
         </activity>
         <activity
             android:name=".workout.WorkoutDetailActivity"
-            android:label="@string/title_workout_detail"
+            android:label="@string/workout_detail"
             android:parentActivityName=".workout.WorkoutListActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data

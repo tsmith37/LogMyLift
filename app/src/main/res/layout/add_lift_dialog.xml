@@ -5,7 +5,8 @@
     <AutoCompleteTextView
         android:id="@+id/exercise_input"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:hint="@string/exercise_name"/>
     <LinearLayout
         android:id="@+id/weight_reps_horizontal_layout"
         android:paddingBottom="10dp"
@@ -17,8 +18,8 @@
             android:layout_height="1dp"
             android:layout_weight="1"/>
         <EditText
-            android:id="@+id/weight_input"
-            android:hint="@string/weight_text"
+            android:id="@+id/weight_edit_text"
+            android:hint="@string/weight"
             android:inputType="number"
             style="@style/Widget.AppCompat.EditText"
             android:layout_width="100dp"
@@ -31,8 +32,8 @@
             android:layout_height="1dp"
             android:layout_weight="1"/>
         <EditText
-            android:id="@+id/reps_input"
-            android:hint="@string/reps_text"
+            android:id="@+id/reps_edit_text"
+            android:hint="@string/reps"
             android:inputType="number"
             style="@style/Widget.AppCompat.EditText"
             android:layout_width="100dp"
@@ -46,8 +47,8 @@
             android:layout_weight="1"/>
     </LinearLayout>
     <EditText
-        android:id="@+id/comment_input"
-        android:hint="@string/comment_text"
+        android:id="@+id/comment_edit_text"
+        android:hint="@string/comment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"

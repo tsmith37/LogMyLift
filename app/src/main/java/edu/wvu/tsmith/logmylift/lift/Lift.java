@@ -1,16 +1,14 @@
 package edu.wvu.tsmith.logmylift.lift;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.exercise.Exercise;
 
 /**
- * Created by tmssm on 3/19/2017.
+ * Created by Tommy Smith on 3/19/2017.
  * Interface to create and modify lifts. A lift is an exercise done at a specific weight and number
  * of reps, possibly including a comment. A lift itself belongs to a workout.
  * @author Tommy Smith
@@ -18,13 +16,13 @@ import edu.wvu.tsmith.logmylift.exercise.Exercise;
 
 public class Lift {
     private String comment;
-    private Exercise exercise;
-    private LiftDbHelper lift_db;
-    private long lift_id;
+    private final Exercise exercise;
+    private final LiftDbHelper lift_db;
+    private final long lift_id;
     private int reps;
-    private Date start_date;
+    private final Date start_date;
     private int weight;
-    private long workout_id;
+    private final long workout_id;
 
     /**
      * Construct a lift. A lift should have all members at construction.

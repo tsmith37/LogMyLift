@@ -24,7 +24,7 @@ import edu.wvu.tsmith.logmylift.R;
  * on handsets.
  */
 public class ExerciseDetailFragment extends Fragment {
-    LiftDbHelper lift_db;
+    private LiftDbHelper lift_db;
 
     /**
      * The fragment argument representing the item ID that this fragment
@@ -33,7 +33,7 @@ public class ExerciseDetailFragment extends Fragment {
     public static final String exercise_id = "exercise_id";
 
     // The exercise that this fragment should represent.
-    public Exercise current_exercise;
+    private Exercise current_exercise;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -65,18 +65,8 @@ public class ExerciseDetailFragment extends Fragment {
 
         // Show the exercise description a TextView.
         if (current_exercise != null) {
-                ((TextView) rootView.findViewById(R.id.exercise_detail)).setText(current_exercise.getDescription());
-              /*  Lift max_lift = lift_db.selectLiftFromLiftId(current_exercise.getMaxLiftId());
-                if (max_lift != null) {
-                    RecyclerView exercise_max_effort_view = (RecyclerView) rootView.findViewById(R.id.exercise_max_effort_list);
-                    RecyclerView.LayoutManager exercise_history_layout_manager = new LinearLayoutManager(getContext());
-                    exercise_max_effort_view.setLayoutManager(exercise_history_layout_manager);
-                    ArrayList<Lift> max_effort_lift_list = new ArrayList<>();
-                    max_effort_lift_list.add(max_lift);
-                    ExerciseHistoryAdapter exercise_max_effort = new ExerciseHistoryAdapter(max_effort_lift_list);
-                    exercise_max_effort_view.setAdapter(exercise_max_effort);
-                }
-            */
+                ((TextView) rootView.findViewById(R.id.exercise_description_text_view)).setText(current_exercise.getDescription());
+
                 // Show the exercise history in a list.
                 RecyclerView exercise_history_list = (RecyclerView) rootView.findViewById(R.id.exercise_history_list);
                 RecyclerView.LayoutManager exercise_history_layout_manager = new LinearLayoutManager(getContext());
@@ -98,8 +88,8 @@ public class ExerciseDetailFragment extends Fragment {
         TextView exercise_detail_text_view;
         if (current_view != null)
         {
-        //    exercise_detail_text_view = (TextView) current_view.findViewById(R.id.exercise_detail);
-        //    exercise_detail_text_view.setText(current_exercise.getDescription());
+            exercise_detail_text_view = (TextView) current_view.findViewById(R.id.exercise_description_text_view);
+            exercise_detail_text_view.setText(current_exercise.getDescription());
         }
         Activity activity = this.getActivity();
         CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);

@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:orientation="vertical">
     <TextView
-        android:id="@+id/edit_workout_dialog_date_text"
+        android:id="@+id/date_text_view"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:layout_marginLeft="4dp"
@@ -12,8 +12,8 @@
         android:layout_marginBottom="4dp"
         android:layout_width="match_parent"/>
     <EditText
-        android:hint="@string/workout_description_text"
-        android:id="@+id/edit_workout_dialog_description_text"
+        android:hint="@string/workout_description"
+        android:id="@+id/workout_description_edit_text"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:layout_marginLeft="4dp"

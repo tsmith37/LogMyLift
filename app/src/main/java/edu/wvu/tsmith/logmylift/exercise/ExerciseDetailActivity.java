@@ -95,11 +95,11 @@ public class ExerciseDetailActivity extends AppCompatActivity {
         // Re-use the add exercise dialog. It contains the same fields we want to use here.
         View edit_exercise_dialog_view = li.inflate(R.layout.add_exercise_dialog, null);
         AlertDialog.Builder edit_exercise_dialog_builder = new AlertDialog.Builder(this);
-        edit_exercise_dialog_builder.setTitle(R.string.edit_exercise_text);
+        edit_exercise_dialog_builder.setTitle(R.string.edit_exercise);
         edit_exercise_dialog_builder.setView(edit_exercise_dialog_view);
-        final EditText exercise_name_text = (EditText) edit_exercise_dialog_view.findViewById(R.id.add_exercise_name_dialog_text);
+        final EditText exercise_name_text = (EditText) edit_exercise_dialog_view.findViewById(R.id.exercise_name_edit_text);
         exercise_name_text.setText(current_exercise.getName());
-        final EditText exercise_description_text = (EditText) edit_exercise_dialog_view.findViewById(R.id.add_exercise_description_dialog_text);
+        final EditText exercise_description_text = (EditText) edit_exercise_dialog_view.findViewById(R.id.exercise_description_edit_text);
         exercise_description_text.setText(current_exercise.getDescription());
 
         // Handle the positive button press.

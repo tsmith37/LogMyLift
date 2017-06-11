@@ -1,35 +1,55 @@
 <resources>
-    <string name="add_lift_button_text">Add Lift</string>
-    <string name="add_lift_to_workout_text">Add Lift to Workout</string>
-    <string name="workout_description_text">Enter Workout Description</string>
+    <!-- Actions -->
+    <string name="add_exercise">Add Exercise</string>
+    <string name="add_lift">Add Lift</string>
+    <string name="clear_exercise_filter">Clear Exercise Filter</string>
+    <string name="continue_previous_workout">Continue Previous Workout</string>
+    <string name="create_exercise">Create Exercise</string>
+    <string name="edit_exercise">Edit Exercise</string>
+    <string name="edit_workout">Edit Workout</string>
+    <string name="filter_exercises">Filter Exercises…</string>
+    <string name="go_to_workout">Go to workout</string>
+    <string name="start_new_workout">Start New Workout</string>
+    <string name="undo">Undo</string>
+    <string name="view_exercises">View Exercises</string>
+
+    <!-- Fields -->
+    <string name="comment">Comment</string>
+    <string name="exercise_description">Exercise Description</string>
+    <string name="exercise_name">Exercise Name</string>
+    <string name="last_performed_on">Last performed on</string>
+    <string name="reps">Reps</string>
+    <string name="weight">Weight</string>
+    <string name="workout_description">Workout Description</string>
+
+    <!-- Titles -->
+    <string name="exercises">Exercises</string>
+    <string name="exercise_detail">Exercise Detail</string>
+    <string name="new_workout">New Workout</string>
+    <string name="workouts">Workouts</string>
+    <string name="workout_detail">Workout Detail</string>
+    <string name="workout_history">Workout History</string>
+
+    <!-- User Feedback -->
+    <string name="cancel">Cancel</string>
+    <string name="exercise_name_not_valid">Exercise name not valid.</string>
+    <string name="lift_not_added">Lift not added.</string>
+    <string name="lift_not_updated">Lift not updated.</string>
+    <string name="lift_not_valid">Lift not valid.</string>
+    <string name="lift_updated">Lift updated.</string>
+    <string name="no_workouts_to_continue">No workouts to continue.</string>
+    <string name="ok">OK</string>
+    <string name="workout_not_added">Workout not added.</string>
+    <string name="workout_not_updated">Workout not updated.</string>
+    <string name="workout_updated">Workout updated.</string>
+
+    <!-- Misc -->
     <string name="app_name">Log My Lift</string>
-    <string name="clear_text">Clear</string>
-    <string name="comment_text">Comment...</string>
-    <string name="continue_workout_button_text">Continue Previous Workout</string>
-    <string name="create_exercise_text">Create Exercise</string>
-    <string name="create_workout_text">New Workout</string>
-    <string name="edit_exercise_text">Edit Exercise</string>
-    <string name="edit_workout_text">Edit Workout</string>
-    <string name="exercise_button_text">View Exercises</string>
-    <string name="exercise_description_text">Exercise Description</string>
-    <string name="exercise_name_text">Exercise Name</string>
-    <string name="filter_exercises_text">Filter Exercises...</string>
-    <string name="reps_text">Reps</string>
-    <string name="start_new_workout_button_text">Start New Workout</string>
-    <string name="title_activity_add_exercise">AddExerciseActivity</string>
-    <string name="title_add_lift">AddLift</string>
-    <string name="title_activity_add_lift_to_workout">AddLiftToWorkoutActivity</string>
-    <string name="title_activity_start">Start</string>
-    <string name="view_workout_button_text">View Workout</string>
-    <string name="weight_text">Weight</string>
-    <string name="workout_history_button_text">Workout History</string>
-    <string name="title_exercise_list">Exercises</string>
-    <string name="title_exercise_detail">Exercise Detail</string>
-    <string name="title_workout_list">Workouts</string>
-    <string name="title_workout_detail">Workout Detail</string>
-    <string name="title_activity_bottom_navigation">BottomNavigationActivity</string>
-    <string name="title_home">Home</string>
-    <string name="title_dashboard">Dashboard</string>
-    <string name="title_notifications">Notifications</string>
-    <string name="undo_text">Undo</string>
+    <string name="bench_press">Bench Press</string>
+    <string name="bench_press_description">Flat barbell bench press</string>
+    <string name="deadlift_description">Conventional deadlift</string>
+    <string name="deadlift">Deadlift</string>
+    <string name="squat">Squat</string>
+    <string name="squat_description">Barbell squat</string>
+    <string name="max_effort">Max Effort</string>
 </resources>

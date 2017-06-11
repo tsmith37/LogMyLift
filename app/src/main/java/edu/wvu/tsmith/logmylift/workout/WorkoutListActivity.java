@@ -5,27 +5,27 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.support.v7.app.ActionBar;
-import android.view.MenuItem;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
-import edu.wvu.tsmith.logmylift.lift.AddLiftToWorkoutActivity;
 import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
+import edu.wvu.tsmith.logmylift.lift.AddLift;
 
 /**
  * An activity representing a list of Workouts. This activity
@@ -36,7 +36,7 @@ import edu.wvu.tsmith.logmylift.R;
  * item details side-by-side using two vertical panes.
  */
 public class WorkoutListActivity extends AppCompatActivity {
-    LiftDbHelper lift_db;
+    private LiftDbHelper lift_db;
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
      * device.
@@ -116,6 +116,7 @@ public class WorkoutListActivity extends AppCompatActivity {
             holder.workout_description_text_view.setText(workout_list_values.get(position).getDescription());
             holder.workout_date_text_view.setText(workout_list_values.get(position).getReadableStartDate());
 
+            // On a click, go to the workout details.
             holder.workout_list_view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -137,6 +138,7 @@ public class WorkoutListActivity extends AppCompatActivity {
                 }
             });
 
+            // On a long click, allow the user to edit the workout.
             holder.workout_list_view.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
@@ -180,18 +182,17 @@ public class WorkoutListActivity extends AppCompatActivity {
         LayoutInflater li = LayoutInflater.from(this);
         View add_workout_dialog_view = li.inflate(R.layout.add_workout_dialog, null);
         AlertDialog.Builder add_workout_dialog_builder = new AlertDialog.Builder(this);
-        add_workout_dialog_builder.setTitle(R.string.create_workout_text);
+        String new_workout_title = getString(R.string.new_workout) + ": " + new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
+        add_workout_dialog_builder.setTitle(new_workout_title);
         add_workout_dialog_builder.setView(add_workout_dialog_view);
-        final TextView workout_date_text = (TextView) add_workout_dialog_view.findViewById(R.id.add_workout_date_text);
-        workout_date_text.setText(new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date()));
-        final EditText workout_description_text = (EditText) add_workout_dialog_view.findViewById(R.id.add_workout_description_dialog_text);
+        final EditText workout_description_text = (EditText) add_workout_dialog_view.findViewById(R.id.workout_description_edit_text);
 
-       // Handle a positive button press.
+        // Handle a positive button press.
         add_workout_dialog_builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 Workout new_workout = new Workout(lift_db, workout_description_text.getText().toString());
-                Intent workout_intent = new Intent(getBaseContext(), AddLiftToWorkoutActivity.class);
+                Intent workout_intent = new Intent(getBaseContext(), AddLift.class);
                 workout_intent.putExtra(LiftDbHelper.WORKOUT_COLUMN_WORKOUT_ID, new_workout.getWorkoutId());
                 startActivity(workout_intent);
             }
@@ -220,11 +221,10 @@ public class WorkoutListActivity extends AppCompatActivity {
         // Re-use the add workout dialog here...
         View edit_workout_dialog_view = li.inflate(R.layout.add_workout_dialog, null);
         AlertDialog.Builder edit_workout_dialog_builder = new AlertDialog.Builder(this);
-        edit_workout_dialog_builder.setTitle("Edit Workout");
+        String new_workout_title = getString(R.string.edit_workout) + ": " + current_workout.getReadableStartDate();
+        edit_workout_dialog_builder.setTitle(new_workout_title);
         edit_workout_dialog_builder.setView(edit_workout_dialog_view);
-        final TextView workout_date_text = (TextView) edit_workout_dialog_view.findViewById(R.id.add_workout_date_text);
-        workout_date_text.setText(current_workout.getReadableStartDate());
-        final EditText workout_description_text = (EditText) edit_workout_dialog_view.findViewById(R.id.add_workout_description_dialog_text);
+        final EditText workout_description_text = (EditText) edit_workout_dialog_view.findViewById(R.id.workout_description_edit_text);
         workout_description_text.setText(current_workout.getDescription());
 
         // Handle the positive button press.

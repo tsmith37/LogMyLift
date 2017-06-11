@@ -2,25 +2,40 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:layout_marginBottom="10dp">
-    <TextView
-        android:id="@+id/exercise_name_text"
-        android:layout_width="match_parent"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:padding="16dp"
+    android:orientation="vertical">
+    <android.support.v7.widget.CardView
         android:layout_height="wrap_content"
-        android:paddingTop="10dp"
-        style="@style/ListMajorTextView" />
-    <TextView
-        android:id="@+id/exercise_description_text"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingBottom="10dp"
-        style="@style/ListMinorTextView" />
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/colorPrimary"
-        android:layout_marginTop="20sp"
-        android:layout_marginStart="10sp"
-        android:layout_marginEnd="10sp"/>
+        android:id="@+id/exercise_list_card_view"
+        card_view:cardCornerRadius="4dp">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/exercise_name_text_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="@style/ListMajorTextView" />
+            <TextView
+                android:id="@+id/exercise_description_text_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/exercise_name_text_view"
+                style="@style/ListMinorTextView" />
+            <TextView
+                android:id="@+id/max_effort_text_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/exercise_description_text_view"
+                style="@style/ListMinorTextView" />
+            <TextView
+                android:id="@+id/last_performed_text_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/max_effort_text_view"
+                style="@style/ListMinorTextView" />
+        </RelativeLayout>
+    </android.support.v7.widget.CardView>
 </LinearLayout>

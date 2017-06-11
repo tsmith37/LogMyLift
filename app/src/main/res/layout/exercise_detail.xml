@@ -1,31 +1,17 @@
 <LinearLayout
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:layout_width="match_parent"
     android:orientation="vertical"
     xmlns:android="http://schemas.android.com/apk/res/android">
     <TextView xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/exercise_detail"
+        android:id="@+id/exercise_description_text_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAlignment="center"
         style="@style/ListMajorTextView"
         android:textIsSelectable="true"
         tools:context="edu.wvu.tsmith.logmylift.exercise.ExerciseDetailFragment" />
-    <!--<TextView
-        android:text="Max Effort:"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        style="@style/Subtitle"/>
-    <android.support.v7.widget.RecyclerView android:id="@+id/exercise_max_effort_list"
-        android:layout_height="match_parent"
-        android:layout_width="wrap_content"
-        android:verticalSpacing="10dp"/>
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Recent:"
-        style="@style/Subtitle"/> -->
     <android.support.v7.widget.RecyclerView android:id="@+id/exercise_history_list"
         android:layout_height="match_parent"
         android:layout_width="match_parent"

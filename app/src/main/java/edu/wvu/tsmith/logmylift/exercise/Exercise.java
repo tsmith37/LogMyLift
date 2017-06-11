@@ -3,7 +3,7 @@ package edu.wvu.tsmith.logmylift.exercise;
 import edu.wvu.tsmith.logmylift.LiftDbHelper;
 
 /**
- * Created by tmssm on 3/19/2017.
+ * Created by Tommy Smith on 3/19/2017.
  * Interface to create and modify exercises. Exercises are the the major key here; without
  * the exercises, lifts cannot be done. Without lifts, workouts cannot be done. Exercises
  * allow tracking of different movements. They are stored in a SQLite database with a
@@ -17,11 +17,11 @@ import edu.wvu.tsmith.logmylift.LiftDbHelper;
 
 public class Exercise {
     private String description;
-    private long exercise_id;
+    private final long exercise_id;
     private long max_lift_id;
     private String name;
     private long last_workout_id;
-    private LiftDbHelper lift_db;
+    private final LiftDbHelper lift_db;
 
     /**
      * Constructor of a new exercise. Given the SQLite database helper, name, and description

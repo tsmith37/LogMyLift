@@ -5,23 +5,19 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
-import android.view.View;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.app.ActionBar;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import java.util.Date;
-import java.util.Locale;
-
-import edu.wvu.tsmith.logmylift.lift.AddLift;
-import edu.wvu.tsmith.logmylift.lift.AddLiftToWorkoutActivity;
 import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
+import edu.wvu.tsmith.logmylift.lift.AddLift;
 
 /**
  * An activity representing a single Workout detail screen. This
@@ -97,43 +93,43 @@ public class WorkoutDetailActivity extends AppCompatActivity {
         LayoutInflater li = LayoutInflater.from(this);
         View edit_workout_dialog_view = li.inflate(R.layout.edit_workout_dialog, null);
         AlertDialog.Builder edit_workout_dialog_builder = new AlertDialog.Builder(this);
-        edit_workout_dialog_builder.setTitle(R.string.edit_workout_text);
+        edit_workout_dialog_builder.setTitle(R.string.edit_workout);
         edit_workout_dialog_builder.setView(edit_workout_dialog_view);
-        final TextView workout_date_text = (TextView) edit_workout_dialog_view.findViewById(R.id.edit_workout_dialog_date_text);
 
+        // Set the edit workout dialog to reflect the current state of the workout.
+        final TextView workout_date_text = (TextView) edit_workout_dialog_view.findViewById(R.id.date_text_view);
         LiftDbHelper lift_db_helper = new LiftDbHelper(this);
         final Workout current_workout = lift_db_helper.selectWorkoutFromWorkoutId(getIntent().getLongExtra(WorkoutDetailFragment.workout_id, 0));
         workout_date_text.setText(current_workout.getReadableStartDate());
-        final EditText workout_description_text = (EditText) edit_workout_dialog_view.findViewById(R.id.edit_workout_dialog_description_text);
+        final EditText workout_description_text = (EditText) edit_workout_dialog_view.findViewById(R.id.workout_description_edit_text);
         final String workout_before_editing_description = current_workout.getDescription();
         workout_description_text.setText(workout_before_editing_description);
 
+        // Edit the workout.
         edit_workout_dialog_builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 WorkoutDetailFragment workout_detail_fragment = (WorkoutDetailFragment) getSupportFragmentManager().findFragmentByTag("detail_fragment");
-                Snackbar update_workout_snackbar = Snackbar.make(findViewById(R.id.current_workout_list), "Workout updated.", Snackbar.LENGTH_LONG);
-                update_workout_snackbar.setAction(R.string.undo_text, new UndoUpdateWorkoutListener(current_workout, workout_before_editing_description, workout_detail_fragment));
+                Snackbar update_workout_snackbar = Snackbar.make(findViewById(R.id.current_workout_list), R.string.workout_updated, Snackbar.LENGTH_LONG);
+                update_workout_snackbar.setAction(R.string.undo, new UndoUpdateWorkoutListener(current_workout, workout_before_editing_description, workout_detail_fragment));
                 update_workout_snackbar.show();
                 current_workout.setDescription(workout_description_text.getText().toString());
                 workout_detail_fragment.reloadWorkoutDetails();
             }
         });
 
-        edit_workout_dialog_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+        // Cancel the changes.
+        edit_workout_dialog_builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Snackbar.make(findViewById(R.id.current_workout_list), "Workout not updated.", Snackbar.LENGTH_LONG).show();
+                Snackbar.make(findViewById(R.id.current_workout_list), R.string.workout_not_updated, Snackbar.LENGTH_LONG).show();
             }
         });
 
-        edit_workout_dialog_builder.setNeutralButton("Go to workout.", new DialogInterface.OnClickListener() {
+        // Go to the workout to add lifts to it.
+        edit_workout_dialog_builder.setNeutralButton(R.string.go_to_workout, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-           /*     Intent workout_intent = new Intent(getBaseContext(), AddLiftToWorkoutActivity.class);
-                workout_intent.putExtra(LiftDbHelper.WORKOUT_COLUMN_WORKOUT_ID, current_workout.getWorkoutId());
-                startActivity(workout_intent); */
-
                 Intent workout_intent = new Intent(getBaseContext(), AddLift.class);
                 workout_intent.putExtra(WorkoutDetailFragment.workout_id, current_workout.getWorkoutId());
 
@@ -145,11 +141,12 @@ public class WorkoutDetailActivity extends AppCompatActivity {
         edit_workout_dialog.show();
     }
 
+    // Allow for undoing of workout updates.
     private class UndoUpdateWorkoutListener implements View.OnClickListener
     {
-        Workout current_workout;
-        String old_description;
-        WorkoutDetailFragment workout_detail_fragment;
+        final Workout current_workout;
+        final String old_description;
+        final WorkoutDetailFragment workout_detail_fragment;
 
         UndoUpdateWorkoutListener(Workout current_workout, String old_description, WorkoutDetailFragment workout_detail_fragment)
         {
