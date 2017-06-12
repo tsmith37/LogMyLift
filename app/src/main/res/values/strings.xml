@@ -52,4 +52,6 @@
     <string name="squat">Squat</string>
     <string name="squat_description">Barbell squat</string>
     <string name="max_effort">Max Effort</string>
+    <string name="exercise_updated">Exercise updated.</string>
+    <string name="exercise_not_updated">Exercise not updated.</string>
 </resources>

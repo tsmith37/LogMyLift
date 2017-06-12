@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.database.Cursor;
+import android.os.AsyncTask;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
@@ -18,6 +20,8 @@ import android.widget.EditText;
 import android.widget.FilterQueryProvider;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
+
+import java.util.ArrayList;
 
 import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
@@ -35,7 +39,9 @@ import edu.wvu.tsmith.logmylift.lift.Lift;
 
 class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardAdapter.WorkoutHistoryCardViewHolder> {
     private final Workout current_workout;
+    private final ArrayList<Lift> current_workout_lifts;
     private final Activity parent_activity;
+    private final LiftDbHelper lift_db_helper;
 
     // Keep track of the current exercise if a new lift has been added. In addition, if the new lift
     // dialog has been used to type in an exercise but an actual exercise hasn't been selected, that
@@ -43,9 +49,18 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
     private Exercise current_exercise;
     private boolean current_exercise_input_correct;
 
-    WorkoutHistoryCardAdapter(Activity parent_activity, Workout current_workout) {
+    WorkoutHistoryCardAdapter(Activity parent_activity, LiftDbHelper lift_db_helper, Workout current_workout) {
         this.parent_activity = parent_activity;
+        this.lift_db_helper = lift_db_helper;
         this.current_workout = current_workout;
+        if (this.current_workout != null)
+        {
+            this.current_workout_lifts = this.current_workout.getLifts(lift_db_helper);
+        }
+        else
+        {
+            this.current_workout_lifts = null;
+        }
     }
 
     @Override
@@ -55,8 +70,8 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
         // On a long press, edit the lift.
         return new WorkoutHistoryCardAdapter.WorkoutHistoryCardViewHolder(view, new WorkoutHistoryCardViewHolder.IWorkoutHistoryViewHolderClicks() {
             @Override
-            public void editLift(View caller, int position) {
-                showEditLiftDialog(current_workout.getLifts().get(position), position);
+            public void editLift(int position) {
+                showEditLiftDialog(current_workout_lifts.get(position), position);
             }
         });
     }
@@ -64,7 +79,7 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
     @Override
     public void onBindViewHolder(WorkoutHistoryCardAdapter.WorkoutHistoryCardViewHolder holder, int position) {
         position = holder.getAdapterPosition();
-        Lift current_lift = current_workout.getLifts().get(position);
+        Lift current_lift = current_workout_lifts.get(position);
 
         // Display the current lift's properties.
         holder.exercise_name_text_view.setText(current_lift.getExercise().getName());
@@ -75,9 +90,11 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
     }
 
     @Override
-    public int getItemCount() {
-        if (current_workout.getLifts() != null) {
-            return current_workout.getLifts().size();
+    public int getItemCount()
+    {
+        if (current_workout_lifts != null)
+        {
+            return current_workout_lifts.size();
         }
         return 0;
     }
@@ -102,12 +119,12 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
         //  On long click, edit the lift.
         @Override
         public boolean onLongClick(View v) {
-            workout_history_listener.editLift(v, this.getAdapterPosition());
+            workout_history_listener.editLift(this.getAdapterPosition());
             return false;
         }
 
         interface IWorkoutHistoryViewHolderClicks {
-            void editLift(View caller, int position);
+            void editLift(int position);
         }
     }
 
@@ -152,13 +169,10 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
                 } catch (Throwable ignored) {}
 
                 if ((weight > 0) && (reps > 0)) {
-                    Snackbar edit_lift_snackbar = Snackbar.make(parent_activity.findViewById(R.id.edit_workout_button), R.string.lift_updated, Snackbar.LENGTH_LONG);
-                    edit_lift_snackbar.setAction(R.string.undo, new UndoEditLiftListener(lift_position_in_adapter, lift_to_edit, lift_to_edit.getWeight(), lift_to_edit.getReps(), lift_to_edit.getComment()));
-                    lift_to_edit.setReps(reps);
-                    lift_to_edit.setWeight(weight);
-                    lift_to_edit.setComment(comment_text.getText().toString());
-                    notifyItemChanged(lift_position_in_adapter);
-                    edit_lift_snackbar.show();
+                    EditLiftParams edit_lift_params = new EditLiftParams(current_workout_lifts.get(lift_position_in_adapter), weight, reps, comment_text.getText().toString(), lift_position_in_adapter, true);
+                    //editLift(lift_position_in_adapter, weight, reps, comment_text.getText().toString());
+                    //notifyItemChanged(lift_position_in_adapter);
+                    new EditLiftOperation().execute(edit_lift_params);
                 } else {
                     Snackbar.make(parent_activity.findViewById(R.id.edit_workout_button), R.string.lift_not_valid, Snackbar.LENGTH_LONG).show();
                 }
@@ -237,7 +251,7 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
         exercise_input.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                changeCurrentExercise(lift_db_helper, id);
+                changeCurrentExercise(id);
             }
         });
 
@@ -263,7 +277,7 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
                         exercise_name_invalid.setAction(R.string.add_exercise, new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                showAddExerciseDialog(parent_context, lift_db_helper, exercise_input.getText().toString());
+                                showAddExerciseDialog(parent_context, exercise_input.getText().toString());
                             }
                         });
                         exercise_name_invalid.show();
@@ -293,7 +307,7 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
                     // Add the lift.
                     EditText comment_text = (EditText) add_lift_dialog_view.findViewById(R.id.comment_edit_text);
                     String comment = comment_text.getText().toString();
-                    current_workout.addLift(current_exercise, reps, weight, comment);
+                    current_workout_lifts.add(0, current_workout.addLift(lift_db_helper, current_exercise, reps, weight, comment));
                     notifyItemInserted(0);
                 }
                 else
@@ -322,7 +336,7 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
     void deleteLift(int lift_position_in_adapter)
     {
         // Get the lift to delete.
-        final Lift lift_to_delete = current_workout.getLifts().get(lift_position_in_adapter);
+        final Lift lift_to_delete = current_workout_lifts.get(lift_position_in_adapter);
 
         // Remove the lift in memory and notify the adapter.. It is not removed from the database until
         // the Snackbar offering to undo the operation is dismissed. This is done because inserting
@@ -331,6 +345,7 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
         // But this is an acceptable price to pay for being able to undo the operation, I think, because
         // it is pretty unlikely to happen.
         current_workout.removeLiftInMemory(lift_to_delete.getLiftId());
+        current_workout_lifts.remove(lift_position_in_adapter);
         notifyItemRemoved(lift_position_in_adapter);
 
         // Allow for the lift deletion to be reverted.
@@ -344,7 +359,7 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
                 // Ie, don't delete it the user pressed undo.
                 if (Snackbar.Callback.DISMISS_EVENT_ACTION != event)
                 {
-                    lift_to_delete.delete();
+                    lift_to_delete.delete(lift_db_helper);
                 }
             }
         });
@@ -354,11 +369,10 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
     /**
      * Allow the user to add an exercise via a popup dialog.
      * @param current_context       Context in which to display the dialog.
-     * @param lift_db_helper        LiftDb to actually add the exercise into the database.
      * @param exercise_name_hint    Hint for the exercise name. This will be displayed in the new
      *                              exercise's name field.
      */
-    void showAddExerciseDialog(final Context current_context, final LiftDbHelper lift_db_helper, String exercise_name_hint)
+    void showAddExerciseDialog(final Context current_context, String exercise_name_hint)
     {
         LayoutInflater li = LayoutInflater.from(current_context);
         View add_exercise_dialog_view = li.inflate(R.layout.add_exercise_dialog, null);
@@ -379,7 +393,7 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
                 }
                 else
                 {
-                    new Exercise(lift_db_helper, exercise_name_text.getText().toString(), exercise_description_text.getText().toString());
+                    current_exercise = new Exercise(lift_db_helper, exercise_name_text.getText().toString(), exercise_description_text.getText().toString());
                     Snackbar.make(parent_activity.findViewById(R.id.add_lift_button), "Exercise added.", Snackbar.LENGTH_LONG).show();
                 }
             }
@@ -395,6 +409,81 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
 
         AlertDialog add_exercise_dialog = add_exercise_dialog_builder.create();
         add_exercise_dialog.show();
+    }
+
+    // Change the current exercise.
+    private void changeCurrentExercise(long exercise_id)
+    {
+        current_exercise = lift_db_helper.selectExerciseFromExerciseId(exercise_id);
+    }
+
+    private class EditLiftParams {
+        final Lift lift;
+        final int weight;
+        final int reps;
+        final String comment;
+        final int lift_position_in_adapter;
+        final boolean allow_undo;
+
+        EditLiftParams(Lift lift, int weight, int reps, String comment, int lift_position_in_adapter, boolean allow_undo)
+        {
+            this.lift = lift;
+            this.weight = weight;
+            this.reps = reps;
+            this.comment = comment;
+            this.lift_position_in_adapter = lift_position_in_adapter;
+            this.allow_undo = allow_undo;
+        }
+    }
+
+    private class EditLiftOperation extends AsyncTask<EditLiftParams, Integer, Boolean>
+    {
+        int lift_position_in_adapter;
+        int old_lift_weight;
+        int old_lift_reps;
+        String old_lift_comment;
+        boolean allow_undo;
+
+        @Override
+        protected Boolean doInBackground(EditLiftParams... params) {
+            lift_position_in_adapter = params[0].lift_position_in_adapter;
+            old_lift_weight = params[0].lift.getWeight();
+            old_lift_reps = params[0].lift.getReps();
+            old_lift_comment = params[0].lift.getComment();
+            allow_undo = params[0].allow_undo;
+            params[0].lift.update(lift_db_helper, params[0].weight, params[0].reps, params[0].comment);
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result) {
+            super.onPostExecute(result);
+
+            if (result)
+            {
+                notifyItemChanged(lift_position_in_adapter);
+                if (allow_undo)
+                {
+                    Snackbar edit_lift_snackbar = Snackbar.make(parent_activity.findViewById(R.id.edit_workout_button), R.string.lift_updated, Snackbar.LENGTH_LONG);
+                    edit_lift_snackbar.setAction(R.string.undo, new UndoEditLiftListener(lift_position_in_adapter, old_lift_weight, old_lift_reps, old_lift_comment));
+                    edit_lift_snackbar.show();
+                }
+            }
+        }
+    }
+
+    void setWorkoutDescription(String description)
+    {
+        current_workout.setDescription(lift_db_helper, description);
+        reloadWorkoutDescription();
+    }
+
+    void reloadWorkoutDescription()
+    {
+        CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) parent_activity.findViewById(R.id.toolbar_layout);
+        if (appBarLayout != null) {
+            appBarLayout.setTitle(current_workout.getDescription());
+        }
     }
 
     // Allow the user to undo a delete lift operation.
@@ -420,15 +509,13 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
     // Allow the user to undo a lift edit operation.
     private class UndoEditLiftListener implements View.OnClickListener {
         final int lift_position_in_adapter;
-        final Lift current_lift;
         final int old_weight;
         final int old_reps;
         final String old_comment;
 
-        UndoEditLiftListener(int lift_position_in_adapter, Lift current_lift, int old_weight, int old_reps, String old_comment) {
+        UndoEditLiftListener(int lift_position_in_adapter, int old_weight, int old_reps, String old_comment) {
             super();
             this.lift_position_in_adapter = lift_position_in_adapter;
-            this.current_lift = current_lift;
             this.old_weight = old_weight;
             this.old_reps = old_reps;
             this.old_comment = old_comment;
@@ -436,17 +523,9 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
 
         @Override
         public void onClick(View v) {
-            current_lift.setWeight(old_weight);
-            current_lift.setReps(old_reps);
-            current_lift.setComment(old_comment);
-            notifyItemChanged(lift_position_in_adapter);
+            EditLiftParams undo_edit_lift_params = new EditLiftParams(current_workout_lifts.get(lift_position_in_adapter), old_weight, old_reps, old_comment, lift_position_in_adapter, false);
+            new EditLiftOperation().execute(undo_edit_lift_params);
         }
-    }
-
-    // Change the current exercise.
-    private void changeCurrentExercise(LiftDbHelper lift_db_helper, long exercise_id)
-    {
-        current_exercise = lift_db_helper.selectExerciseFromExerciseId(exercise_id);
     }
 }
 

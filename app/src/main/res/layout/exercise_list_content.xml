@@ -9,7 +9,7 @@
         android:layout_height="wrap_content"
         android:layout_width="match_parent"
         android:id="@+id/exercise_list_card_view"
-        card_view:cardCornerRadius="4dp">
+        style="@style/AppTheme.CardView">
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">

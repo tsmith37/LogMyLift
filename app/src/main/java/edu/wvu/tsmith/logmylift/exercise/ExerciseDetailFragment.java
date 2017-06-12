@@ -24,16 +24,16 @@ import edu.wvu.tsmith.logmylift.R;
  * on handsets.
  */
 public class ExerciseDetailFragment extends Fragment {
-    private LiftDbHelper lift_db;
-
-    /**
+    private ExerciseHistoryCardAdapter current_exercise_history;
+    private LiftDbHelper lift_db_helper;
+        /**
      * The fragment argument representing the item ID that this fragment
      * represents.
      */
     public static final String exercise_id = "exercise_id";
 
     // The exercise that this fragment should represent.
-    private Exercise current_exercise;
+    public Exercise current_exercise;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -46,15 +46,10 @@ public class ExerciseDetailFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        lift_db = new LiftDbHelper(getContext());
+        lift_db_helper = new LiftDbHelper(getContext());
         if (getArguments().containsKey(exercise_id)) {
             // Load the exercise from the database based on the ID bundled with the fragment.
-            current_exercise = lift_db.selectExerciseFromExerciseId(getArguments().getLong(exercise_id));
-            Activity activity = this.getActivity();
-            CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
-            if (appBarLayout != null) {
-                appBarLayout.setTitle(current_exercise.getName());
-            }
+            current_exercise = lift_db_helper.selectExerciseFromExerciseId(getArguments().getLong(exercise_id));
         }
     }
 
@@ -65,37 +60,26 @@ public class ExerciseDetailFragment extends Fragment {
 
         // Show the exercise description a TextView.
         if (current_exercise != null) {
-                ((TextView) rootView.findViewById(R.id.exercise_description_text_view)).setText(current_exercise.getDescription());
+            TextView exercise_description_text_view = (TextView) rootView.findViewById(R.id.exercise_description_text_view);
+            current_exercise_history = new ExerciseHistoryCardAdapter(this.getActivity(), lift_db_helper, exercise_description_text_view, current_exercise);
+            current_exercise_history.reloadExerciseDetails();
 
-                // Show the exercise history in a list.
-                RecyclerView exercise_history_list = (RecyclerView) rootView.findViewById(R.id.exercise_history_list);
-                RecyclerView.LayoutManager exercise_history_layout_manager = new LinearLayoutManager(getContext());
-                exercise_history_list.setLayoutManager(exercise_history_layout_manager);
-                ArrayList<Lift> exercise_history_lifts = lift_db.selectExerciseHistoryLifts(current_exercise);
-                ExerciseHistoryCardAdapter exercise_history = new ExerciseHistoryCardAdapter(current_exercise, exercise_history_lifts);
-                exercise_history_list.setAdapter(exercise_history);
+            // Show the exercise history in a list.
+            RecyclerView exercise_history_list = (RecyclerView) rootView.findViewById(R.id.exercise_history_list);
+            RecyclerView.LayoutManager exercise_history_layout_manager = new LinearLayoutManager(getContext());
+            exercise_history_list.setLayoutManager(exercise_history_layout_manager);
+            exercise_history_list.setAdapter(current_exercise_history);
         }
             return rootView;
     }
 
-    /**
-     * Reload the exercise.
-     */
-    public void reload()
+    public void setExerciseName(String name)
     {
-        this.current_exercise = lift_db.selectExerciseFromExerciseId(getArguments().getLong(exercise_id));
-        View current_view = this.getView();
-        TextView exercise_detail_text_view;
-        if (current_view != null)
-        {
-            exercise_detail_text_view = (TextView) current_view.findViewById(R.id.exercise_description_text_view);
-            exercise_detail_text_view.setText(current_exercise.getDescription());
-        }
-        Activity activity = this.getActivity();
-        CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
-        if (appBarLayout != null)
-        {
-            appBarLayout.setTitle(current_exercise.getName());
-        }
+        current_exercise_history.setExerciseName(name);
+    }
+
+    public void setExerciseDescription(String description)
+    {
+        current_exercise_history.setExerciseDescription(description);
     }
 }

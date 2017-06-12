@@ -268,7 +268,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                 select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_LAST_WORKOUT_ID));
         select_cursor.close();
         db.close();
-        return new Exercise(this, exercise_id, name, description, max_lift_id, last_workout_id);
+        return new Exercise(exercise_id, name, description, max_lift_id, last_workout_id);
     }
 
     public Exercise selectExerciseFromName(String exercise_name)
@@ -311,7 +311,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                 select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_LAST_WORKOUT_ID));
         select_cursor.close();
         db.close();
-        return new Exercise(this, exercise_id, name, description, max_lift_id, last_workout_id);
+        return new Exercise(exercise_id, name, description, max_lift_id, last_workout_id);
     }
 
     /**
@@ -355,7 +355,6 @@ public class LiftDbHelper extends SQLiteOpenHelper {
 
         while(select_cursor.moveToNext()) {
             exercise_list.add(new Exercise(
-                    this,
                     select_cursor.getLong(select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_EXERCISE_ID)),
                     select_cursor.getString(select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_NAME)),
                     select_cursor.getString(select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_DESCRIPTION)),
@@ -446,7 +445,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         Date start_date = new Date(start_date_as_long);
         select_cursor.close();
         db.close();
-        return new Lift(this, lift_id, exercise, reps, start_date, weight, workout_id, comment);
+        return new Lift(lift_id, exercise, reps, start_date, weight, workout_id, comment);
     }
 
     /**
@@ -456,7 +455,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
      */
     public ArrayList<Lift> selectExerciseHistoryLifts(Exercise exercise) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String[] RETURN_COLUMNS = { LIFT_COLUMN_LIFT_ID };
+        String[] RETURN_COLUMNS = { LIFT_COLUMN_LIFT_ID, LIFT_COLUMN_REPS, LIFT_COLUMN_START_DATE, LIFT_COLUMN_WEIGHT, LIFT_COLUMN_WORKOUT_ID, LIFT_COLUMN_COMMENT };
         String WHERE = LIFT_COLUMN_EXERCISE_ID + " LIKE ?";
         String[] where_args = { Long.toString(exercise.getExerciseId()) };
         String SORT_ORDER = LIFT_COLUMN_LIFT_ID + " DESC";
@@ -471,12 +470,56 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         ArrayList<Lift> exercise_history_lifts = new ArrayList<>();
 
         while(select_cursor.moveToNext()) {
-            long current_lift_id = select_cursor.getLong(select_cursor.getColumnIndexOrThrow(LIFT_COLUMN_LIFT_ID));
-            exercise_history_lifts.add(selectLiftFromLiftId(current_lift_id));
+            exercise_history_lifts.add(new Lift(
+                    select_cursor.getLong(select_cursor.getColumnIndex(LIFT_COLUMN_LIFT_ID)),
+                    exercise,
+                    select_cursor.getInt(select_cursor.getColumnIndex(LIFT_COLUMN_REPS)),
+                    new Date(select_cursor.getLong(select_cursor.getColumnIndex(LIFT_COLUMN_START_DATE))),
+                    select_cursor.getInt(select_cursor.getColumnIndex(LIFT_COLUMN_WEIGHT)),
+                    select_cursor.getLong(select_cursor.getColumnIndex(WORKOUT_COLUMN_WORKOUT_ID)),
+                    select_cursor.getString(select_cursor.getColumnIndex(LIFT_COLUMN_COMMENT))));
         }
         select_cursor.close();
         db.close();
         return exercise_history_lifts;
+    }
+
+    /**
+     * Select a list of lift objects based on the workout ID.
+     * @param workout  The workout of which to get all the lifts.
+     * @return          An ArrayList of the lifts.
+     */
+    public ArrayList<Lift> selectWorkoutHistoryLifts(Workout workout) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String JOIN_LIFT_AND_EXERCISE_TABLE_QUERY =
+                "SELECT * FROM " + LIFT_TABLE_NAME + " " +
+                "LEFT OUTER JOIN " + EXERCISE_TABLE_NAME + " USING (" + EXERCISE_COLUMN_EXERCISE_ID +") " +
+                "WHERE " + LIFT_COLUMN_WORKOUT_ID + " = ? " +
+                "ORDER BY " + LIFT_COLUMN_START_DATE + " DESC;";
+
+        String[] where_args = {Long.toString(workout.getWorkoutId())};
+        Cursor select_cursor = db.rawQuery(JOIN_LIFT_AND_EXERCISE_TABLE_QUERY, where_args);
+        ArrayList<Lift> workout_history_lifts = new ArrayList<>();
+
+        while(select_cursor.moveToNext()) {
+            workout_history_lifts.add(new Lift(
+                select_cursor.getLong(select_cursor.getColumnIndex(LIFT_COLUMN_LIFT_ID)),
+                new Exercise(
+                        select_cursor.getLong(select_cursor.getColumnIndex(LIFT_COLUMN_EXERCISE_ID)),
+                        select_cursor.getString(select_cursor.getColumnIndex(EXERCISE_COLUMN_NAME)),
+                        select_cursor.getString(select_cursor.getColumnIndex(EXERCISE_COLUMN_DESCRIPTION)),
+                        select_cursor.getLong(select_cursor.getColumnIndex(EXERCISE_COLUMN_MAX_LIFT_ID)),
+                        select_cursor.getLong(select_cursor.getColumnIndex(EXERCISE_COLUMN_LAST_WORKOUT_ID))),
+                select_cursor.getInt(select_cursor.getColumnIndex(LIFT_COLUMN_REPS)),
+                new Date(select_cursor.getLong(select_cursor.getColumnIndex(LIFT_COLUMN_START_DATE))),
+                select_cursor.getInt(select_cursor.getColumnIndex(LIFT_COLUMN_WEIGHT)),
+                select_cursor.getLong(select_cursor.getColumnIndex(WORKOUT_COLUMN_WORKOUT_ID)),
+                select_cursor.getString(select_cursor.getColumnIndex(LIFT_COLUMN_COMMENT))));
+        }
+
+        select_cursor.close();
+        db.close();
+        return workout_history_lifts;
     }
 
     /**
@@ -502,7 +545,6 @@ public class LiftDbHelper extends SQLiteOpenHelper {
 
         while(select_cursor.moveToNext()) {
             workout_list.add(new Workout(
-                    this,
                     select_cursor.getLong(select_cursor.getColumnIndexOrThrow(WORKOUT_COLUMN_WORKOUT_ID)),
                     select_cursor.getString(select_cursor.getColumnIndexOrThrow(WORKOUT_COLUMN_DESCRIPTION)),
                     selectLiftsByWorkoutId(select_cursor.getLong(select_cursor.getColumnIndexOrThrow(WORKOUT_COLUMN_WORKOUT_ID))),
@@ -518,7 +560,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
      * @param workout_id    The workout ID to select.
      * @return              The workout.
      */
-    public Workout selectWorkoutFromWorkoutId(long workout_id) {
+    private Workout selectWorkoutFromWorkoutId(long workout_id) {
         SQLiteDatabase db = this.getReadableDatabase();
         String[] RETURN_COLUMNS = {
             WORKOUT_COLUMN_DESCRIPTION,
@@ -550,7 +592,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
 
         Date start_date = new Date(start_date_as_long);
         db.close();
-        return new Workout(this, workout_id, description, selectLiftsByWorkoutId(workout_id),start_date);
+        return new Workout(workout_id, description, selectLiftsByWorkoutId(workout_id),start_date);
     }
 
     /**
@@ -716,50 +758,27 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                 exercise.getName());
     }
 
-    /**
-     * Update the comment of the lift. The comment should already be updated internally in the lift object.
-     * @param lift  Lift to update.
-     */
-    public void updateCommentOfLift(Lift lift)
+    public void updateLift(Lift lift)
     {
-        updateFieldStringFromId(
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues update_values = new ContentValues();
+        update_values.put(LIFT_COLUMN_WEIGHT, lift.getWeight());
+        update_values.put(LIFT_COLUMN_REPS, lift.getReps());
+        update_values.put(LIFT_COLUMN_COMMENT, lift.getComment());
+
+        String WHERE = LIFT_COLUMN_LIFT_ID + " = ?";
+        String[] where_args = { Long.toString(lift.getLiftId())};
+        db.update(
                 LIFT_TABLE_NAME,
-                LIFT_COLUMN_LIFT_ID,
-                lift.getLiftId(),
-                LIFT_COLUMN_COMMENT,
-                lift.getComment());
+                update_values,
+                WHERE,
+                where_args);
+        db.close();
     }
 
     /**
-     * Update the number of reps of a lift. The lift object should already have the reps updated internally.
-     * @param lift  Lift to update.
-     */
-    public void updateRepsOfLift(Lift lift)
-    {
-        updateFieldIntFromId(
-                LIFT_TABLE_NAME,
-                LIFT_COLUMN_LIFT_ID,
-                lift.getLiftId(),
-                LIFT_COLUMN_REPS,
-                lift.getReps());
-    }
-
-    /**
-     * Update the weight of a lift. The lift object should already have this weight updated internally.
-     * @param lift      Lift to update.
-     */
-    public void updateWeightOfLift(Lift lift)
-    {
-        updateFieldIntFromId(
-                LIFT_TABLE_NAME,
-                LIFT_COLUMN_LIFT_ID,
-                lift.getLiftId(),
-                LIFT_COLUMN_WEIGHT,
-                lift.getWeight());
-    }
-
-    /**
-     * Update the description of a workout. The worjout object should already have been updated internally.
+     * Update the description of a workout. The workout object should already have been updated internally.
      * @param workout   Workout to update.
      */
     public void updateDescriptionOfWorkout(Workout workout)

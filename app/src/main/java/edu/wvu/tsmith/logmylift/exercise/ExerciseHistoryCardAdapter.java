@@ -1,5 +1,7 @@
 package edu.wvu.tsmith.logmylift.exercise;
 
+import android.app.Activity;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,6 +10,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
 import edu.wvu.tsmith.logmylift.lift.Lift;
 
@@ -19,11 +22,26 @@ import edu.wvu.tsmith.logmylift.lift.Lift;
 class ExerciseHistoryCardAdapter extends RecyclerView.Adapter<ExerciseHistoryCardAdapter.ExerciseHistoryCardViewHolder> {
     private final Exercise current_exercise;
     private final ArrayList<Lift> current_exercise_lifts;
+    private final Activity parent_activity;
+    private final LiftDbHelper lift_db_helper;
+    private final TextView exercise_description_text_view;
 
-    ExerciseHistoryCardAdapter(Exercise current_exercise, ArrayList<Lift> current_exercise_lifts)
+    ExerciseHistoryCardAdapter(Activity parent_activity, LiftDbHelper lift_db_helper, TextView exercise_description_text_view, Exercise current_exercise)
     {
+        this.parent_activity = parent_activity;
+        this.lift_db_helper = lift_db_helper;
         this.current_exercise = current_exercise;
-        this.current_exercise_lifts = current_exercise_lifts;
+
+        if (this.current_exercise != null)
+        {
+            this.current_exercise_lifts = this.lift_db_helper.selectExerciseHistoryLifts(this.current_exercise);
+        }
+        else
+        {
+            this.current_exercise_lifts = null;
+        }
+
+        this.exercise_description_text_view = exercise_description_text_view;
     }
 
     @Override
@@ -56,9 +74,29 @@ class ExerciseHistoryCardAdapter extends RecyclerView.Adapter<ExerciseHistoryCar
     public int getItemCount() {
         if (current_exercise_lifts != null)
         {
-            return  current_exercise_lifts.size();
+            return current_exercise_lifts.size();
         }
         return 0;
+    }
+
+    void setExerciseName(String name)
+    {
+        current_exercise.setName(lift_db_helper, name);
+    }
+
+    void setExerciseDescription(String description)
+    {
+        current_exercise.setDescription(lift_db_helper, description);
+    }
+
+    void reloadExerciseDetails()
+    {
+        CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) parent_activity.findViewById(R.id.toolbar_layout);
+        if (appBarLayout != null) {
+            appBarLayout.setTitle(current_exercise.getName());
+        }
+
+        exercise_description_text_view.setText(current_exercise.getDescription());
     }
 
     static class ExerciseHistoryCardViewHolder extends RecyclerView.ViewHolder {

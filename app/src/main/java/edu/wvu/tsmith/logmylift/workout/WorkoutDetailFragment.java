@@ -1,8 +1,6 @@
 package edu.wvu.tsmith.logmylift.workout;
 
-import android.app.Activity;
 import android.os.Bundle;
-import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -13,6 +11,7 @@ import android.view.ViewGroup;
 
 import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
+import edu.wvu.tsmith.logmylift.exercise.Exercise;
 
 /**
  * A fragment representing a single Workout detail screen.
@@ -21,14 +20,13 @@ import edu.wvu.tsmith.logmylift.R;
  * on handsets.
  */
 public class WorkoutDetailFragment extends Fragment {
-    private LiftDbHelper lift_db;
     private WorkoutHistoryCardAdapter current_workout_history;
 
     /**
      * The fragment argument representing the item ID that this fragment
      * represents.
      */
-    public static final String workout_id = "workout_id";
+    public static final String workout_parcel = "workout";
 
     // The workout that this fragment should represent.
     public Workout current_workout;
@@ -43,11 +41,19 @@ public class WorkoutDetailFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        LiftDbHelper lift_db_helper = new LiftDbHelper(getContext());
+        // If no exercises are available, add three default ones.
+        if (lift_db_helper.selectExerciseCount() == 0) {
+            new Exercise(lift_db_helper, getString(R.string.bench_press), getString(R.string.bench_press_description));
+            new Exercise(lift_db_helper, getString(R.string.squat), getString(R.string.squat_description));
+            new Exercise(lift_db_helper, getString(R.string.deadlift), getString(R.string.deadlift_description));
+        }
 
-        lift_db = new LiftDbHelper(getContext());
-        if (getArguments().containsKey(workout_id)) {
+        if (getArguments().containsKey(workout_parcel)) {
             // Load the workout from the database based on the ID bundled with the fragment.
-            reloadWorkoutDetails();
+            current_workout = getArguments().getParcelable(workout_parcel);
+            current_workout_history = new WorkoutHistoryCardAdapter(this.getActivity(), lift_db_helper, current_workout);
+            current_workout_history.reloadWorkoutDescription();
         }
     }
 
@@ -55,32 +61,17 @@ public class WorkoutDetailFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.workout_detail, container, false);
-        View root_view = rootView;
 
         // Show the workout description in a TextView.
         if (current_workout != null) {
             RecyclerView current_workout_list = (RecyclerView) rootView.findViewById(R.id.current_workout_list);
             RecyclerView.LayoutManager current_workout_layout_manager = new LinearLayoutManager(getContext());
             current_workout_list.setLayoutManager(current_workout_layout_manager);
-            current_workout_history = new WorkoutHistoryCardAdapter(this.getActivity(), current_workout);
             current_workout_list.setAdapter(current_workout_history);
             initializeSwipe(current_workout_list);
         }
 
         return rootView;
-    }
-
-    /**
-     * Reload the workout details.
-     */
-    public void reloadWorkoutDetails()
-    {
-        this.current_workout = lift_db.selectWorkoutFromWorkoutId(getArguments().getLong(workout_id));
-        Activity activity = this.getActivity();
-        CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
-        if (appBarLayout != null) {
-            appBarLayout.setTitle(current_workout.getDescription());
-        }
     }
 
     /**
@@ -95,7 +86,7 @@ public class WorkoutDetailFragment extends Fragment {
      * Show the add exercise dialog from the WorkoutHistoryCardAdapter.
      * @param hint  Potential hint for the exercise name.
      */
-    public void showAddExerciseDialog(String hint) { current_workout_history.showAddExerciseDialog(getContext(), lift_db, hint);}
+    public void showAddExerciseDialog(String hint) { current_workout_history.showAddExerciseDialog(getContext(), hint);}
 
     /**
      * Setup a RecyclerView for swiping to delete. This has to be done in the fragment, and not in the
@@ -118,5 +109,10 @@ public class WorkoutDetailFragment extends Fragment {
 
         ItemTouchHelper item_touch_helper = new ItemTouchHelper(simple_callback);
         item_touch_helper.attachToRecyclerView(recycler_view);
+    }
+
+    public void setWorkoutDescription(String description)
+    {
+        current_workout_history.setWorkoutDescription(description);
     }
 }

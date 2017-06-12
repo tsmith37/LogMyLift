@@ -21,7 +21,6 @@ public class Exercise {
     private long max_lift_id;
     private String name;
     private long last_workout_id;
-    private final LiftDbHelper lift_db;
 
     /**
      * Constructor of a new exercise. Given the SQLite database helper, name, and description
@@ -35,32 +34,19 @@ public class Exercise {
         // TODO: Should we check if an exercise with this name already exists?
         this.name = name;
         this.description = description;
-        this.lift_db = lift_db_helper;
         this.exercise_id = lift_db_helper.insertExercise(this);
-    }
-
-    /**
-     * Construct a new exercise with no description. Otherwise, the same as the previous
-     * constructor.
-     * @param lift_db_helper    SQLite database helper.
-     * @param name              Name of the exercise.
-     */
-    public Exercise(LiftDbHelper lift_db_helper, String name) {
-        this(lift_db_helper, name, "");
     }
 
     /**
      * Construct a previously existing exercise from its pieces. In this instance, the exercise ID
      * already exists in the database, so don't add it again.
-     * @param lift_db_helper    SQLite database helper.
      * @param exercise_id       Unique exercise ID.
      * @param name              Name of the exercise.
      * @param description       Exercise description.
      * @param max_lift_id       Lift of the maximum effort of the exercise.
      * @param last_workout_id   Most recent workout ID that the exercise was performed.
      */
-    public Exercise(LiftDbHelper lift_db_helper, long exercise_id, String name, String description, long max_lift_id, long last_workout_id) {
-        this.lift_db = lift_db_helper;
+    public Exercise(long exercise_id, String name, String description, long max_lift_id, long last_workout_id) {
         this.exercise_id = exercise_id;
         this.name = name;
         this.description = description;
@@ -79,44 +65,44 @@ public class Exercise {
      * Updates the description of the exercise.
      * @param description   Updated description.
      */
-    void setDescription(String description) {
+    void setDescription(LiftDbHelper lift_db_helper, String description) {
         this.description = description;
-        lift_db.updateDescriptionOfExercise(this);
+        lift_db_helper.updateDescriptionOfExercise(this);
     }
 
     /**
      * Updates the most recent workout ID of the exercise.
      * @param last_workout_id   Workout ID.
      */
-    public void setLastWorkoutId(long last_workout_id) {
+    public void setLastWorkoutId(LiftDbHelper lift_db_helper, long last_workout_id) {
         this.last_workout_id = last_workout_id;
-        lift_db.updateLastWorkoutIdOfExercise(this);
+        lift_db_helper.updateLastWorkoutIdOfExercise(this);
     }
 
     /**
      * Updates the ID of the maximum effort lift of the exercise.
      * @param max_lift_id   The ID of the maximum effort lift.
      */
-    public void setMaxLiftId(long max_lift_id) {
+    public void setMaxLiftId(LiftDbHelper lift_db_helper, long max_lift_id) {
         this.max_lift_id = max_lift_id;
-        lift_db.updateMaxLiftIdOfExercise(this);
+        lift_db_helper.updateMaxLiftIdOfExercise(this);
     }
 
     /**
      * Sets the name of this exercise.
      * @param name  The new name of the exercise.
      */
-    public void setName(String name) {
+    public void setName(LiftDbHelper lift_db_helper, String name) {
         this.name = name;
-        lift_db.updateNameOfExercise(this);
+        lift_db_helper.updateNameOfExercise(this);
     }
 
     /**
      * Clears the ID of the maximum effort lift. This should only happen if the only instance of a
      * lift with this exercise is deleted.
      */
-    public void clearMaxLiftId() {
+    public void clearMaxLiftId(LiftDbHelper lift_db_helper) {
         this.max_lift_id = -1;
-        lift_db.updateMaxLiftIdOfExerciseToNull(this);
+        lift_db_helper.updateMaxLiftIdOfExerciseToNull(this);
     }
 }

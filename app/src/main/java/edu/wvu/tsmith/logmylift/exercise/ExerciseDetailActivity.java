@@ -24,10 +24,13 @@ import edu.wvu.tsmith.logmylift.R;
  * in a {@link ExerciseListActivity}.
  */
 public class ExerciseDetailActivity extends AppCompatActivity {
+    private LiftDbHelper lift_db_helper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        lift_db_helper = new LiftDbHelper(getApplicationContext());
+
         setContentView(R.layout.activity_exercise_detail);
         Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
         setSupportActionBar(toolbar);
@@ -36,7 +39,7 @@ public class ExerciseDetailActivity extends AppCompatActivity {
         edit_exercise_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                editExercise();
+                showEditExerciseDialog();
             }
         });
 
@@ -88,19 +91,21 @@ public class ExerciseDetailActivity extends AppCompatActivity {
     /**
      * Show the dialog to edit the current exercise description and update it acordingly.
      */
-    private void editExercise() {
-        LiftDbHelper lift_db_helper = new LiftDbHelper(getBaseContext());
-        final Exercise current_exercise = lift_db_helper.selectExerciseFromExerciseId(getIntent().getLongExtra(ExerciseDetailFragment.exercise_id, 0));
+    private void showEditExerciseDialog() {
         LayoutInflater li = LayoutInflater.from(this);
+
         // Re-use the add exercise dialog. It contains the same fields we want to use here.
         View edit_exercise_dialog_view = li.inflate(R.layout.add_exercise_dialog, null);
         AlertDialog.Builder edit_exercise_dialog_builder = new AlertDialog.Builder(this);
+
+        // Set the dialog to reflect the current exercise details.
+        final ExerciseDetailFragment exercise_detail_fragment = (ExerciseDetailFragment) getSupportFragmentManager().findFragmentByTag("detail_fragment");
         edit_exercise_dialog_builder.setTitle(R.string.edit_exercise);
         edit_exercise_dialog_builder.setView(edit_exercise_dialog_view);
         final EditText exercise_name_text = (EditText) edit_exercise_dialog_view.findViewById(R.id.exercise_name_edit_text);
-        exercise_name_text.setText(current_exercise.getName());
+        exercise_name_text.setText(exercise_detail_fragment.current_exercise.getName());
         final EditText exercise_description_text = (EditText) edit_exercise_dialog_view.findViewById(R.id.exercise_description_edit_text);
-        exercise_description_text.setText(current_exercise.getDescription());
+        exercise_description_text.setText(exercise_detail_fragment.current_exercise.getDescription());
 
         // Handle the positive button press.
         edit_exercise_dialog_builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -110,12 +115,9 @@ public class ExerciseDetailActivity extends AppCompatActivity {
                     Snackbar.make(findViewById(R.id.edit_exercise_button), "Exercise name not valid.", Snackbar.LENGTH_LONG).show();
                 }
                 else {
-                    current_exercise.setName(exercise_name_text.getText().toString());
-                    current_exercise.setDescription(exercise_description_text.getText().toString());
                     Snackbar.make(findViewById(R.id.edit_exercise_button), "Exercise updated.", Snackbar.LENGTH_LONG).show();
-
-                    ExerciseDetailFragment exercise_detail_fragment = (ExerciseDetailFragment) getSupportFragmentManager().findFragmentByTag("detail_fragment");
-                    exercise_detail_fragment.reload();
+                    exercise_detail_fragment.setExerciseName(exercise_name_text.getText().toString());
+                    exercise_detail_fragment.setExerciseDescription(exercise_description_text.getText().toString());
                 }
             }
         });

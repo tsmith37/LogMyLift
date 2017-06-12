@@ -37,7 +37,7 @@ import java.util.List;
  * item details side-by-side using two vertical panes.
  */
 public class ExerciseListActivity extends AppCompatActivity {
-    private LiftDbHelper lift_db;
+    private LiftDbHelper lift_db_helper;
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
      * device.
@@ -47,8 +47,9 @@ public class ExerciseListActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        lift_db = new LiftDbHelper(getApplicationContext());
         setContentView(R.layout.activity_exercise_list);
+
+        lift_db_helper = new LiftDbHelper(getApplicationContext());
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -125,7 +126,7 @@ public class ExerciseListActivity extends AppCompatActivity {
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView, String filter) {
-        recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(lift_db.selectExerciseList(filter)));
+        recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(lift_db_helper.selectExerciseList(filter)));
     }
 
     class SimpleItemRecyclerViewAdapter
@@ -153,14 +154,14 @@ public class ExerciseListActivity extends AppCompatActivity {
             holder.exercise_description_text_view.setText(exercise_list_values.get(position).getDescription());
 
             // If the exercise has a max effort lift, display it.
-            Lift max_effort_lift = lift_db.selectLiftFromLiftId(holder.exercise.getMaxLiftId());
+            Lift max_effort_lift = lift_db_helper.selectLiftFromLiftId(holder.exercise.getMaxLiftId());
             if (max_effort_lift != null)
             {
-                holder.max_effort_text_view.setText(getString(R.string.max_effort) + Integer.toString(max_effort_lift.getWeight()) + " for " + Integer.toString(max_effort_lift.getReps()) + " on " + max_effort_lift.getReadableStartDate());
+                holder.max_effort_text_view.setText(getString(R.string.max_effort) + ": " + Integer.toString(max_effort_lift.getWeight()) + " for " + Integer.toString(max_effort_lift.getReps()) + " on " + max_effort_lift.getReadableStartDate());
             }
 
             // Display the last time the lift was performed if possible.
-            Lift last_performed_lift = lift_db.selectLiftFromLiftId(holder.exercise.getLastWorkoutId());
+            Lift last_performed_lift = lift_db_helper.selectLiftFromLiftId(holder.exercise.getLastWorkoutId());
             if (last_performed_lift != null)
             {
                 String last_performed_text = getString(R.string.last_performed_on) + " " + last_performed_lift.getReadableStartDate();
@@ -252,7 +253,7 @@ public class ExerciseListActivity extends AppCompatActivity {
                 }
                 else
                 {
-                    new Exercise(lift_db, exercise_name_edit_text.getText().toString(), exercise_description_edit_text.getText().toString());
+                    new Exercise(lift_db_helper, exercise_name_edit_text.getText().toString(), exercise_description_edit_text.getText().toString());
                     Snackbar.make(findViewById(R.id.add_exercise_button), "Exercise added.", Snackbar.LENGTH_LONG).show();
                     View recyclerView = findViewById(R.id.exercise_list);
                     assert recyclerView != null;
@@ -300,16 +301,16 @@ public class ExerciseListActivity extends AppCompatActivity {
                 String edited_exercise_name = exercise_name_edit_text.getText().toString();
                 if (!edited_exercise_name.isEmpty())
                 {
-                    current_exercise.setName(edited_exercise_name);
-                    current_exercise.setDescription(exercise_description_edit_text.getText().toString());
-                    Snackbar.make(findViewById(R.id.add_exercise_button), "Exercise updated.", Snackbar.LENGTH_LONG).show();
+                    current_exercise.setName(lift_db_helper, edited_exercise_name);
+                    current_exercise.setDescription(lift_db_helper, exercise_description_edit_text.getText().toString());
+                    Snackbar.make(findViewById(R.id.add_exercise_button), R.string.exercise_updated, Snackbar.LENGTH_LONG).show();
                     RecyclerView recyclerView = (RecyclerView) findViewById(R.id.exercise_list);
                     SimpleItemRecyclerViewAdapter recycler_view_adapter = (SimpleItemRecyclerViewAdapter) recyclerView.getAdapter();
                     recycler_view_adapter.notifyItemChanged(exercise_position_in_adapter);
                 }
                 else
                 {
-                    Snackbar.make(findViewById(R.id.add_exercise_button), "Exercise name not valid.", Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(findViewById(R.id.add_exercise_button), R.string.exercise_name_not_valid, Snackbar.LENGTH_LONG).show();
                 }
             }});
 
@@ -317,7 +318,7 @@ public class ExerciseListActivity extends AppCompatActivity {
         edit_exercise_dialog_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Snackbar.make(findViewById(R.id.add_exercise_button), "Exercise not updated.", Snackbar.LENGTH_LONG).show();
+                Snackbar.make(findViewById(R.id.add_exercise_button), R.string.exercise_not_updated, Snackbar.LENGTH_LONG).show();
             }
         });
 

@@ -84,7 +84,7 @@ public class Start extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 Workout new_workout = new Workout(lift_db_helper, workout_description_text.getText().toString());
-                goToWorkout(new_workout.getWorkoutId());
+                goToWorkout(new_workout);
             }
         });
 
@@ -95,8 +95,8 @@ public class Start extends AppCompatActivity {
             }
         });
 
-        AlertDialog add_exercise_dialog = add_workout_dialog_builder.create();
-        add_exercise_dialog.show();
+        AlertDialog add_workout_dialog = add_workout_dialog_builder.create();
+        add_workout_dialog.show();
     }
 
     /**
@@ -105,11 +105,10 @@ public class Start extends AppCompatActivity {
     private void continueLastWorkout() {
         Workout last_workout = lift_db_helper.selectLastWorkout();
         if (last_workout != null) {
-            goToWorkout(last_workout.getWorkoutId());
+            goToWorkout(last_workout);
         }
         else
         {
-            // TODO: use this snackbar action to allow the user to start a new workout.
             Snackbar no_previous_workouts = Snackbar.make(findViewById(R.id.continue_workout_button), R.string.no_workouts_to_continue, Snackbar.LENGTH_LONG);
             no_previous_workouts.setAction(R.string.start_new_workout, new View.OnClickListener() {
                 @Override
@@ -123,11 +122,10 @@ public class Start extends AppCompatActivity {
 
     /**
      * Go to the AddLift of a particular workout.
-     * @param workout_id    The ID of the workout.
      */
-    private void goToWorkout(long workout_id) {
+    private void goToWorkout(Workout workout) {
         Intent workout_intent = new Intent(current_context, AddLift.class);
-        workout_intent.putExtra(WorkoutDetailFragment.workout_id, workout_id);
+        workout_intent.putExtra(WorkoutDetailFragment.workout_parcel, workout);
 
         startActivity(workout_intent);
     }

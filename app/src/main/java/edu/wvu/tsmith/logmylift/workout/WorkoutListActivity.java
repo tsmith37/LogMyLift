@@ -36,7 +36,7 @@ import edu.wvu.tsmith.logmylift.lift.AddLift;
  * item details side-by-side using two vertical panes.
  */
 public class WorkoutListActivity extends AppCompatActivity {
-    private LiftDbHelper lift_db;
+    private LiftDbHelper lift_db_helper;
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
      * device.
@@ -46,8 +46,9 @@ public class WorkoutListActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        lift_db = new LiftDbHelper(getApplicationContext());
         setContentView(R.layout.activity_workout_list);
+
+        lift_db_helper = new LiftDbHelper(getApplicationContext());
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -91,7 +92,7 @@ public class WorkoutListActivity extends AppCompatActivity {
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-        recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(lift_db.selectWorkoutList("")));
+        recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(lift_db_helper.selectWorkoutList("")));
     }
 
     class SimpleItemRecyclerViewAdapter
@@ -122,7 +123,7 @@ public class WorkoutListActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     if (mTwoPane) {
                         Bundle arguments = new Bundle();
-                        arguments.putLong(WorkoutDetailFragment.workout_id, holder.workout.getWorkoutId());
+                        arguments.putParcelable(WorkoutDetailFragment.workout_parcel, holder.workout);
                         WorkoutDetailFragment fragment = new WorkoutDetailFragment();
                         fragment.setArguments(arguments);
                         getSupportFragmentManager().beginTransaction()
@@ -131,7 +132,7 @@ public class WorkoutListActivity extends AppCompatActivity {
                     } else {
                         Context context = v.getContext();
                         Intent intent = new Intent(context, WorkoutDetailActivity.class);
-                        intent.putExtra(WorkoutDetailFragment.workout_id, holder.workout.getWorkoutId());
+                        intent.putExtra(WorkoutDetailFragment.workout_parcel, holder.workout);
 
                         context.startActivity(intent);
                     }
@@ -191,7 +192,7 @@ public class WorkoutListActivity extends AppCompatActivity {
         add_workout_dialog_builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Workout new_workout = new Workout(lift_db, workout_description_text.getText().toString());
+                Workout new_workout = new Workout(lift_db_helper, workout_description_text.getText().toString());
                 Intent workout_intent = new Intent(getBaseContext(), AddLift.class);
                 workout_intent.putExtra(LiftDbHelper.WORKOUT_COLUMN_WORKOUT_ID, new_workout.getWorkoutId());
                 startActivity(workout_intent);
@@ -231,7 +232,7 @@ public class WorkoutListActivity extends AppCompatActivity {
         edit_workout_dialog_builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                current_workout.setDescription(workout_description_text.getText().toString());
+                current_workout.setDescription(lift_db_helper, workout_description_text.getText().toString());
                 Snackbar.make(findViewById(R.id.add_workout_button), "Workout updated.", Snackbar.LENGTH_LONG).show();
                 RecyclerView recyclerView = (RecyclerView) findViewById(R.id.workout_list);
                 SimpleItemRecyclerViewAdapter recycler_view_adapter = (SimpleItemRecyclerViewAdapter) recyclerView.getAdapter();

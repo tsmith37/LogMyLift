@@ -13,13 +13,9 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.TextView;
 
-import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
 import edu.wvu.tsmith.logmylift.Start;
-import edu.wvu.tsmith.logmylift.exercise.Exercise;
-import edu.wvu.tsmith.logmylift.workout.Workout;
 import edu.wvu.tsmith.logmylift.workout.WorkoutDetailFragment;
 
 /**
@@ -31,7 +27,6 @@ import edu.wvu.tsmith.logmylift.workout.WorkoutDetailFragment;
  */
 
 public class AddLift extends AppCompatActivity {
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,14 +47,6 @@ public class AddLift extends AppCompatActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-        // If no exercises are available, add three default ones.
-        LiftDbHelper lift_db_helper = new LiftDbHelper(this);
-        if (lift_db_helper.selectExerciseCount() == 0) {
-            new Exercise(lift_db_helper, getString(R.string.bench_press), getString(R.string.bench_press_description));
-            new Exercise(lift_db_helper, getString(R.string.squat), getString(R.string.squat_description));
-            new Exercise(lift_db_helper, getString(R.string.deadlift), getString(R.string.deadlift_description));
-        }
-
         // savedInstanceState is non-null when there is fragment state
         // saved from previous configurations of this activity
         // (e.g. when rotating the screen from portrait to landscape).
@@ -73,7 +60,7 @@ public class AddLift extends AppCompatActivity {
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
             Bundle arguments = new Bundle();
-            arguments.putLong(WorkoutDetailFragment.workout_id, getIntent().getLongExtra(WorkoutDetailFragment.workout_id, 0));
+            arguments.putParcelable(WorkoutDetailFragment.workout_parcel, getIntent().getParcelableExtra(WorkoutDetailFragment.workout_parcel));
             final WorkoutDetailFragment fragment = new WorkoutDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
@@ -132,19 +119,18 @@ public class AddLift extends AppCompatActivity {
     }
 
     /**
-     * Show a dialog to the user allowing them to edit the description of the workout or go to the workout.
+     * Show a dialog to the user allowing them to edit the description of the workout.
      */
     private void showEditWorkoutDialog() {
         LayoutInflater li = LayoutInflater.from(this);
         View edit_workout_dialog_view = li.inflate(R.layout.edit_workout_dialog, null);
         AlertDialog.Builder edit_workout_dialog_builder = new AlertDialog.Builder(this);
-        edit_workout_dialog_builder.setTitle(R.string.edit_workout);
-        edit_workout_dialog_builder.setView(edit_workout_dialog_view);
 
         // Set the edit workout dialog to reflect the current workout details.
-        WorkoutDetailFragment workout_detail_fragment = (WorkoutDetailFragment) getSupportFragmentManager().findFragmentByTag("detail_fragment");
-        final TextView workout_date_text = (TextView) edit_workout_dialog_view.findViewById(R.id.date_text_view);
-        workout_date_text.setText(workout_detail_fragment.current_workout.getReadableStartDate());
+        final WorkoutDetailFragment workout_detail_fragment = (WorkoutDetailFragment) getSupportFragmentManager().findFragmentByTag("detail_fragment");
+        String edit_workout_title = getString(R.string.edit_workout) + ": " + workout_detail_fragment.current_workout.getReadableStartDate();
+        edit_workout_dialog_builder.setTitle(edit_workout_title);
+        edit_workout_dialog_builder.setView(edit_workout_dialog_view);
         final EditText workout_description_text = (EditText) edit_workout_dialog_view.findViewById(R.id.workout_description_edit_text);
         final String workout_before_editing_description = workout_detail_fragment.current_workout.getDescription();
         workout_description_text.setText(workout_before_editing_description);
@@ -153,12 +139,10 @@ public class AddLift extends AppCompatActivity {
         edit_workout_dialog_builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                WorkoutDetailFragment workout_detail_fragment = (WorkoutDetailFragment) getSupportFragmentManager().findFragmentByTag("detail_fragment");
                 Snackbar update_workout_snackbar = Snackbar.make(findViewById(R.id.current_workout_list), R.string.workout_updated, Snackbar.LENGTH_LONG);
-                update_workout_snackbar.setAction(R.string.undo, new AddLift.UndoUpdateWorkoutListener(workout_detail_fragment.current_workout, workout_before_editing_description, workout_detail_fragment));
+                update_workout_snackbar.setAction(R.string.undo, new AddLift.UndoUpdateWorkoutListener(workout_before_editing_description, workout_detail_fragment));
                 update_workout_snackbar.show();
-                workout_detail_fragment.current_workout.setDescription(workout_description_text.getText().toString());
-                workout_detail_fragment.reloadWorkoutDetails();
+                workout_detail_fragment.setWorkoutDescription(workout_description_text.getText().toString());
             }
         });
 
@@ -177,14 +161,12 @@ public class AddLift extends AppCompatActivity {
     // Undo updating the workout.
     private class UndoUpdateWorkoutListener implements View.OnClickListener
     {
-        final Workout current_workout;
         final String old_description;
         final WorkoutDetailFragment workout_detail_fragment;
 
-        UndoUpdateWorkoutListener(Workout current_workout, String old_description, WorkoutDetailFragment workout_detail_fragment)
+        UndoUpdateWorkoutListener(String old_description, WorkoutDetailFragment workout_detail_fragment)
         {
             super();
-            this.current_workout = current_workout;
             this.old_description = old_description;
             this.workout_detail_fragment = workout_detail_fragment;
         }
@@ -192,8 +174,7 @@ public class AddLift extends AppCompatActivity {
         @Override
         public void onClick(View v)
         {
-            this.current_workout.setDescription(old_description);
-            this.workout_detail_fragment.reloadWorkoutDetails();
+            this.workout_detail_fragment.setWorkoutDescription(old_description);
         }
     }
 }
