@@ -40,7 +40,7 @@ public class Lift {
         this.reps = reps;
         this.start_date = new Date();
         this.readable_start_date = date_format.format(start_date);
-        this.readable_start_time = date_format.format(start_date);
+        this.readable_start_time = time_format.format(start_date);
 
         this.weight = weight;
         this.workout_id = workout_id;

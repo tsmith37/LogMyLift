@@ -28,6 +28,8 @@ import edu.wvu.tsmith.logmylift.R;
 import edu.wvu.tsmith.logmylift.exercise.Exercise;
 import edu.wvu.tsmith.logmylift.lift.Lift;
 
+import static android.content.Context.INPUT_METHOD_SERVICE;
+
 /**
  * Created by Tommy Smith on 5/25/2017.
  * Adapter to support placing every lift in a workout into a CardView. This allows for implementation
@@ -72,6 +74,11 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
             @Override
             public void editLift(int position) {
                 showEditLiftDialog(current_workout_lifts.get(position), position);
+            }
+
+            @Override
+            public void copyLift(int position) {
+                makeLiftCopy(current_workout_lifts.get(position));
             }
         });
     }
@@ -118,13 +125,30 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
 
         //  On long click, edit the lift.
         @Override
-        public boolean onLongClick(View v) {
-            workout_history_listener.editLift(this.getAdapterPosition());
+        public boolean onLongClick(final View v) {
+            AlertDialog.Builder dialog_builder = new AlertDialog.Builder(v.getContext());
+            String[] choices = {v.getContext().getString(R.string.edit_lift), v.getContext().getString(R.string.copy_lift)};
+            dialog_builder.setItems(choices, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which)
+                {
+                    switch (which) {
+                        case 0:
+                            workout_history_listener.editLift(getAdapterPosition());
+                            break;
+                        case 1:
+                            workout_history_listener.copyLift(getAdapterPosition());
+                            break;
+                    }
+                }
+            });
+            AlertDialog dialog = dialog_builder.create();
+            dialog.show();
             return false;
         }
 
         interface IWorkoutHistoryViewHolderClicks {
             void editLift(int position);
+            void copyLift(int position);
         }
     }
 
@@ -170,14 +194,12 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
 
                 if ((weight > 0) && (reps > 0)) {
                     EditLiftParams edit_lift_params = new EditLiftParams(current_workout_lifts.get(lift_position_in_adapter), weight, reps, comment_text.getText().toString(), lift_position_in_adapter, true);
-                    //editLift(lift_position_in_adapter, weight, reps, comment_text.getText().toString());
-                    //notifyItemChanged(lift_position_in_adapter);
                     new EditLiftOperation().execute(edit_lift_params);
                 } else {
                     Snackbar.make(parent_activity.findViewById(R.id.edit_workout_button), R.string.lift_not_valid, Snackbar.LENGTH_LONG).show();
                 }
 
-                InputMethodManager input_method_manager = (InputMethodManager) parent_activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+                InputMethodManager input_method_manager = (InputMethodManager) parent_activity.getSystemService(INPUT_METHOD_SERVICE);
                 input_method_manager.hideSoftInputFromWindow(edit_lift_dialog_view.getWindowToken(), 0);
                 dialog.dismiss();
             }
@@ -194,6 +216,12 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
 
         AlertDialog edit_dialog = edit_lift_dialog_builder.create();
         edit_dialog.show();
+    }
+
+    private void makeLiftCopy(Lift lift_to_copy)
+    {
+        current_workout_lifts.add(0, current_workout.addLift(lift_db_helper, lift_to_copy.getExercise(), lift_to_copy.getReps(), lift_to_copy.getWeight(), lift_to_copy.getComment()));
+        notifyItemInserted(0);
     }
 
     /**
@@ -245,6 +273,12 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
         if (current_exercise != null)
         {
             exercise_input.setText(current_exercise.getName());
+            EditText weight_text = (EditText) add_lift_dialog_view.findViewById(R.id.weight_edit_text);
+            try
+            {
+                weight_text.requestFocus();
+            }
+            catch (Throwable ignored) {}
         }
 
         // If an item is clicked for the exercise input, select the current exercise.

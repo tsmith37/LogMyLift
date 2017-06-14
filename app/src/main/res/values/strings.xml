@@ -54,4 +54,6 @@
     <string name="max_effort">Max Effort</string>
     <string name="exercise_updated">Exercise updated.</string>
     <string name="exercise_not_updated">Exercise not updated.</string>
+    <string name="edit_lift">Edit Lift</string>
+    <string name="copy_lift">Copy Lift</string>
 </resources>
