@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -26,7 +25,10 @@ import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
 import edu.wvu.tsmith.logmylift.lift.Lift;
 
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
+import java.util.concurrent.Callable;
 
 /**
  * An activity representing a list of Exercises. This activity
@@ -37,6 +39,7 @@ import java.util.List;
  * item details side-by-side using two vertical panes.
  */
 public class ExerciseListActivity extends AppCompatActivity {
+    private static final java.text.SimpleDateFormat date_format = new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US);
     private LiftDbHelper lift_db_helper;
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
@@ -61,17 +64,20 @@ public class ExerciseListActivity extends AppCompatActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-        FloatingActionButton add_exercise_button = (FloatingActionButton) findViewById(R.id.add_exercise_button);
+        final FloatingActionButton add_exercise_button = (FloatingActionButton) findViewById(R.id.add_exercise_button);
         add_exercise_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showAddExerciseDialog();
+                Exercise.showAddExerciseDialog(view.getContext(), findViewById(R.id.add_exercise_button), lift_db_helper, "", new Callable<Integer>() {
+                    public Integer call()
+                    {
+                        return reloadExerciseList("");
+                    }
+                });
             }
         });
 
-        View recyclerView = findViewById(R.id.exercise_list);
-        assert recyclerView != null;
-        setupRecyclerView((RecyclerView) recyclerView, "");
+        reloadExerciseList("");
 
         if (findViewById(R.id.exercise_detail_container) != null) {
             // The detail container view will be present only in the
@@ -91,9 +97,7 @@ public class ExerciseListActivity extends AppCompatActivity {
                 @Override
                 public void onTextChanged(CharSequence s, int start, int before, int count)
                 {
-                    View recyclerView = findViewById(R.id.exercise_list);
-                    assert recyclerView != null;
-                    setupRecyclerView((RecyclerView) recyclerView, exercise_filter_edit_text.getText().toString());
+                    reloadExerciseList(exercise_filter_edit_text.getText().toString());
                 }
 
                 @Override
@@ -125,46 +129,41 @@ public class ExerciseListActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void setupRecyclerView(@NonNull RecyclerView recyclerView, String filter) {
-        recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(lift_db_helper.selectExerciseList(filter)));
-    }
+    class ExerciseListCardAdapter extends RecyclerView.Adapter<ExerciseListCardAdapter.ViewHolder>
+    {
+        private final ArrayList<Exercise> exercise_list_values;
 
-    class SimpleItemRecyclerViewAdapter
-            extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
-
-        private final List<Exercise> exercise_list_values;
-
-        SimpleItemRecyclerViewAdapter(List<Exercise> exercises)
+        ExerciseListCardAdapter(ArrayList<Exercise> exercises)
         {
             exercise_list_values = exercises;
         }
 
         @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        public ExerciseListCardAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.exercise_list_content, parent, false);
             return new ViewHolder(view);
         }
 
         @Override
-        public void onBindViewHolder(final ViewHolder holder, int position) {
+        public void onBindViewHolder(final ExerciseListCardAdapter.ViewHolder holder, int position) {
             // Display the exercise.
-            holder.exercise = exercise_list_values.get(position);
-            holder.exercise_name_text_view.setText(exercise_list_values.get(position).getName());
-            holder.exercise_description_text_view.setText(exercise_list_values.get(position).getDescription());
+            final Exercise current_exercise = exercise_list_values.get(position);
+            holder.exercise_name_text_view.setText(current_exercise.getName());
+            holder.exercise_description_text_view.setText(current_exercise.getDescription());
 
             // If the exercise has a max effort lift, display it.
-            Lift max_effort_lift = lift_db_helper.selectLiftFromLiftId(holder.exercise.getMaxLiftId());
+            Lift max_effort_lift = lift_db_helper.selectLiftFromLiftId(current_exercise.getMaxLiftId());
             if (max_effort_lift != null)
             {
                 holder.max_effort_text_view.setText(getString(R.string.max_effort) + ": " + Integer.toString(max_effort_lift.getWeight()) + " for " + Integer.toString(max_effort_lift.getReps()) + " on " + max_effort_lift.getReadableStartDate());
             }
 
             // Display the last time the lift was performed if possible.
-            Lift last_performed_lift = lift_db_helper.selectLiftFromLiftId(holder.exercise.getLastWorkoutId());
-            if (last_performed_lift != null)
+            Date last_performed_workout_date = lift_db_helper.selectDateFromWorkoutId(current_exercise.getLastWorkoutId());
+            if (last_performed_workout_date != null)
             {
-                String last_performed_text = getString(R.string.last_performed_on) + " " + last_performed_lift.getReadableStartDate();
+                String last_performed_text = getString(R.string.last_performed_on) + " " + date_format.format(last_performed_workout_date);
                 holder.last_performed_text_view.setText(last_performed_text);
             }
 
@@ -174,7 +173,7 @@ public class ExerciseListActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     if (mTwoPane) {
                         Bundle arguments = new Bundle();
-                        arguments.putLong(ExerciseDetailFragment.exercise_id, holder.exercise.getExerciseId());
+                        arguments.putLong(ExerciseDetailFragment.exercise_id, current_exercise.getExerciseId());
                         ExerciseDetailFragment fragment = new ExerciseDetailFragment();
                         fragment.setArguments(arguments);
                         getSupportFragmentManager().beginTransaction()
@@ -185,25 +184,53 @@ public class ExerciseListActivity extends AppCompatActivity {
                     {
                         Context context = v.getContext();
                         Intent intent = new Intent(context, ExerciseDetailActivity.class);
-                        intent.putExtra(ExerciseDetailFragment.exercise_id, holder.exercise.getExerciseId());
+                        intent.putExtra(ExerciseDetailFragment.exercise_id, current_exercise.getExerciseId());
 
                         context.startActivity(intent);
                     }}
             });
 
-            // Long clicking the exercise should allow it to be edited.
             holder.exercise_list_view.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    showEditExerciseDialog(holder.exercise, holder.getAdapterPosition());
+                    AlertDialog.Builder dialog_builder = new AlertDialog.Builder(ExerciseListActivity.this);
+                    String[] choices = {getString(R.string.edit_exercise), getString(R.string.delete_exercise)};
+                    dialog_builder.setItems(choices, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which)
+                        {
+                            switch (which) {
+                                case 0:
+                                    showEditExerciseDialog(current_exercise, holder.getAdapterPosition());
+                                    break;
+                                case 1:
+                                    showDeleteExerciseDialog(current_exercise, holder.getAdapterPosition());
+                            }
+                        }
+                    });
+                    AlertDialog dialog = dialog_builder.create();
+                    dialog.show();
                     return false;
                 }
             });
         }
 
+        public void deleteExercise(int exercise_position_in_adapter)
+        {
+            exercise_list_values.remove(exercise_position_in_adapter);
+            notifyItemRemoved(exercise_position_in_adapter);
+        }
+
         @Override
-        public int getItemCount() {
-            return exercise_list_values.size();
+        public int getItemCount()
+        {
+            if (exercise_list_values != null)
+            {
+                return exercise_list_values.size();
+            }
+            else
+            {
+                return 0;
+            }
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
@@ -212,15 +239,14 @@ public class ExerciseListActivity extends AppCompatActivity {
             final TextView exercise_description_text_view;
             final TextView max_effort_text_view;
             final TextView last_performed_text_view;
-            public Exercise exercise;
 
             ViewHolder(View view) {
                 super(view);
-                exercise_list_view = view;
-                exercise_name_text_view = (TextView) view.findViewById(R.id.exercise_name_text_view);
-                exercise_description_text_view = (TextView) view.findViewById(R.id.exercise_description_text_view);
-                max_effort_text_view = (TextView) view.findViewById(R.id.max_effort_text_view);
-                last_performed_text_view = (TextView) view.findViewById(R.id.last_performed_text_view);
+                this.exercise_list_view = view;
+                this.exercise_name_text_view = (TextView) view.findViewById(R.id.exercise_name_text_view);
+                this.exercise_description_text_view = (TextView) view.findViewById(R.id.exercise_description_text_view);
+                this.max_effort_text_view = (TextView) view.findViewById(R.id.max_effort_text_view);
+                this.last_performed_text_view = (TextView) view.findViewById(R.id.last_performed_text_view);
             }
 
             @Override
@@ -230,48 +256,13 @@ public class ExerciseListActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Show the dialog to add a new exercise, and add the exercise if prompted by the user.
-     */
-    private void showAddExerciseDialog()
+    private int reloadExerciseList(String filter)
     {
-        LayoutInflater li = LayoutInflater.from(this);
-        View add_exercise_dialog_view = li.inflate(R.layout.add_exercise_dialog, null);
-        AlertDialog.Builder add_exercise_dialog_builder = new AlertDialog.Builder(this);
-        add_exercise_dialog_builder.setTitle(R.string.create_exercise);
-        add_exercise_dialog_builder.setView(add_exercise_dialog_view);
-        final EditText exercise_name_edit_text = (EditText) add_exercise_dialog_view.findViewById(R.id.exercise_name_edit_text);
-        final EditText exercise_description_edit_text = (EditText) add_exercise_dialog_view.findViewById(R.id.exercise_description_edit_text);
-
-        // Handle the positive button press.
-        add_exercise_dialog_builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if (exercise_name_edit_text.getText().toString().isEmpty())
-                {
-                    Snackbar.make(findViewById(R.id.add_exercise_button), "Exercise name not valid.", Snackbar.LENGTH_LONG).show();
-                }
-                else
-                {
-                    new Exercise(lift_db_helper, exercise_name_edit_text.getText().toString(), exercise_description_edit_text.getText().toString());
-                    Snackbar.make(findViewById(R.id.add_exercise_button), "Exercise added.", Snackbar.LENGTH_LONG).show();
-                    View recyclerView = findViewById(R.id.exercise_list);
-                    assert recyclerView != null;
-                    setupRecyclerView((RecyclerView) recyclerView, "");
-                }
-            }
-        });
-
-        // Handle the negative button press.
-        add_exercise_dialog_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Snackbar.make(findViewById(R.id.add_exercise_button), "Exercise not added.", Snackbar.LENGTH_LONG).show();
-            }
-        });
-
-        AlertDialog add_exercise_dialog = add_exercise_dialog_builder.create();
-        add_exercise_dialog.show();
+        View view = findViewById(R.id.exercise_list);
+        assert view != null;
+        RecyclerView recycler_view = (RecyclerView) view;
+        recycler_view.setAdapter(new ExerciseListCardAdapter(lift_db_helper.selectExerciseList(filter)));
+        return 1;
     }
 
     /**
@@ -305,7 +296,7 @@ public class ExerciseListActivity extends AppCompatActivity {
                     current_exercise.setDescription(lift_db_helper, exercise_description_edit_text.getText().toString());
                     Snackbar.make(findViewById(R.id.add_exercise_button), R.string.exercise_updated, Snackbar.LENGTH_LONG).show();
                     RecyclerView recyclerView = (RecyclerView) findViewById(R.id.exercise_list);
-                    SimpleItemRecyclerViewAdapter recycler_view_adapter = (SimpleItemRecyclerViewAdapter) recyclerView.getAdapter();
+                    ExerciseListCardAdapter recycler_view_adapter = (ExerciseListCardAdapter) recyclerView.getAdapter();
                     recycler_view_adapter.notifyItemChanged(exercise_position_in_adapter);
                 }
                 else
@@ -324,5 +315,30 @@ public class ExerciseListActivity extends AppCompatActivity {
 
         AlertDialog edit_exercise_dialog = edit_exercise_dialog_builder.create();
         edit_exercise_dialog.show();
+    }
+
+    private void showDeleteExerciseDialog(final Exercise exercise_to_delete, final int exercise_position_in_adapter)
+    {
+        AlertDialog.Builder delete_exercise_dialog_builder = new AlertDialog.Builder(this);
+        delete_exercise_dialog_builder.setTitle("Delete Exercise");
+        delete_exercise_dialog_builder.setMessage("Are you sure you want to delete " + exercise_to_delete.getName() + "? This action cannot be undone.");
+        delete_exercise_dialog_builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                exercise_to_delete.delete(lift_db_helper);
+
+                RecyclerView recyclerView = (RecyclerView) findViewById(R.id.exercise_list);
+                ExerciseListCardAdapter recycler_view_adapter = (ExerciseListCardAdapter) recyclerView.getAdapter();
+                recycler_view_adapter.deleteExercise(exercise_position_in_adapter);
+                Snackbar.make(findViewById(R.id.exercise_list), "Exercise deleted.", Snackbar.LENGTH_LONG).show();
+            }
+        });
+        delete_exercise_dialog_builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Snackbar.make(findViewById(R.id.exercise_list), "Exercise not deleted.", Snackbar.LENGTH_LONG).show();
+            }
+        });
+        delete_exercise_dialog_builder.show();
     }
 }

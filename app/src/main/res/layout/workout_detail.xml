@@ -1,8 +1,10 @@
 <LinearLayout android:layout_height="match_parent"
     android:layout_width="match_parent"
     android:orientation="vertical"
+    android:focusableInTouchMode="true"
     xmlns:android="http://schemas.android.com/apk/res/android">
-    <android.support.v7.widget.RecyclerView android:id="@+id/current_workout_list"
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/current_workout_list"
         android:layout_height="match_parent"
         android:layout_width="match_parent"
         android:verticalSpacing="10dp"/>

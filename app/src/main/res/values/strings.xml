@@ -56,4 +56,7 @@
     <string name="exercise_not_updated">Exercise not updated.</string>
     <string name="edit_lift">Edit Lift</string>
     <string name="copy_lift">Copy Lift</string>
+    <string name="delete_lift">Delete Lift</string>
+    <string name="delete_exercise">Delete Exercise</string>
+    <string name="exercise_information">Exercise Information</string>
 </resources>

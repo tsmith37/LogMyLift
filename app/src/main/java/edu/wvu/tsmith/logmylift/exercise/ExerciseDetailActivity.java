@@ -14,7 +14,6 @@ import android.support.v7.app.ActionBar;
 import android.view.MenuItem;
 import android.widget.EditText;
 
-import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
 
 /**
@@ -24,12 +23,10 @@ import edu.wvu.tsmith.logmylift.R;
  * in a {@link ExerciseListActivity}.
  */
 public class ExerciseDetailActivity extends AppCompatActivity {
-    private LiftDbHelper lift_db_helper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        lift_db_helper = new LiftDbHelper(getApplicationContext());
 
         setContentView(R.layout.activity_exercise_detail);
         Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);

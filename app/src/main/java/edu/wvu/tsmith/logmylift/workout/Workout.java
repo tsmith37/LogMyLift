@@ -70,11 +70,6 @@ public class Workout implements Parcelable {
         return lift_db_helper.selectWorkoutHistoryLifts(this);
     }
 
-    Lift getLift(LiftDbHelper lift_db_helper, int position)
-    {
-        return lift_db_helper.selectLiftFromLiftId(lift_ids.get(position));
-    }
-
     /**
      * Add a lift to the workout and return the lift.
      * @param exercise  The exercise of the new lift.

@@ -105,7 +105,7 @@ public class WorkoutDetailActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 Snackbar update_workout_snackbar = Snackbar.make(findViewById(R.id.current_workout_list), R.string.workout_updated, Snackbar.LENGTH_LONG);
-                update_workout_snackbar.setAction(R.string.undo, new WorkoutDetailActivity.UndoUpdateWorkoutListener(workout_detail_fragment.current_workout, workout_before_editing_description, workout_detail_fragment));
+                update_workout_snackbar.setAction(R.string.undo, new WorkoutDetailActivity.UndoUpdateWorkoutListener(workout_before_editing_description, workout_detail_fragment));
                 update_workout_snackbar.show();
                 workout_detail_fragment.setWorkoutDescription(workout_description_text.getText().toString());
             }
@@ -126,14 +126,12 @@ public class WorkoutDetailActivity extends AppCompatActivity {
     // Undo updating the workout.
     private class UndoUpdateWorkoutListener implements View.OnClickListener
     {
-        final Workout current_workout;
         final String old_description;
         final WorkoutDetailFragment workout_detail_fragment;
 
-        UndoUpdateWorkoutListener(Workout current_workout, String old_description, WorkoutDetailFragment workout_detail_fragment)
+        UndoUpdateWorkoutListener(String old_description, WorkoutDetailFragment workout_detail_fragment)
         {
             super();
-            this.current_workout = current_workout;
             this.old_description = old_description;
             this.workout_detail_fragment = workout_detail_fragment;
         }

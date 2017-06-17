@@ -8,7 +8,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import edu.wvu.tsmith.logmylift.exercise.Exercise;
 import edu.wvu.tsmith.logmylift.lift.Lift;
@@ -126,6 +125,11 @@ public class LiftDbHelper extends SQLiteOpenHelper {
     public void deleteLift(Lift lift)
     {
         deleteRowById(LIFT_TABLE_NAME, LIFT_COLUMN_LIFT_ID, lift.getLiftId());
+    }
+
+    public void deleteExercise(Exercise exercise) {
+        deleteRowById(LIFT_TABLE_NAME, LIFT_COLUMN_EXERCISE_ID, exercise.getExerciseId());
+        deleteRowById(EXERCISE_TABLE_NAME, EXERCISE_COLUMN_EXERCISE_ID, exercise.getExerciseId());
     }
 
     /**
@@ -338,9 +342,9 @@ public class LiftDbHelper extends SQLiteOpenHelper {
     /**
      * Selects all exercises, returned as a list.
      */
-    public List<Exercise> selectExerciseList(String filter) {
+    public ArrayList<Exercise> selectExerciseList(String filter) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String[] RETURN_COLUMNS = { EXERCISE_COLUMN_EXERCISE_ID, EXERCISE_COLUMN_NAME, EXERCISE_COLUMN_DESCRIPTION, EXERCISE_COLUMN_LAST_WORKOUT_ID, EXERCISE_COLUMN_MAX_LIFT_ID };
+        String[] RETURN_COLUMNS =  { EXERCISE_COLUMN_EXERCISE_ID, EXERCISE_COLUMN_NAME, EXERCISE_COLUMN_DESCRIPTION, EXERCISE_COLUMN_LAST_WORKOUT_ID, EXERCISE_COLUMN_MAX_LIFT_ID };
         String WHERE = EXERCISE_COLUMN_NAME + " LIKE ?";
         String[] where_args = { "%" + filter + "%" };
         Cursor select_cursor = db.query(
@@ -351,7 +355,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
             null,
             null,
             EXERCISE_COLUMN_NAME);
-        List<Exercise> exercise_list = new ArrayList<>();
+        ArrayList<Exercise> exercise_list = new ArrayList<>();
 
         while(select_cursor.moveToNext()) {
             exercise_list.add(new Exercise(
@@ -596,36 +600,6 @@ public class LiftDbHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * Update an integer field of a row based on its ID. Generic function in order to make the
-     * calling functions easier to generate.
-     * @param table_name            Table to update.
-     * @param id_column_name        Column name on which to identify the row to update.
-     * @param id                    ID to identify the row to update.
-     * @param field_column_name     Column name to update.
-     * @param field_int             Value to update.
-     */
-    private void updateFieldIntFromId(
-            String table_name,
-            String id_column_name,
-            long id,
-            String field_column_name,
-            int field_int) {
-        SQLiteDatabase db = this.getWritableDatabase();
-
-        ContentValues update_values = new ContentValues();
-        update_values.put(field_column_name, field_int);
-
-        String WHERE =  id_column_name + " = ?";
-        String[] where_args = { Long.toString(id)};
-        db.update(
-                table_name,
-                update_values,
-                WHERE,
-                where_args);
-        db.close();
-    }
-
-    /**
      * Update a long field of a row based on its ID. Generic function in order to make the
      * calling functions easier to generate.
      * @param table_name            Table to update.
@@ -789,5 +763,42 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                 workout.getWorkoutId(),
                 WORKOUT_COLUMN_DESCRIPTION,
                 workout.getDescription());
+    }
+
+    public Date selectDateFromWorkoutId(long workout_id)
+    {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] RETURN_COLUMNS = {
+                WORKOUT_COLUMN_START_DATE
+        };
+
+        String WHERE = WORKOUT_COLUMN_WORKOUT_ID + " = ?";
+        String[] where_args = { Long.toString(workout_id) };
+
+        Cursor select_cursor = db.query(
+                WORKOUT_TABLE_NAME,
+                RETURN_COLUMNS,
+                WHERE,
+                where_args,
+                null,
+                null,
+                null);
+
+        boolean id_in_db = select_cursor.moveToFirst();
+        if (!id_in_db) {
+            return null;
+        }
+
+        long start_date_as_long = select_cursor.getLong(
+                select_cursor.getColumnIndexOrThrow(WORKOUT_COLUMN_START_DATE));
+        Date start_date = new Date(start_date_as_long);
+        select_cursor.close();
+        db.close();
+        return start_date;
+    }
+
+    public boolean exerciseNameExists(String exercise_name)
+    {
+        return null != this.selectExerciseFromName(exercise_name);
     }
 }

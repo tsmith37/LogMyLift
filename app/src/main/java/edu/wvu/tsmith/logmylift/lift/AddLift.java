@@ -14,8 +14,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 
+import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
 import edu.wvu.tsmith.logmylift.Start;
+import edu.wvu.tsmith.logmylift.exercise.Exercise;
 import edu.wvu.tsmith.logmylift.workout.WorkoutDetailFragment;
 
 /**
@@ -79,7 +81,7 @@ public class AddLift extends AppCompatActivity {
             // If the FAB is long clicked, offer options to either add a new exercise or a new lift.
             add_lift_button.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
-                public boolean onLongClick(View v) {
+                public boolean onLongClick(final View v) {
                     AlertDialog.Builder dialog_builder = new AlertDialog.Builder(AddLift.this);
                     String[] choices = {getString(R.string.add_exercise), getString(R.string.add_lift)};
                     dialog_builder.setItems(choices, new DialogInterface.OnClickListener() {
@@ -87,7 +89,7 @@ public class AddLift extends AppCompatActivity {
                         {
                             switch (which) {
                                 case 0:
-                                    fragment.showAddExerciseDialog("");
+                                    Exercise.showAddExerciseDialog(v.getContext(), v, new LiftDbHelper(v.getContext()), "", null);
                                     break;
                                 case 1:
                                     fragment.showAddLiftDialog();
