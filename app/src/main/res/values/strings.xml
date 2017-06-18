@@ -59,4 +59,5 @@
     <string name="delete_lift">Delete Lift</string>
     <string name="delete_exercise">Delete Exercise</string>
     <string name="exercise_information">Exercise Information</string>
+    <string name="exercise_history">Exercise History</string>
 </resources>

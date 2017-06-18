@@ -101,7 +101,7 @@ public class Lift {
      * @return  The "max effort" that results from this lift. If there was only one rep, then
      *          the max effort is identical to the amount of weight lifted.
      */
-    private int calculateMaxEffort()
+    public int calculateMaxEffort()
     {
         Double maximum_effort = this.weight/(1.0278-(0.0278*this.reps));
         return maximum_effort.intValue();

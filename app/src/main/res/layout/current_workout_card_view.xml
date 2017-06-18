@@ -25,11 +25,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/exercise_name_text_view"
-                android:weightSum="2">
+                android:weightSum="3">
                 <TextView
                     android:id="@+id/weight_and_reps_text_view"
                     android:layout_width="0dp"
-                    android:layout_weight="1"
+                    android:layout_weight="2"
                     android:layout_height="wrap_content"
                     android:layout_gravity="start"
                     style="@style/ListMinorTextView"/>

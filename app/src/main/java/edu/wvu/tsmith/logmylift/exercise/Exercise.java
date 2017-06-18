@@ -137,7 +137,7 @@ public class Exercise {
         }
     }
 
-    public static void showAddExerciseDialog(Context context, final View view, final LiftDbHelper lift_db_helper, String exercise_name_hint, final Callable<Integer> postAddFunction)
+    public static void showAddExerciseDialog(Context context, final View view, final LiftDbHelper lift_db_helper, String exercise_name_hint, final Callable<Long> postAddFunction)
     {
         LayoutInflater li = LayoutInflater.from(context);
         View add_exercise_dialog_view = li.inflate(R.layout.add_exercise_dialog, null);
@@ -161,19 +161,19 @@ public class Exercise {
                     try {
                         new Exercise(lift_db_helper, exercise_name_edit_text.getText().toString(), exercise_description_edit_text.getText().toString());
                         Snackbar.make(view, "Exercise added.", Snackbar.LENGTH_LONG).show();
+
+                        if (null != postAddFunction)
+                        {
+                            try { postAddFunction.call(); }
+                            catch (Exception e)
+                            {
+                                Snackbar.make(view, "Something bad has happened.", Snackbar.LENGTH_LONG).show();
+                            }
+                        }
                     }
                     catch (Exception e)
                     {
                         Snackbar.make(view, "Exercise already exists.", Snackbar.LENGTH_LONG).show();
-                    }
-
-                    if (null != postAddFunction)
-                    {
-                        try { postAddFunction.call(); }
-                        catch (Exception e)
-                        {
-                            Snackbar.make(view, "Something bad has happened.", Snackbar.LENGTH_LONG).show();
-                        }
                     }
 
                 }
