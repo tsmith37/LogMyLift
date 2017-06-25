@@ -88,4 +88,10 @@ public class WorkoutDetailFragment extends Fragment {
     {
         current_workout_history.setWorkoutDescription(description);
     }
+
+    public long changeCurrentExerciseToMostRecent()
+    {
+        current_workout_history.changeCurrentExerciseToMostRecent();
+        return 0;
+    }
 }

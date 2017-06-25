@@ -60,4 +60,7 @@
     <string name="delete_exercise">Delete Exercise</string>
     <string name="exercise_information">Exercise Information</string>
     <string name="exercise_history">Exercise History</string>
+    <string name="package_name">edu.wvu.tsmith.logmylift</string>
+    <string name="database_backup_name">logmylift_backup.db</string>
+    <string name="settings">Settings</string>
 </resources>

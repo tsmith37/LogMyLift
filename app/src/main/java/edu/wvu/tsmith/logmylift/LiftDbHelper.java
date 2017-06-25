@@ -1,13 +1,25 @@
 package edu.wvu.tsmith.logmylift;
 
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Environment;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.pm.ActivityInfoCompat;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.jar.Manifest;
 
 import edu.wvu.tsmith.logmylift.exercise.Exercise;
 import edu.wvu.tsmith.logmylift.lift.Lift;
@@ -20,7 +32,7 @@ import edu.wvu.tsmith.logmylift.workout.Workout;
  * @author Tommy Smith
  */
 public class LiftDbHelper extends SQLiteOpenHelper {
-    private static final String DATABASE_NAME = "LogMyLiftDb.db";
+    public static final String DATABASE_NAME = "LogMyLiftDb.db";
     private static final int DATABASE_VERSION = 1;
 
     public static final String EXERCISE_TABLE_NAME = "Exercise";
@@ -801,4 +813,47 @@ public class LiftDbHelper extends SQLiteOpenHelper {
     {
         return null != this.selectExerciseFromName(exercise_name);
     }
+
+    public Exercise selectMostRecentExercise()
+    {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] RETURN_COLUMNS = {
+                EXERCISE_COLUMN_EXERCISE_ID,
+                EXERCISE_COLUMN_NAME,
+                EXERCISE_COLUMN_DESCRIPTION,
+                EXERCISE_COLUMN_MAX_LIFT_ID,
+                EXERCISE_COLUMN_LAST_WORKOUT_ID
+        };
+
+        String sort_order = EXERCISE_COLUMN_EXERCISE_ID + " DESC";
+
+        Cursor select_cursor = db.query(
+                EXERCISE_TABLE_NAME,
+                RETURN_COLUMNS,
+                null,
+                null,
+                null,
+                null,
+                sort_order);
+
+        boolean id_in_db = select_cursor.moveToFirst();
+        if (!id_in_db) {
+            return null;
+        }
+
+        long exercise_id = select_cursor.getLong(
+                select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_EXERCISE_ID));
+        String name = select_cursor.getString(
+                select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_NAME));
+        String description = select_cursor.getString(
+                select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_DESCRIPTION));
+        long max_lift_id = select_cursor.getLong(
+                select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_MAX_LIFT_ID));
+        long last_workout_id = select_cursor.getLong(
+                select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_LAST_WORKOUT_ID));
+        select_cursor.close();
+        db.close();
+        return new Exercise(exercise_id, name, description, max_lift_id, last_workout_id);
+    }
 }
+

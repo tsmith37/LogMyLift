@@ -24,6 +24,7 @@ import android.widget.TextView;
 import android.widget.ViewFlipper;
 
 import java.util.ArrayList;
+import java.util.concurrent.Callable;
 
 import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
@@ -303,6 +304,14 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
         final AutoCompleteTextView exercise_input = (AutoCompleteTextView) add_lift_dialog_view.findViewById(R.id.exercise_input);
         exercise_input.setAdapter(exercise_adapter);
 
+        ImageButton clear_exercise_input = (ImageButton) add_lift_dialog_view.findViewById(R.id.clear_exercise_button);
+        clear_exercise_input.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                exercise_input.setText("");
+            }
+        });
+
         // Fill in the exercise input from the previous exercise, if it exists.
         if (current_exercise != null)
         {
@@ -345,7 +354,12 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
                         exercise_name_invalid.setAction(R.string.add_exercise, new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                Exercise.showAddExerciseDialog(parent_context, parent_activity.findViewById(R.id.add_lift_button), lift_db_helper, exercise_input.getText().toString(), null);
+                                Exercise.showAddExerciseDialog(parent_context, parent_activity.findViewById(R.id.add_lift_button), lift_db_helper, exercise_input.getText().toString(), new Callable<Long>() {
+                                    public Long call()
+                                    {
+                                        return changeCurrentExerciseToMostRecent();
+                                    }
+                                });
                             }
                         });
                         exercise_name_invalid.show();
@@ -439,6 +453,12 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
     private void changeCurrentExercise(long exercise_id)
     {
         current_exercise = lift_db_helper.selectExerciseFromExerciseId(exercise_id);
+    }
+
+    long changeCurrentExerciseToMostRecent()
+    {
+        current_exercise = lift_db_helper.selectMostRecentExercise();
+        return 0;
     }
 
     private class EditLiftParams {

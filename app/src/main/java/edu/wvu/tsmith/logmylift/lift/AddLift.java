@@ -14,6 +14,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 
+import java.util.concurrent.Callable;
+
 import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
 import edu.wvu.tsmith.logmylift.Start;
@@ -89,7 +91,12 @@ public class AddLift extends AppCompatActivity {
                         {
                             switch (which) {
                                 case 0:
-                                    Exercise.showAddExerciseDialog(v.getContext(), v, new LiftDbHelper(v.getContext()), "", null);
+                                    Exercise.showAddExerciseDialog(v.getContext(), v, new LiftDbHelper(v.getContext()), "", new Callable<Long>() {
+                                        public Long call()
+                                        {
+                                            return fragment.changeCurrentExerciseToMostRecent();
+                                        }
+                                    });
                                     break;
                                 case 1:
                                     fragment.showAddLiftDialog();
