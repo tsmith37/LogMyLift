@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.jar.Manifest;
 
 import edu.wvu.tsmith.logmylift.exercise.Exercise;
@@ -500,6 +502,35 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         return exercise_history_lifts;
     }
 
+    public long selectExerciseIdFromLiftId(long lift_id)
+    {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] RETURN_COLUMNS = {LIFT_COLUMN_EXERCISE_ID};
+
+        String WHERE = LIFT_COLUMN_LIFT_ID + " = ?";
+        String[] where_args = { Long.toString(lift_id) };
+
+        Cursor select_cursor = db.query(
+                LIFT_TABLE_NAME,
+                RETURN_COLUMNS,
+                WHERE,
+                where_args,
+                null,
+                null,
+                null);
+
+        boolean lift_in_db = select_cursor.moveToFirst();
+        if (!lift_in_db) {
+            return -1;
+        }
+
+        long exercise_id = select_cursor.getLong(
+                select_cursor.getColumnIndexOrThrow(LIFT_COLUMN_EXERCISE_ID));
+        select_cursor.close();
+        db.close();
+        return exercise_id;
+    }
+
     /**
      * Select a list of lift objects based on the workout ID.
      * @param workout  The workout of which to get all the lifts.
@@ -561,10 +592,12 @@ public class LiftDbHelper extends SQLiteOpenHelper {
 
         while(select_cursor.moveToNext()) {
             workout_list.add(new Workout(
+                    this,
                     select_cursor.getLong(select_cursor.getColumnIndexOrThrow(WORKOUT_COLUMN_WORKOUT_ID)),
                     select_cursor.getString(select_cursor.getColumnIndexOrThrow(WORKOUT_COLUMN_DESCRIPTION)),
                     selectLiftsByWorkoutId(select_cursor.getLong(select_cursor.getColumnIndexOrThrow(WORKOUT_COLUMN_WORKOUT_ID))),
-                    new Date(select_cursor.getLong(select_cursor.getColumnIndexOrThrow(WORKOUT_COLUMN_START_DATE)))));
+                    new Date(select_cursor.getLong(select_cursor.getColumnIndexOrThrow(WORKOUT_COLUMN_START_DATE))),
+                    false));
         }
         select_cursor.close();
         db.close();
@@ -608,7 +641,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
 
         Date start_date = new Date(start_date_as_long);
         db.close();
-        return new Workout(workout_id, description, selectLiftsByWorkoutId(workout_id),start_date);
+        return new Workout(this, workout_id, description, selectLiftsByWorkoutId(workout_id),start_date,true);
     }
 
     /**
@@ -761,6 +794,8 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                 WHERE,
                 where_args);
         db.close();
+
+        updateMaxLiftIdOfExercise(lift.getExercise());
     }
 
     /**
@@ -854,6 +889,38 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         select_cursor.close();
         db.close();
         return new Exercise(exercise_id, name, description, max_lift_id, last_workout_id);
+    }
+
+    public Map<Long, Integer> getSimilarExercises(Long exercise_id)
+    {
+        Map similar_exercise_ids_to_set_counts = new TreeMap<Long, Integer>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        String COUNT_COLUMN_NAME = "Ct";
+        String JOIN_PREVIOUS_LIFTS_BASED_ON_WORKOUT_HISTORY_QUERY =
+                "SELECT " + LIFT_COLUMN_EXERCISE_ID + ", COUNT(*) AS " + COUNT_COLUMN_NAME + " " +
+                        "FROM " + LIFT_TABLE_NAME + " " +
+                        "WHERE " + LIFT_COLUMN_WORKOUT_ID + " IN ( " +
+                        "SELECT DISTINCT( " + LIFT_COLUMN_WORKOUT_ID + ") " +
+                        "FROM " + LIFT_TABLE_NAME + " " +
+                        "WHERE " + LIFT_COLUMN_EXERCISE_ID + " = ?) " +
+                        "AND " + LIFT_COLUMN_EXERCISE_ID + " != ? " +
+                        "GROUP BY " + LIFT_COLUMN_EXERCISE_ID + " " +
+                        "ORDER BY " + COUNT_COLUMN_NAME + " DESC;";
+
+        String[] where_args = {Long.toString(exercise_id), Long.toString(exercise_id)};
+        Cursor select_cursor = db.rawQuery(JOIN_PREVIOUS_LIFTS_BASED_ON_WORKOUT_HISTORY_QUERY, where_args);
+
+        while(select_cursor.moveToNext()) {
+            similar_exercise_ids_to_set_counts.put(
+                    select_cursor.getLong(select_cursor.getColumnIndex(LIFT_COLUMN_EXERCISE_ID)),
+                    select_cursor.getInt(select_cursor.getColumnIndex(COUNT_COLUMN_NAME)));
+        }
+
+        select_cursor.close();
+        db.close();
+
+        return similar_exercise_ids_to_set_counts;
     }
 }
 

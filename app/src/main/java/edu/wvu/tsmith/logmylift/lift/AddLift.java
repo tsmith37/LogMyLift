@@ -80,7 +80,7 @@ public class AddLift extends AppCompatActivity {
                 }
             });
 
-            // If the FAB is long clicked, offer options to either add a new exercise or a new lift.
+            // If the FAB is long clicked, offer options to add a new exercise, new lift, or select a suggested exercise.
             add_lift_button.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(final View v) {
@@ -100,6 +100,7 @@ public class AddLift extends AppCompatActivity {
                                     break;
                                 case 1:
                                     fragment.showAddLiftDialog();
+                                    break;
                             }
                         }
                     });

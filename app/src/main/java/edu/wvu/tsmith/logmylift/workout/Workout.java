@@ -23,6 +23,8 @@ public class Workout implements Parcelable {
     private String description;
     private ArrayList<Long> lift_ids = new ArrayList<>();
     private final Date start_date;
+    private final boolean enable_similar_exercises_algorithm;
+    private FindSimilarExercisesAlgorithm similar_exercises_algorithm;
 
     /**
      * Construct a new workout with a description and insert it into the database.
@@ -34,6 +36,8 @@ public class Workout implements Parcelable {
         this.start_date = new Date();
         this.description = description;
         this.workout_id = lift_db_helper.insertWorkout(this);
+        this.similar_exercises_algorithm = new FindSimilarExercisesAlgorithm();
+        this.enable_similar_exercises_algorithm = true;
     }
 
     /**
@@ -45,14 +49,28 @@ public class Workout implements Parcelable {
      *                          required. If it is not set, then it will be set as
      *                          the start date.
      * @param lift_ids          An array of IDs uniquely identifying the lifts that
-     *                          have occured during the workout.
+     *                          have occurred during the workout.
      * @param start_date        The start date of the workout.
      */
-    public Workout(long workout_id, String description, ArrayList<Long> lift_ids, Date start_date) {
+    public Workout(
+            LiftDbHelper lift_db_helper,
+            long workout_id,
+            String description,
+            ArrayList<Long> lift_ids,
+            Date start_date,
+            boolean enable_similar_exercises_algorithm)
+    {
         this.workout_id = workout_id;
         this.description = description;
         this.lift_ids = lift_ids;
         this.start_date = start_date;
+        this.similar_exercises_algorithm = new FindSimilarExercisesAlgorithm();
+        this.enable_similar_exercises_algorithm = enable_similar_exercises_algorithm;
+
+        if (this.enable_similar_exercises_algorithm)
+        {
+            this.similar_exercises_algorithm.setInfo(lift_db_helper, lift_ids);
+        }
     }
 
     // Public read-only access to members.
@@ -60,6 +78,18 @@ public class Workout implements Parcelable {
     public String getReadableStartDate() { return new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).format(this.start_date); }
     public String getDescription() { return this.description; }
     public long getWorkoutId() { return this.workout_id; }
+
+    public ArrayList<Long> getSimilarExercises()
+    {
+        if (this.enable_similar_exercises_algorithm)
+        {
+            return similar_exercises_algorithm.getSimilarExercises();
+        }
+        else
+        {
+            return new ArrayList<>();
+        }
+    }
 
     /**
      * Get an ArrayList of the lifts done during the workout.
@@ -72,14 +102,21 @@ public class Workout implements Parcelable {
 
     /**
      * Add a lift to the workout and return the lift.
-     * @param exercise  The exercise of the new lift.
-     * @param reps      The number of reps of the new lift.
-     * @param weight    The weight of the new lift.
-     * @param comment   A comment for the lift.
+     * @param lift_db_helper    SQLite database helper.
+     * @param exercise          The exercise of the new lift.
+     * @param reps              The number of reps of the new lift.
+     * @param weight            The weight of the new lift.
+     * @param comment           A comment for the lift.
      */
     Lift addLift(LiftDbHelper lift_db_helper, Exercise exercise, int reps, int weight, String comment) {
         Lift new_lift =  new Lift(lift_db_helper, exercise, reps, weight, this.workout_id, comment);
         this.lift_ids.add(0, new_lift.getLiftId());
+
+        if (this.enable_similar_exercises_algorithm)
+        {
+            this.similar_exercises_algorithm.addInfo(lift_db_helper, exercise.getExerciseId());
+        }
+
         return new_lift;
     }
 
@@ -102,11 +139,15 @@ public class Workout implements Parcelable {
     void removeLiftInMemory(long lift_id)
     {
         this.lift_ids.remove(lift_id);
+        // Remove the information from the similar exercises algorithm.
+        // Right now, this doesn't do anything, so don't bother getting the exercise ID out.
+        // this.similar_exercises_algorithm.removeInfo();
     }
 
     /**
      * Set the description of the workout.
-     * @param description   The new description of the workout.
+     * @param lift_db_helper    SQLite database helper.
+     * @param description       The new description of the workout.
      */
     public void setDescription(LiftDbHelper lift_db_helper, String description) {
         this.description = description;
@@ -124,6 +165,8 @@ public class Workout implements Parcelable {
         dest.writeString(this.description);
         dest.writeSerializable(this.lift_ids);
         dest.writeSerializable(this.start_date);
+        dest.writeInt((int) (this.enable_similar_exercises_algorithm ? 1 : 0));
+        dest.writeParcelable(this.similar_exercises_algorithm, flags);
     }
 
     public static final Parcelable.Creator<Workout> CREATOR = new Parcelable.Creator<Workout>()
@@ -145,5 +188,7 @@ public class Workout implements Parcelable {
         this.description = source.readString();
         this.lift_ids = (ArrayList<Long>) source.readSerializable();
         this.start_date = (Date) source.readSerializable();
+        this.enable_similar_exercises_algorithm = (source.readInt() != 0);
+        this.similar_exercises_algorithm = source.readParcelable(FindSimilarExercisesAlgorithm.class.getClassLoader());
     }
 }

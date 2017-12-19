@@ -34,7 +34,7 @@ import edu.wvu.tsmith.logmylift.workout.WorkoutListActivity;
 public class Start extends AppCompatActivity {
     private LiftDbHelper lift_db_helper;
     private Context current_context;
-    final int REQUEST_WRITE_STORAGE = 112;
+    private final int REQUEST_WRITE_STORAGE = 112;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -198,7 +198,7 @@ public class Start extends AppCompatActivity {
         startActivity(workout_list_intent);
     }
 
-    public void exportDatabase() {
+    private void exportDatabase() {
         try {
             File sd = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
             File data = Environment.getDataDirectory();
@@ -230,7 +230,7 @@ public class Start extends AppCompatActivity {
         }
     }
 
-    public void showImportDatabaseDialog() {
+    private void showImportDatabaseDialog() {
         AlertDialog.Builder import_database_dialog_builder = new AlertDialog.Builder(this);
         import_database_dialog_builder.setTitle("Import Database");
         import_database_dialog_builder.setMessage("Are you sure you want to import a database? This will delete all your current data.");
@@ -247,8 +247,8 @@ public class Start extends AppCompatActivity {
                         ActivityCompat.requestPermissions(Start.this, new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_STORAGE);
                     }
 
-                    if (data.canWrite())
-                    {
+                    //if (data.canWrite())
+                    //{
                         String currentDBPath = "//data//"+"edu.wvu.tsmith.logmylift"+"//databases//"+LiftDbHelper.DATABASE_NAME+"";
                         String backupDBPath = getString(R.string.database_backup_name);
                         File currentDB = new File(data, currentDBPath);
@@ -260,15 +260,19 @@ public class Start extends AppCompatActivity {
                             dst.transferFrom(src, 0, src.size());
                             src.close();
                             dst.close();
-                            Snackbar.make(findViewById(R.id.add_exercise_button), "Database imported.", Snackbar.LENGTH_LONG).show();
+                            Snackbar.make(findViewById(R.id.start_new_workout_button), "Database imported.", Snackbar.LENGTH_LONG).show();
                         }
                         else
                         {
-                            Snackbar.make(findViewById(R.id.add_exercise_button), "Couldn't find a backup at: " + backupDB.getAbsolutePath(), Snackbar.LENGTH_LONG).show();
+                            Snackbar.make(findViewById(R.id.start_new_workout_button), "Couldn't find a backup at: " + backupDB.getAbsolutePath(), Snackbar.LENGTH_LONG).show();
                         }
-                    }
+                //    }
+                //    else
+                //    {
+                //        Snackbar.make(findViewById(R.id.start_new_workout_button), "Couldn't write", Snackbar.LENGTH_LONG).show();
+                //    }
                 }
-                catch (Exception e) {e.printStackTrace();}
+                catch (Exception e) {Snackbar.make(findViewById(R.id.start_new_workout_button), e.toString(), Snackbar.LENGTH_LONG).show();}
             }
         });
         import_database_dialog_builder.setNegativeButton("No", new DialogInterface.OnClickListener() {

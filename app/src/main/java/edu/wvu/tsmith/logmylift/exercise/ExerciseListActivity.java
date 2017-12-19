@@ -43,11 +43,6 @@ import java.util.concurrent.Callable;
 public class ExerciseListActivity extends AppCompatActivity {
     private static final java.text.SimpleDateFormat date_format = new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US);
     private LiftDbHelper lift_db_helper;
-    /**
-     * Whether or not the activity is in two-pane mode, i.e. running on a tablet
-     * device.
-     */
-    private boolean mTwoPane;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,7 +81,11 @@ public class ExerciseListActivity extends AppCompatActivity {
             // large-screen layouts (res/values-w900dp).
             // If this view is present, then the
             // activity should be in two-pane mode.
-            mTwoPane = true;
+            /*
+      Whether or not the activity is in two-pane mode, i.e. running on a tablet
+      device.
+     */
+            boolean mTwoPane = true;
         }
 
         final EditText exercise_filter_edit_text = (EditText) this.findViewById(R.id.exercise_filter_edit_text);

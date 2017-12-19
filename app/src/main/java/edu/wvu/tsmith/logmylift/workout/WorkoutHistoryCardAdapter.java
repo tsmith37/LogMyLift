@@ -14,16 +14,23 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.CursorAdapter;
 import android.widget.EditText;
 import android.widget.FilterQueryProvider;
 import android.widget.ImageButton;
+import android.widget.ListView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import edu.wvu.tsmith.logmylift.LiftDbHelper;
@@ -332,6 +339,18 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
             }
         });
 
+        // Set up the suggested exercises dialog.
+        final Button suggested_exercises_button = (Button) add_lift_dialog_view.findViewById(R.id.suggested_exercises_button);
+        if (suggested_exercises_button != null)
+        {
+            suggested_exercises_button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showSuggestedExercisesDialog(parent_context, exercise_input);
+                }
+            });
+        }
+
         // Handle the positive button press.
         add_lift_dialog_builder.setPositiveButton(R.string.add_lift, new DialogInterface.OnClickListener() {
             @Override
@@ -410,6 +429,49 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
 
         AlertDialog add_lift_dialog = add_lift_dialog_builder.create();
         add_lift_dialog.show();
+    }
+
+    private void showSuggestedExercisesDialog(final Context parent_context, final AutoCompleteTextView exercise_text_view)
+    {
+        LayoutInflater li = LayoutInflater.from(parent_context);
+        final View suggested_exercises_dialog_view = li.inflate(R.layout.suggested_exercises_dialog, null);
+        AlertDialog.Builder suggested_exercises_dialog_builder = new AlertDialog.Builder(parent_context);
+        suggested_exercises_dialog_builder.setTitle(R.string.suggested_exercises_text);
+        suggested_exercises_dialog_builder.setView(suggested_exercises_dialog_view);
+
+        ArrayList<Long> similar_exercise_ids = current_workout.getSimilarExercises();
+        final ArrayList<Exercise> similar_exercises = new ArrayList<>();
+        int similar_exercise_index = 0;
+        while (true)
+        {
+            if (similar_exercise_index >= similar_exercise_ids.size())
+            {
+                break;
+            }
+
+            if (similar_exercise_index >= 5)
+            {
+                break;
+            }
+
+            Exercise similar_exercise = lift_db_helper.selectExerciseFromExerciseId(similar_exercise_ids.get(similar_exercise_index));
+            similar_exercises.add(similar_exercise);
+            ++similar_exercise_index;
+        }
+
+        final ListView suggested_exercises_list_view = (ListView) suggested_exercises_dialog_view.findViewById(R.id.suggested_exercises_list_view);
+        SimilarExercisesListAdapter similar_exercise_list_adapter = new SimilarExercisesListAdapter(parent_context, R.layout.suggested_exercise_detail, similar_exercises);
+        suggested_exercises_list_view.setAdapter(similar_exercise_list_adapter);
+        final AlertDialog suggested_exercises_dialog = suggested_exercises_dialog_builder.create();
+        suggested_exercises_list_view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                exercise_text_view.setText(similar_exercises.get(position).getName());
+                exercise_text_view.dismissDropDown();
+                suggested_exercises_dialog.cancel();
+            }
+        });
+        suggested_exercises_dialog.show();
     }
 
     /**

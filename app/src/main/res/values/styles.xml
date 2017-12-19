@@ -22,8 +22,9 @@
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
     <style name="BigButton" parent="android:Widget.Material.Button">
-        <item name="android:textSize">28sp</item>
-        <item name="android:layout_height">93dp</item>
+        28sp
+        93dp
+        230dp
         <item name="android:layout_width">230dp</item>
     </style>
 
