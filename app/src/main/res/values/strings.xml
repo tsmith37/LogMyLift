@@ -65,4 +65,7 @@
     <string name="settings">Settings</string>
     <string name="suggested_exercises_text">Suggested Exercises</string>
     <string name="suggested_text">Suggested</string>
+    <string name="filter_workouts">Filter Workouts...</string>
+    <string name="clear_workout_filter">Clear Workout Filter</string>
+    <string name="pick_date_range">Pick Date Range</string>
 </resources>

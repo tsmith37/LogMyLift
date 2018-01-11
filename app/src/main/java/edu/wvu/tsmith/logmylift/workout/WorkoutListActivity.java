@@ -1,5 +1,6 @@
 package edu.wvu.tsmith.logmylift.workout;
 
+import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -12,14 +13,21 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -50,11 +58,12 @@ public class WorkoutListActivity extends AppCompatActivity {
 
         lift_db_helper = new LiftDbHelper(getApplicationContext());
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
 
-        FloatingActionButton add_workout_button = (FloatingActionButton) findViewById(R.id.add_workout_button);
+        // Set up the new workout button.
+        FloatingActionButton add_workout_button = findViewById(R.id.add_workout_button);
         add_workout_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -68,9 +77,175 @@ public class WorkoutListActivity extends AppCompatActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-        View recyclerView = findViewById(R.id.workout_list);
+        // Set up the recycler view containing the workout history list. Initially the workout history
+        // list will have the complete set of workouts.
+        final RecyclerView recyclerView = findViewById(R.id.workout_list);
         assert recyclerView != null;
-        setupRecyclerView((RecyclerView) recyclerView);
+        LoadWorkoutHistoryListParams load_history_params = new LoadWorkoutHistoryListParams(recyclerView);
+        reloadWorkoutHistoryList(load_history_params);
+
+        // Set up the to and from calendars. These are used to limit the workout history by date.
+        final Calendar from_cal = Calendar.getInstance();
+        final Calendar to_cal = Calendar.getInstance();
+
+        // Set up the workout list filter. As the user types into the filter, the workout history will
+        // be limited by the names of the workouts.
+        final EditText workout_list_filter_edit_text = findViewById(R.id.workout_filter_edit_text);
+        if (workout_list_filter_edit_text != null)
+        {
+            workout_list_filter_edit_text.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
+
+                @Override
+                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                    // Reload the workout history list.
+                    // If the to and from dates are set, limit it on the date.
+                    if (from_cal.isSet(Calendar.DAY_OF_MONTH) && to_cal.isSet(Calendar.DAY_OF_MONTH))
+                    {
+                        Date from_date = from_cal.getTime();
+                        Date to_date = to_cal.getTime();
+
+                        if (to_date.before(from_date))
+                        {
+                            Toast.makeText(getApplicationContext(), "Invalid dates", Toast.LENGTH_LONG);
+                        }
+                        else
+                        {
+                            final EditText workout_list_filter_edit_text = findViewById(R.id.workout_filter_edit_text);
+
+                            LoadWorkoutHistoryListParams load_history_params = new LoadWorkoutHistoryListParams(
+                                    recyclerView,
+                                    workout_list_filter_edit_text.getText().toString(),
+                                    from_date,
+                                    to_date);
+                            reloadWorkoutHistoryList(load_history_params);
+                        }
+                    }
+                    else
+                    {
+                        LoadWorkoutHistoryListParams load_history_params =
+                                new LoadWorkoutHistoryListParams(recyclerView, workout_list_filter_edit_text.getText().toString());
+                        reloadWorkoutHistoryList(load_history_params);
+                    }
+                }
+
+                @Override
+                public void afterTextChanged(Editable editable) {}
+            });
+        }
+
+        // Clear the workout name text filter.
+        ImageButton clear_workout_filter = this.findViewById(R.id.clear_workout_filter);
+        if (clear_workout_filter != null)
+        {
+            clear_workout_filter.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (workout_list_filter_edit_text != null)
+                    {
+                        workout_list_filter_edit_text.setText("");
+                    }
+                }
+            });
+        }
+
+        // Set up the from date button. This will allow the the user to set the beginning of the workout
+        // date filter range.
+        final TextView from_text = findViewById(R.id.from_date_text);
+        ImageButton from_date_button = this.findViewById(R.id.from_date_button);
+        if (from_date_button != null)
+        {
+            from_date_button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    DatePickerDialog.OnDateSetListener date_set_listener = new DatePickerDialog.OnDateSetListener() {
+                        @Override
+                        public void onDateSet(DatePicker datePicker, int selectedYear, int selectedMonth, int selectedDay) {
+                            from_cal.set(selectedYear, selectedMonth, selectedDay);
+                            Date from_date = from_cal.getTime();
+                            String from_date_string = new java.text.SimpleDateFormat("MM/dd/yy", Locale.US).format(from_date);
+                            from_text.setText("From " + from_date_string);
+                        }
+                    };
+
+                    final DatePickerDialog date_picker_dialog = new DatePickerDialog(WorkoutListActivity.this, date_set_listener, 2017, 12, 19);
+                    date_picker_dialog.show();
+                }
+                });
+        }
+
+        // Set up the to date button. This will allow the the user to set the end of the workout
+        // date filter range.
+        final TextView to_text = findViewById(R.id.to_date_text);
+        ImageButton to_date_button = this.findViewById(R.id.to_date_button);
+        if (to_date_button != null)
+        {
+            to_date_button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    DatePickerDialog.OnDateSetListener date_set_listener = new DatePickerDialog.OnDateSetListener() {
+                        @Override
+                        public void onDateSet(DatePicker datePicker, int selectedYear, int selectedMonth, int selectedDay) {
+                            to_cal.set(selectedYear, selectedMonth, selectedDay);
+                            Date to_date = to_cal.getTime();
+                            String to_date_string = new java.text.SimpleDateFormat("MM/dd/yy", Locale.US).format(to_date);
+                            to_text.setText("To " + to_date_string);
+                        }
+                    };
+
+                    final DatePickerDialog date_picker_dialog = new DatePickerDialog(WorkoutListActivity.this, date_set_listener, 2017, 12, 19);
+                    date_picker_dialog.show();
+                }
+            });
+        }
+
+        // Filter the workout history by date. This will only work if the to and from dates are set.
+        Button date_go_button = this.findViewById(R.id.select_date_button);
+        if (date_go_button != null)
+        {
+            date_go_button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (from_cal.isSet(Calendar.DAY_OF_MONTH) && to_cal.isSet(Calendar.DAY_OF_MONTH))
+                    {
+                        Date from_date = from_cal.getTime();
+                        Date to_date = to_cal.getTime();
+
+                        if (to_date.before(from_date)) {
+                            Toast.makeText(getApplicationContext(), "Invalid dates", Toast.LENGTH_LONG);
+                        } else {
+                            final EditText workout_list_filter_edit_text = findViewById(R.id.workout_filter_edit_text);
+
+                            LoadWorkoutHistoryListParams load_history_params = new LoadWorkoutHistoryListParams(
+                                    recyclerView,
+                                    workout_list_filter_edit_text.getText().toString(),
+                                    from_date,
+                                    to_date);
+                            reloadWorkoutHistoryList(load_history_params);
+                        }
+                    }
+                }
+            });
+        }
+
+        // Clear the workout history date filter.
+        Button date_clear_button = this.findViewById(R.id.clear_date_button);
+        if (date_clear_button != null)
+        {
+            date_clear_button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    from_text.setText("From...");
+                    to_text.setText("To...");
+                    from_cal.clear();
+                    to_cal.clear();
+                    LoadWorkoutHistoryListParams load_history_params =
+                            new LoadWorkoutHistoryListParams(recyclerView, workout_list_filter_edit_text.getText().toString());
+                    reloadWorkoutHistoryList(load_history_params);
+                }
+            });
+        }
 
         if (findViewById(R.id.workout_detail_container) != null) {
             // The detail container view will be present only in the
@@ -91,10 +266,51 @@ public class WorkoutListActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-        recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(lift_db_helper.selectWorkoutList("")));
+    private void reloadWorkoutHistoryList(LoadWorkoutHistoryListParams params)
+    {
+        SimpleItemRecyclerViewAdapter workout_history_adapter =
+                new SimpleItemRecyclerViewAdapter(lift_db_helper.selectWorkoutList(
+                        params.name_filter,
+                        params.from_date,
+                        params.to_date));
+        params.recycler_view.setAdapter(workout_history_adapter);
     }
 
+    private class LoadWorkoutHistoryListParams
+    {
+        final RecyclerView recycler_view;
+        final String name_filter;
+        final Date from_date;
+        final Date to_date;
+
+        LoadWorkoutHistoryListParams(
+                @NonNull RecyclerView recycler_view,
+                String name_filter,
+                Date from_date,
+                Date to_date)
+        {
+            this.recycler_view = recycler_view;
+            this.name_filter = name_filter;
+            this.from_date = from_date;
+            this.to_date = to_date;
+        }
+
+        LoadWorkoutHistoryListParams(@NonNull RecyclerView recycler_view, String name_filter)
+        {
+            this.recycler_view = recycler_view;
+            this.name_filter = name_filter;
+            this.from_date = new Date(0);
+            this.to_date = new Date();
+        }
+
+        LoadWorkoutHistoryListParams(@NonNull RecyclerView recycler_view)
+        {
+            this.recycler_view = recycler_view;
+            this.name_filter = "";
+            this.from_date = new Date(0);
+            this.to_date = new Date();
+        }
+    }
     class SimpleItemRecyclerViewAdapter
             extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
 

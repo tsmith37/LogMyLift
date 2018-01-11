@@ -574,20 +574,18 @@ public class LiftDbHelper extends SQLiteOpenHelper {
      * @param filter    Filter on the workout name.
      * @return          An ArrayList of workouts.
      */
-    public ArrayList<Workout> selectWorkoutList(String filter) {
+    public ArrayList<Workout> selectWorkoutList(String filter, Date from_date, Date to_date) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String[] RETURN_COLUMNS = { WORKOUT_COLUMN_WORKOUT_ID, WORKOUT_COLUMN_DESCRIPTION, WORKOUT_COLUMN_START_DATE };
-        String WHERE = WORKOUT_COLUMN_DESCRIPTION + " LIKE ?";
-        String SORT_ORDER = WORKOUT_COLUMN_START_DATE + " DESC";
-        String[] where_args = { "%" + filter + "%" };
-        Cursor select_cursor = db.query(
-                WORKOUT_TABLE_NAME,
-                RETURN_COLUMNS,
-                WHERE,
-                where_args,
-                null,
-                null,
-                SORT_ORDER);
+
+        String SELECT_WORKOUT_QUERY = "SELECT " + WORKOUT_COLUMN_WORKOUT_ID + ", " + WORKOUT_COLUMN_DESCRIPTION + ", " + WORKOUT_COLUMN_START_DATE +
+                " FROM " + WORKOUT_TABLE_NAME +
+                " WHERE " + WORKOUT_COLUMN_DESCRIPTION + " LIKE ?" +
+                " AND " + WORKOUT_COLUMN_START_DATE + " BETWEEN ? AND ?" +
+                " ORDER BY " + WORKOUT_COLUMN_START_DATE + " DESC";
+
+        String[] where_args = {"%" + filter + "%", Long.toString(from_date.getTime()), Long.toString(to_date.getTime())};
+        try {
+            final Cursor select_cursor = db.rawQuery(SELECT_WORKOUT_QUERY, where_args);
         ArrayList<Workout> workout_list = new ArrayList<>();
 
         while(select_cursor.moveToNext()) {
@@ -602,6 +600,12 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         select_cursor.close();
         db.close();
         return workout_list;
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     /**

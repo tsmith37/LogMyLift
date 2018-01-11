@@ -70,7 +70,6 @@ public class WorkoutDetailFragment extends Fragment {
             current_workout_history = new WorkoutHistoryCardAdapter(this.getActivity(), lift_db_helper, current_workout_list, current_workout);
             current_workout_history.reloadWorkoutDescription();
             current_workout_list.setAdapter(current_workout_history);
-           // initializeSwipe(current_workout_list);
         }
 
         return rootView;
@@ -81,7 +80,8 @@ public class WorkoutDetailFragment extends Fragment {
      */
     public void showAddLiftDialog()
     {
-        current_workout_history.showAddLiftDialog(getContext(), current_workout_list);
+        WorkoutHistoryCardAdapter.AddLiftParams add_lift_params = new WorkoutHistoryCardAdapter.AddLiftParams(getContext(), current_workout_list);
+        current_workout_history.showAddLiftDialog(add_lift_params);
     }
 
     public void setWorkoutDescription(String description)

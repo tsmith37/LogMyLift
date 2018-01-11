@@ -210,9 +210,9 @@ public class Start extends AppCompatActivity {
             }
 
             if (sd.canWrite()) {
-                String currentDBPath = "//data//"+"edu.wvu.tsmith.logmylift"+"//databases//"+LiftDbHelper.DATABASE_NAME+"";
+                String currentDBPath = current_context.getDatabasePath(LiftDbHelper.DATABASE_NAME).getPath();
                 String backupDBPath = getString(R.string.database_backup_name);
-                File currentDB = new File(data, currentDBPath);
+                File currentDB = new File(currentDBPath);
                 File backupDB = new File(sd, backupDBPath);
 
                 if (currentDB.exists()) {
@@ -221,11 +221,11 @@ public class Start extends AppCompatActivity {
                     dst.transferFrom(src, 0, src.size());
                     src.close();
                     dst.close();
-                    Snackbar.make(findViewById(R.id.add_exercise_button), "Database backed up at: " + backupDB.getAbsolutePath(), Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(findViewById(R.id.start_new_workout_button), "Database backed up at: " + backupDB.getAbsolutePath(), Snackbar.LENGTH_LONG).show();
                 }
             }
         } catch (Exception e) {
-            Snackbar.make(findViewById(R.id.add_exercise_button), "Something went wrong.", Snackbar.LENGTH_LONG).show();
+            Snackbar.make(findViewById(R.id.start_new_workout_button), "Something went wrong.", Snackbar.LENGTH_LONG).show();
             e.printStackTrace();
         }
     }
@@ -233,7 +233,7 @@ public class Start extends AppCompatActivity {
     private void showImportDatabaseDialog() {
         AlertDialog.Builder import_database_dialog_builder = new AlertDialog.Builder(this);
         import_database_dialog_builder.setTitle("Import Database");
-        import_database_dialog_builder.setMessage("Are you sure you want to import a database? This will delete all your current data.");
+        import_database_dialog_builder.setMessage("Are you sure you want to import a database? The database must be located locally in your downloads folder. This will delete all your current data.");
         import_database_dialog_builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -247,38 +247,34 @@ public class Start extends AppCompatActivity {
                         ActivityCompat.requestPermissions(Start.this, new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_STORAGE);
                     }
 
-                    //if (data.canWrite())
-                    //{
-                        String currentDBPath = "//data//"+"edu.wvu.tsmith.logmylift"+"//databases//"+LiftDbHelper.DATABASE_NAME+"";
-                        String backupDBPath = getString(R.string.database_backup_name);
-                        File currentDB = new File(data, currentDBPath);
-                        File backupDB = new File(sd, backupDBPath);
+                    String currentDBPath = current_context.getDatabasePath(LiftDbHelper.DATABASE_NAME).getPath();
+                    String backupDBPath = getString(R.string.database_backup_name);
+                    File currentDB = new File(currentDBPath);
+                    File backupDB = new File(sd, backupDBPath);
 
-                        if (backupDB.exists()) {
-                            FileChannel src = new FileInputStream(backupDB).getChannel();
-                            FileChannel dst = new FileOutputStream(currentDB).getChannel();
-                            dst.transferFrom(src, 0, src.size());
-                            src.close();
-                            dst.close();
-                            Snackbar.make(findViewById(R.id.start_new_workout_button), "Database imported.", Snackbar.LENGTH_LONG).show();
-                        }
-                        else
-                        {
-                            Snackbar.make(findViewById(R.id.start_new_workout_button), "Couldn't find a backup at: " + backupDB.getAbsolutePath(), Snackbar.LENGTH_LONG).show();
-                        }
-                //    }
-                //    else
-                //    {
-                //        Snackbar.make(findViewById(R.id.start_new_workout_button), "Couldn't write", Snackbar.LENGTH_LONG).show();
-                //    }
+                    if (backupDB.exists()) {
+                        FileChannel src = new FileInputStream(backupDB).getChannel();
+                        FileChannel dst = new FileOutputStream(currentDB).getChannel();
+                        dst.transferFrom(src, 0, src.size());
+                        src.close();
+                        dst.close();
+                        Snackbar.make(findViewById(R.id.start_new_workout_button), "Database imported.", Snackbar.LENGTH_LONG).show();
+                    }
+                    else
+                    {
+                        Snackbar.make(findViewById(R.id.start_new_workout_button), "Couldn't find a backup at: " + backupDB.getAbsolutePath(), Snackbar.LENGTH_LONG).show();
+                    }
                 }
-                catch (Exception e) {Snackbar.make(findViewById(R.id.start_new_workout_button), e.toString(), Snackbar.LENGTH_LONG).show();}
+                catch (Exception e)
+                {
+                    Snackbar.make(findViewById(R.id.start_new_workout_button), "Something went wrong.", Snackbar.LENGTH_LONG).show();
+                }
             }
         });
         import_database_dialog_builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Snackbar.make(findViewById(R.id.add_exercise_button), "Database not imported.", Snackbar.LENGTH_LONG).show();
+                Snackbar.make(findViewById(R.id.start_new_workout_button), "Database not imported.", Snackbar.LENGTH_LONG).show();
             }
         });
         import_database_dialog_builder.show();

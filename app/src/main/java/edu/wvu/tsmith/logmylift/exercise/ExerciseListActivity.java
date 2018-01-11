@@ -61,7 +61,7 @@ public class ExerciseListActivity extends AppCompatActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-        final FloatingActionButton add_exercise_button = (FloatingActionButton) findViewById(R.id.add_exercise_button);
+        final FloatingActionButton add_exercise_button = findViewById(R.id.add_exercise_button);
         add_exercise_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -88,7 +88,7 @@ public class ExerciseListActivity extends AppCompatActivity {
             boolean mTwoPane = true;
         }
 
-        final EditText exercise_filter_edit_text = (EditText) this.findViewById(R.id.exercise_filter_edit_text);
+        final EditText exercise_filter_edit_text = this.findViewById(R.id.exercise_filter_edit_text);
         if (exercise_filter_edit_text != null)
         {
             exercise_filter_edit_text.addTextChangedListener(new TextWatcher() {
@@ -106,7 +106,7 @@ public class ExerciseListActivity extends AppCompatActivity {
             });
         }
 
-        ImageButton clear_exercise_filter = (ImageButton) this.findViewById(R.id.clear_exercise_filter);
+        ImageButton clear_exercise_filter = this.findViewById(R.id.clear_exercise_filter);
         if (clear_exercise_filter != null) {
             clear_exercise_filter.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -253,17 +253,17 @@ public class ExerciseListActivity extends AppCompatActivity {
             ViewHolder(View view) {
                 super(view);
                 this.exercise_list_view = view;
-                this.view_flipper = (ViewFlipper) view.findViewById(R.id.card_view_flipper);
+                this.view_flipper = view.findViewById(R.id.card_view_flipper);
 
-                this.exercise_name_text_view = (TextView) view.findViewById(R.id.exercise_name_text_view);
-                this.exercise_description_text_view = (TextView) view.findViewById(R.id.exercise_description_text_view);
-                this.max_effort_text_view = (TextView) view.findViewById(R.id.max_effort_text_view);
-                this.last_performed_text_view = (TextView) view.findViewById(R.id.last_performed_text_view);
+                this.exercise_name_text_view = view.findViewById(R.id.exercise_name_text_view);
+                this.exercise_description_text_view = view.findViewById(R.id.exercise_description_text_view);
+                this.max_effort_text_view = view.findViewById(R.id.max_effort_text_view);
+                this.last_performed_text_view = view.findViewById(R.id.last_performed_text_view);
 
-                this.delete_exercise_button = (ImageButton) view.findViewById(R.id.delete_exercise_button);
-                this.edit_exercise_button = (ImageButton) view.findViewById(R.id.edit_exercise_button);
-                this.exercise_info_button = (ImageButton) view.findViewById(R.id.exercise_info_button);
-                this.exercise_history_button = (ImageButton) view.findViewById(R.id.exercise_history_button);
+                this.delete_exercise_button = view.findViewById(R.id.delete_exercise_button);
+                this.edit_exercise_button = view.findViewById(R.id.edit_exercise_button);
+                this.exercise_info_button = view.findViewById(R.id.exercise_info_button);
+                this.exercise_history_button = view.findViewById(R.id.exercise_history_button);
             }
 
             @Override

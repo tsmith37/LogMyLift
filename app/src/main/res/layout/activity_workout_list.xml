@@ -17,10 +17,89 @@
             android:layout_height="?attr/actionBarSize"
             app:popupTheme="@style/AppTheme.PopupOverlay" />
     </android.support.design.widget.AppBarLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="60dp"
+        android:layout_marginBottom="20dp">
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <EditText
+                android:ems="10"
+                android:hint="@string/filter_workouts"
+                android:id="@+id/workout_filter_edit_text"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:inputType="text"/>
+            <ImageButton
+                android:id="@+id/clear_workout_filter"
+                android:layout_height="match_parent"
+                android:layout_width="wrap_content"
+                android:layout_gravity="center_vertical|end"
+                android:src="@drawable/ic_clear_black_24dp"
+                android:background="@null"
+                android:contentDescription="@string/clear_workout_filter" />
+        </FrameLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal">
+            <TextView
+                android:layout_width="70sp"
+                android:layout_marginStart="10dp"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:id="@+id/from_date_text"
+                android:text="From..."/>
+            <ImageButton
+                android:id="@+id/from_date_button"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="bottom"
+                android:layout_marginStart="5dp"
+                android:src="@drawable/ic_date_range_black_24dp"
+                android:background="@null"
+                android:contentDescription="@string/pick_date_range"/>
+            <TextView
+                android:layout_width="70sp"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:id="@+id/to_date_text"
+                android:layout_marginStart="10dp"
+                android:text="To..."/>
+            <ImageButton
+                android:id="@+id/to_date_button"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="bottom"
+                android:layout_marginStart="5dp"
+                android:src="@drawable/ic_date_range_black_24dp"
+                android:background="@null"
+                android:contentDescription="@string/pick_date_range"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="bottom"
+                android:layout_marginStart="10dp"
+                android:text="Go"
+                android:id="@+id/select_date_button"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="bottom"
+                android:layout_marginStart="5dp"
+                android:text="Clear"
+                android:id="@+id/clear_date_button"/>
+        </LinearLayout>
+    </LinearLayout>
     <FrameLayout
         android:id="@+id/frameLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="75dp"
+        android:paddingTop="20dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
         <include layout="@layout/workout_list" />
     </FrameLayout>

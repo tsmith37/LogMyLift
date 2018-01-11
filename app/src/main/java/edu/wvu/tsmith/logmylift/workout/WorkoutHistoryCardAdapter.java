@@ -78,7 +78,7 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
     }
 
     @Override
-    public WorkoutHistoryCardAdapter.WorkoutHistoryCardViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public WorkoutHistoryCardAdapter.WorkoutHistoryCardViewHolder onCreateViewHolder(final ViewGroup parent, int viewType) {
         final View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.current_workout_card_view, parent, false);
 
         // On a long press, edit the lift.
@@ -87,7 +87,15 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
             public void editLift(int position) { showEditLiftDialog(current_workout_lifts.get(position), position); }
 
             @Override
-            public void copyLift(int position) { makeLiftCopy(current_workout_lifts.get(position), recycler_view); }
+            public void copyLift(int position)
+            {
+                Lift lift_to_copy = current_workout_lifts.get(position);
+                AddLiftParams add_lift_params = new AddLiftParams(
+                        parent.getContext(),
+                        recycler_view,
+                        lift_to_copy);
+                showAddLiftDialog(add_lift_params);
+            }
 
             @Override
             public void deleteLift(int position) {
@@ -128,14 +136,14 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
 
         WorkoutHistoryCardViewHolder(final View view, final IWorkoutHistoryViewHolderClicks workout_history_listener) {
             super(view);
-            this.exercise_name_text_view = (TextView) view.findViewById(R.id.exercise_name_text_view);
-            this.weight_and_reps_text_view = (TextView) view.findViewById(R.id.weight_and_reps_text_view);
-            this.lift_time_text_view = (TextView) view.findViewById(R.id.lift_time_text_view);
-            this.comment_text_view = (TextView) view.findViewById(R.id.comment_text_view);
+            this.exercise_name_text_view = view.findViewById(R.id.exercise_name_text_view);
+            this.weight_and_reps_text_view = view.findViewById(R.id.weight_and_reps_text_view);
+            this.lift_time_text_view = view.findViewById(R.id.lift_time_text_view);
+            this.comment_text_view = view.findViewById(R.id.comment_text_view);
             view.setOnLongClickListener(this);
 
-            this.view_flipper = (ViewFlipper) view.findViewById(R.id.card_view_flipper);
-            ImageButton edit_lift_button = (ImageButton) view.findViewById(R.id.edit_lift_button);
+            this.view_flipper = view.findViewById(R.id.card_view_flipper);
+            ImageButton edit_lift_button = view.findViewById(R.id.edit_lift_button);
             edit_lift_button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -147,7 +155,7 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
                 }
             });
 
-            ImageButton copy_lift_button = (ImageButton) view.findViewById(R.id.copy_lift_button);
+            ImageButton copy_lift_button = view.findViewById(R.id.copy_lift_button);
             copy_lift_button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -159,7 +167,7 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
                 }
             });
 
-            ImageButton delete_lift_button = (ImageButton) view.findViewById(R.id.delete_lift_button);
+            ImageButton delete_lift_button = view.findViewById(R.id.delete_lift_button);
             delete_lift_button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -209,9 +217,9 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
         // Reflect the current lift's properties in the edit lift dialog.
         edit_lift_dialog_builder.setTitle(lift_to_edit.getExercise().getName());
         edit_lift_dialog_builder.setView(edit_lift_dialog_view);
-        final EditText weight_text = (EditText) edit_lift_dialog_view.findViewById(R.id.weight_edit_text);
-        final EditText reps_text = (EditText) edit_lift_dialog_view.findViewById(R.id.reps_edit_text);
-        final EditText comment_text = (EditText) edit_lift_dialog_view.findViewById(R.id.comment_edit_text);
+        final EditText weight_text = edit_lift_dialog_view.findViewById(R.id.weight_edit_text);
+        final EditText reps_text = edit_lift_dialog_view.findViewById(R.id.reps_edit_text);
+        final EditText comment_text = edit_lift_dialog_view.findViewById(R.id.comment_edit_text);
         String weight = "";
         try {weight = Integer.toString(lift_to_edit.getWeight());} catch (Exception ignored) {}
         weight_text.setText(weight);
@@ -259,39 +267,45 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
         edit_dialog.show();
     }
 
-    private void makeLiftCopy(Lift lift_to_copy, RecyclerView recycler_view)
-    {
-        current_workout_lifts.add(0, current_workout.addLift(lift_db_helper, lift_to_copy.getExercise(), lift_to_copy.getReps(), lift_to_copy.getWeight(), lift_to_copy.getComment()));
-        notifyItemInserted(0);
-        goToTop(recycler_view);
-    }
-
     /**
      * Allows the user to add a lift via a popup dialog. This dialog will allow the user to select
      * an exercise, input a weight, reps, and a comment.
-     * @param parent_context    Context to inflate the dialog.
+     * @param params    Parameters to use for the add lift dialog.
      */
-    void showAddLiftDialog(final Context parent_context, final RecyclerView recycler_view) {
-        LayoutInflater li = LayoutInflater.from(parent_context);
+    void showAddLiftDialog(final AddLiftParams params) {
+        LayoutInflater li = LayoutInflater.from(params.parent_context);
         final View add_lift_dialog_view = li.inflate(R.layout.add_lift_dialog, null);
-        AlertDialog.Builder add_lift_dialog_builder = new AlertDialog.Builder(parent_context);
+        AlertDialog.Builder add_lift_dialog_builder = new AlertDialog.Builder(params.parent_context);
         add_lift_dialog_builder.setTitle(R.string.add_lift);
         add_lift_dialog_builder.setView(add_lift_dialog_view);
         current_exercise_input_correct = false;
-        final LiftDbHelper lift_db_helper = new LiftDbHelper(parent_context);
+        final LiftDbHelper lift_db_helper = new LiftDbHelper(params.parent_context);
 
         // Set up the exercise adapter, with nothing in it.
         final SimpleCursorAdapter exercise_adapter = new SimpleCursorAdapter(
-                parent_context,
+                params.parent_context,
                 android.R.layout.simple_list_item_1,
                 null,
                 new String[]{LiftDbHelper.EXERCISE_COLUMN_NAME},
                 new int[]{android.R.id.text1},
                 CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
 
+        // Find the exercise text input.
+        final AutoCompleteTextView exercise_input = add_lift_dialog_view.findViewById(R.id.exercise_input);
+        exercise_input.setAdapter(exercise_adapter);
+
+        // Find the weight text input.
+        final EditText weight_text = add_lift_dialog_view.findViewById(R.id.weight_edit_text);
+
+        // Find the reps text input.
+        final EditText reps_text = add_lift_dialog_view.findViewById(R.id.reps_edit_text);
+
+        // Find the comment text input.
+        final EditText comment_text = add_lift_dialog_view.findViewById(R.id.comment_edit_text);
+
         // When the exercise input is changed, query the database for potential matches. Assume that
-        // the current input is not a real exercise. If an exercise is selected from the input, then
-        // it will be corrected.
+        // the no exercise is currently selected. If an exercise is defaulted, already selected, or
+        // selected from the input, then it will be corrected.
         exercise_adapter.setFilterQueryProvider(new FilterQueryProvider() {
             @Override
             public Cursor runQuery(CharSequence constraint) {
@@ -308,22 +322,35 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
             }
         });
 
-        final AutoCompleteTextView exercise_input = (AutoCompleteTextView) add_lift_dialog_view.findViewById(R.id.exercise_input);
-        exercise_input.setAdapter(exercise_adapter);
+        // If default inputs are selected, place them into the dialog now.
+        boolean default_inputs_selected =
+                (!params.default_lift_name.equals("") && params.default_weight != -1 && params.default_reps != -1);
+        boolean current_exercise_selected = (current_exercise != null);
+        if (default_inputs_selected)
+        {
+            exercise_input.setText(params.default_lift_name);
+            weight_text.setText(Integer.toString(params.default_weight));
+            reps_text.setText(Integer.toString(params.default_reps));
+            comment_text.setText(params.default_comment);
 
-        ImageButton clear_exercise_input = (ImageButton) add_lift_dialog_view.findViewById(R.id.clear_exercise_button);
-        clear_exercise_input.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                exercise_input.setText("");
+            // The current exercise isn't actually selected yet, so specify that the current exercise
+            // input is not correct.
+            current_exercise_input_correct = false;
+
+            // Don't focus on the exercise input.
+            try
+            {
+                weight_text.requestFocus();
             }
-        });
-
-        // Fill in the exercise input from the previous exercise, if it exists.
-        if (current_exercise != null)
+            catch (Throwable ignored) {}
+        }
+        // If there is an exercise already selected, place it into the dialog now.
+        else if (current_exercise_selected)
         {
             exercise_input.setText(current_exercise.getName());
-            EditText weight_text = (EditText) add_lift_dialog_view.findViewById(R.id.weight_edit_text);
+            current_exercise_input_correct = true;
+
+            // Don't focus on the exercise input.
             try
             {
                 weight_text.requestFocus();
@@ -331,7 +358,16 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
             catch (Throwable ignored) {}
         }
 
-        // If an item is clicked for the exercise input, select the current exercise.
+        // Set the clear exercise button to clear the exercise input.
+        ImageButton clear_exercise_input = add_lift_dialog_view.findViewById(R.id.clear_exercise_button);
+        clear_exercise_input.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                exercise_input.setText("");
+            }
+        });
+
+        // If an item is clicked for the exercise input, select that exercise.
         exercise_input.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -340,13 +376,13 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
         });
 
         // Set up the suggested exercises dialog.
-        final Button suggested_exercises_button = (Button) add_lift_dialog_view.findViewById(R.id.suggested_exercises_button);
+        final Button suggested_exercises_button = add_lift_dialog_view.findViewById(R.id.suggested_exercises_button);
         if (suggested_exercises_button != null)
         {
             suggested_exercises_button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    showSuggestedExercisesDialog(parent_context, exercise_input);
+                    showSuggestedExercisesDialog(params.parent_context, exercise_input);
                 }
             });
         }
@@ -373,7 +409,11 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
                         exercise_name_invalid.setAction(R.string.add_exercise, new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                Exercise.showAddExerciseDialog(parent_context, parent_activity.findViewById(R.id.add_lift_button), lift_db_helper, exercise_input.getText().toString(), new Callable<Long>() {
+                                Exercise.showAddExerciseDialog(
+                                        params.parent_context,
+                                        parent_activity.findViewById(R.id.add_lift_button),
+                                        lift_db_helper,
+                                        exercise_input.getText().toString(), new Callable<Long>() {
                                     public Long call()
                                     {
                                         return changeCurrentExerciseToMostRecent();
@@ -388,7 +428,6 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
 
                 // Check that the weight and reps are valid for the new lift.
                 int weight = -1;
-                EditText weight_text = (EditText) add_lift_dialog_view.findViewById(R.id.weight_edit_text);
                 try
                 {
                     weight = Integer.parseInt(weight_text.getText().toString());
@@ -396,7 +435,6 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
                 catch (Throwable ignored) {}
 
                 int reps = -1;
-                EditText reps_text = (EditText) add_lift_dialog_view.findViewById(R.id.reps_edit_text);
                 try
                 {
                     reps = Integer.parseInt(reps_text.getText().toString());
@@ -406,7 +444,6 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
                 if ((weight > 0) && (reps > 0))
                 {
                     // Add the lift.
-                    EditText comment_text = (EditText) add_lift_dialog_view.findViewById(R.id.comment_edit_text);
                     String comment = comment_text.getText().toString();
                     current_workout_lifts.add(0, current_workout.addLift(lift_db_helper, current_exercise, reps, weight, comment));
                     notifyItemInserted(0);
@@ -459,7 +496,7 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
             ++similar_exercise_index;
         }
 
-        final ListView suggested_exercises_list_view = (ListView) suggested_exercises_dialog_view.findViewById(R.id.suggested_exercises_list_view);
+        final ListView suggested_exercises_list_view = suggested_exercises_dialog_view.findViewById(R.id.suggested_exercises_list_view);
         SimilarExercisesListAdapter similar_exercise_list_adapter = new SimilarExercisesListAdapter(parent_context, R.layout.suggested_exercise_detail, similar_exercises);
         suggested_exercises_list_view.setAdapter(similar_exercise_list_adapter);
         final AlertDialog suggested_exercises_dialog = suggested_exercises_dialog_builder.create();
@@ -523,6 +560,40 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
         return 0;
     }
 
+    static class AddLiftParams
+    {
+        final Context parent_context;
+        final RecyclerView recycler_view;
+        final String default_lift_name;
+        final int default_weight;
+        final int default_reps;
+        final String default_comment;
+
+        AddLiftParams(
+                Context parent_context,
+                RecyclerView recycler_view,
+                Lift default_lift)
+        {
+            this.parent_context = parent_context;
+            this.recycler_view = recycler_view;
+            this.default_lift_name = default_lift.getExercise().getName();
+            this.default_weight = default_lift.getWeight();
+            this.default_reps = default_lift.getReps();
+            this.default_comment = default_lift.getComment();
+        }
+
+        AddLiftParams(
+                Context parent_context,
+                RecyclerView recycler_view)
+        {
+            this.parent_context = parent_context;
+            this.recycler_view = recycler_view;
+            this.default_lift_name = "";
+            this.default_weight = -1;
+            this.default_reps = -1;
+            this.default_comment = "";
+        }
+    }
     private class EditLiftParams {
         final Lift lift;
         final int weight;
@@ -586,7 +657,7 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
 
     void reloadWorkoutDescription()
     {
-        CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) parent_activity.findViewById(R.id.toolbar_layout);
+        CollapsingToolbarLayout appBarLayout = parent_activity.findViewById(R.id.toolbar_layout);
         if (appBarLayout != null) {
             appBarLayout.setTitle(current_workout.getDescription());
         }
@@ -636,7 +707,13 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
 
         @Override
         public void onClick(View v) {
-            EditLiftParams undo_edit_lift_params = new EditLiftParams(current_workout_lifts.get(lift_position_in_adapter), old_weight, old_reps, old_comment, lift_position_in_adapter, false);
+            EditLiftParams undo_edit_lift_params = new EditLiftParams(
+                    current_workout_lifts.get(lift_position_in_adapter),
+                    old_weight,
+                    old_reps,
+                    old_comment,
+                    lift_position_in_adapter,
+                    false);
             new EditLiftOperation().execute(undo_edit_lift_params);
         }
     }
