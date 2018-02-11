@@ -35,40 +35,51 @@ public class WorkoutDetailFragment extends Fragment {
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public WorkoutDetailFragment() {
-    }
+    public WorkoutDetailFragment() {}
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
 
-        if (getArguments().containsKey(workout_parcel)) {
+        if (getArguments().containsKey(workout_parcel))
+        {
             // Load the workout from the database based on the ID bundled with the fragment.
             current_workout = getArguments().getParcelable(workout_parcel);
         }
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(
+            LayoutInflater inflater,
+            ViewGroup container,
+            Bundle savedInstanceState)
+    {
         final View rootView = inflater.inflate(R.layout.workout_detail, container, false);
 
         // Show the workout description in a TextView.
-        if (current_workout != null) {
-            this.current_workout_list = (RecyclerView) rootView.findViewById(R.id.current_workout_list);
+        if (current_workout != null)
+        {
+            this.current_workout_list = rootView.findViewById(R.id.current_workout_list);
             RecyclerView.LayoutManager current_workout_layout_manager = new LinearLayoutManager(getContext());
             current_workout_list.setLayoutManager(current_workout_layout_manager);
             LiftDbHelper lift_db_helper = new LiftDbHelper(getContext());
 
             // If no exercises are available, add three default ones.
-            if (lift_db_helper.selectExerciseCount() == 0) {
+            if (lift_db_helper.selectExerciseCount() == 0)
+            {
                 new Exercise(lift_db_helper, getString(R.string.bench_press), getString(R.string.bench_press_description));
                 new Exercise(lift_db_helper, getString(R.string.squat), getString(R.string.squat_description));
                 new Exercise(lift_db_helper, getString(R.string.deadlift), getString(R.string.deadlift_description));
             }
 
+            // Create a carda adapter for the workout history.
             current_workout_history = new WorkoutHistoryCardAdapter(this.getActivity(), lift_db_helper, current_workout_list, current_workout);
+
+            // Load the description of the workout.
             current_workout_history.reloadWorkoutDescription();
+
+            // Setup the list of lifts in the workout with the history adapter.
             current_workout_list.setAdapter(current_workout_history);
         }
 
@@ -76,19 +87,33 @@ public class WorkoutDetailFragment extends Fragment {
     }
 
     /**
-     * Show the add lift dialog from the WorkoutHistoryCardAdapter.
+     * Show the add lift dialog.
+     * Note that this method is really just a pass through to the card adapter.
      */
     public void showAddLiftDialog()
     {
+        // Create parameters to add a new lift.
         WorkoutHistoryCardAdapter.AddLiftParams add_lift_params = new WorkoutHistoryCardAdapter.AddLiftParams(getContext(), current_workout_list);
+
+        // Show the add lift dialog.
         current_workout_history.showAddLiftDialog(add_lift_params);
     }
 
+    /**
+     * Set the description of the workout.
+     * Note that this method is really just a pass through to the card adapter.
+     * @param description   The workout's description.
+     */
     public void setWorkoutDescription(String description)
     {
         current_workout_history.setWorkoutDescription(description);
     }
 
+    /**
+     * Change the current exercise to the most recent exercise.
+     * Note that this method is really just a pass through to the card adapter.
+     * @return  This method always returns 0.
+     */
     public long changeCurrentExerciseToMostRecent()
     {
         current_workout_history.changeCurrentExerciseToMostRecent();

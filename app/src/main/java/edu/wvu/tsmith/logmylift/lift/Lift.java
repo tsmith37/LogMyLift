@@ -113,7 +113,9 @@ public class Lift {
     public void delete(LiftDbHelper lift_db_helper)
     {
         lift_db_helper.deleteLift(this);
-        ArrayList<Lift> exercise_history = lift_db_helper.selectExerciseHistoryLifts(this.exercise);
+        SelectExerciseHistoryParams.ExerciseListOrder by_max_effort = SelectExerciseHistoryParams.ExerciseListOrder.MAX_DESC;
+        SelectExerciseHistoryParams select_exercise_history_params = new SelectExerciseHistoryParams(this.exercise, by_max_effort);
+        ArrayList<Lift> exercise_history = lift_db_helper.selectExerciseHistoryLifts(select_exercise_history_params);
 
         if (0 == exercise_history.size())
         {
@@ -122,13 +124,6 @@ public class Lift {
         else
         {
             Lift max_effort_lift_found = exercise_history.get(0);
-            for (Lift current_lift : exercise_history)
-            {
-                if (current_lift.calculateMaxEffort() > max_effort_lift_found.calculateMaxEffort())
-                {
-                    max_effort_lift_found = current_lift;
-                }
-            }
             this.exercise.setMaxLiftId(lift_db_helper, max_effort_lift_found.getLiftId());
         }
     }
@@ -141,3 +136,5 @@ public class Lift {
         lift_db_helper.updateLift(this);
     }
 }
+
+

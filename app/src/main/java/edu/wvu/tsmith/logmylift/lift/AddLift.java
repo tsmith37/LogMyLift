@@ -35,9 +35,9 @@ public class AddLift extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.add_lift_layout);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
+        Toolbar toolbar = findViewById(R.id.detail_toolbar);
         setSupportActionBar(toolbar);
-        FloatingActionButton edit_workout_button = (FloatingActionButton) findViewById(R.id.edit_workout_button);
+        FloatingActionButton edit_workout_button = findViewById(R.id.edit_workout_button);
         edit_workout_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

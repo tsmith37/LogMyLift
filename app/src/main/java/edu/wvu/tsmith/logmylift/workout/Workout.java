@@ -14,11 +14,17 @@ import edu.wvu.tsmith.logmylift.exercise.Exercise;
 /**
  * Created by Tommy Smith on 3/19/2017.
  * Interface to create and modify workouts. Each workout consists of one or more lifts,
- * the start date, and possibly a description. Workouts may be continue on separate
- * instances by the users and support the ability to be deleted from the database.
+ * the start date, and possibly a description. Workouts may be continued on separate
+ * instances by the users; i.e., they can either be constructed and inserted into the database or
+ * reconstructed from a pre-existing entry in the database.
+ *
+ * Optionally, a workout may contain a similar exercises algorithm. When enabled, this algorithm will
+ * use the exercises performed during the lifts in the workout to find other exercises often done in
+ * the same workouts.
  * @author Tommy Smith
  */
-public class Workout implements Parcelable {
+public class Workout implements Parcelable
+{
     private final long workout_id;
     private String description;
     private ArrayList<Long> lift_ids = new ArrayList<>();
@@ -32,7 +38,8 @@ public class Workout implements Parcelable {
      * @param lift_db_helper    SQLite database helper.
      * @param description       User-assigned description of the workout.
      */
-    public Workout(LiftDbHelper lift_db_helper, String description) {
+    public Workout(LiftDbHelper lift_db_helper, String description)
+    {
         this.start_date = new Date();
         this.description = description;
         this.workout_id = lift_db_helper.insertWorkout(this);
@@ -44,6 +51,7 @@ public class Workout implements Parcelable {
      * Construct an existing workout from parts. Obtaining the parts of the workout
      * from its ID is done from the database. This constructor just serves to assign
      * the values to the workout object.
+     * @param lift_db_helper    The SQLite database helper.
      * @param workout_id        The unique ID of the workout from the SQLite database.
      * @param description       The user-assigned description of the workout. Not
      *                          required. If it is not set, then it will be set as
@@ -51,6 +59,10 @@ public class Workout implements Parcelable {
      * @param lift_ids          An array of IDs uniquely identifying the lifts that
      *                          have occurred during the workout.
      * @param start_date        The start date of the workout.
+     * @param enable_similar_exercises_algorithm    Determines whether the similar exercises algorithm
+     *                                              should be enabled for the workout. When enabled,
+     *                                              any exercises done during the workout will be used
+     *                                              to calculate likely future exercises.
      */
     public Workout(
             LiftDbHelper lift_db_helper,
@@ -79,7 +91,12 @@ public class Workout implements Parcelable {
     public String getDescription() { return this.description; }
     public long getWorkoutId() { return this.workout_id; }
 
-    public ArrayList<Long> getSimilarExercises()
+    /**
+     * Gets a list of exercise IDs similar to the exercises done during the workout. See the SimilarExercisesAlgorithm
+     * class documentation for more information on how the algorithm itself works.
+     * @return A list of similar exercise IDs.
+     */
+    ArrayList<Long> getSimilarExercises()
     {
         if (this.enable_similar_exercises_algorithm)
         {
@@ -87,13 +104,15 @@ public class Workout implements Parcelable {
         }
         else
         {
+            // The algorithm is not enabled, so just return an empty list.
             return new ArrayList<>();
         }
     }
 
     /**
-     * Get an ArrayList of the lifts done during the workout.
-     * @return  An ArrayList of the lifts.
+     * Get a list of the lifts done during the workout.
+     * @param lift_db_helper    A SQLite database helper.
+     * @return  A list of the lifts.
      */
     ArrayList<Lift> getLifts(LiftDbHelper lift_db_helper)
     {
@@ -154,21 +173,34 @@ public class Workout implements Parcelable {
         lift_db_helper.updateDescriptionOfWorkout(this);
     }
 
+    // Required to make the workout parcelable.
     @Override
     public int describeContents() {
         return 0;
     }
 
+    /**
+     * Writes the workout to a parcel. This allows the workout to be passed between activities, e.g.,
+     * into the workout detail activity from the workout list activity.
+     * @param dest  The destination parcel.
+     * @param flags The parcel flags.
+     */
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        // Write each member to the parcel.
         dest.writeLong(this.workout_id);
         dest.writeString(this.description);
         dest.writeSerializable(this.lift_ids);
         dest.writeSerializable(this.start_date);
         dest.writeInt((int) (this.enable_similar_exercises_algorithm ? 1 : 0));
+
+        // The similar exercise algorithm is, itself, parcelable.
         dest.writeParcelable(this.similar_exercises_algorithm, flags);
     }
 
+    /**
+     * Creates the workout from a parcel.
+     */
     public static final Parcelable.Creator<Workout> CREATOR = new Parcelable.Creator<Workout>()
     {
         @Override
@@ -182,13 +214,20 @@ public class Workout implements Parcelable {
         }
     };
 
+    /**
+     * Workout constructor from a parcel.
+     * @param source    The parcel from which to create a workout.
+     */
     private Workout(Parcel source)
     {
+        // Read in each member from the parcel.
         this.workout_id = source.readLong();
         this.description = source.readString();
         this.lift_ids = (ArrayList<Long>) source.readSerializable();
         this.start_date = (Date) source.readSerializable();
         this.enable_similar_exercises_algorithm = (source.readInt() != 0);
+
+        // The similar exercises algorithm itself is a parcel.
         this.similar_exercises_algorithm = source.readParcelable(FindSimilarExercisesAlgorithm.class.getClassLoader());
     }
 }

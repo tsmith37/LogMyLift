@@ -42,4 +42,13 @@
         app:layout_anchor="@+id/exercise_detail_container"
         app:layout_anchorGravity="top|end"
         app:srcCompat="@drawable/ic_mode_edit_white_24dp" />
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/sort_exercise_history_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical|start"
+        android:layout_margin="@dimen/fab_margin"
+        app:layout_anchor="@+id/exercise_detail_container"
+        app:layout_anchorGravity="bottom|end"
+        app:srcCompat="@drawable/ic_sort_white_24dp" />
 </android.support.design.widget.CoordinatorLayout>

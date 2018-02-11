@@ -15,6 +15,7 @@ import android.view.MenuItem;
 import android.widget.EditText;
 
 import edu.wvu.tsmith.logmylift.R;
+import edu.wvu.tsmith.logmylift.lift.SelectExerciseHistoryParams;
 
 /**
  * An activity representing a single Exercise detail screen. This
@@ -23,22 +24,33 @@ import edu.wvu.tsmith.logmylift.R;
  * in a {@link ExerciseListActivity}.
  */
 public class ExerciseDetailActivity extends AppCompatActivity {
+    ExerciseDetailFragment exercise_detail_fragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_exercise_detail);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
+        Toolbar toolbar = findViewById(R.id.detail_toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton edit_exercise_button = (FloatingActionButton) findViewById(R.id.edit_exercise_button);
+        FloatingActionButton edit_exercise_button = findViewById(R.id.edit_exercise_button);
         edit_exercise_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 showEditExerciseDialog();
             }
         });
+
+        FloatingActionButton sort_exercise_history_button = findViewById(R.id.sort_exercise_history_button);
+        sort_exercise_history_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showSortExerciseHistoryDialog();
+            }
+        });
+
+        exercise_detail_fragment = new ExerciseDetailFragment();
 
         // Show the Up button in the action bar.
         ActionBar actionBar = getSupportActionBar();
@@ -61,10 +73,9 @@ public class ExerciseDetailActivity extends AppCompatActivity {
             Bundle arguments = new Bundle();
             // TODO: Maybe don't just set the default to 0...
             arguments.putLong(ExerciseDetailFragment.exercise_id, getIntent().getLongExtra(ExerciseDetailFragment.exercise_id, 0));
-            ExerciseDetailFragment fragment = new ExerciseDetailFragment();
-            fragment.setArguments(arguments);
+            exercise_detail_fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.exercise_detail_container, fragment, "detail_fragment")
+                    .add(R.id.exercise_detail_container, exercise_detail_fragment, "detail_fragment")
                     .commit();
         }
     }
@@ -128,5 +139,38 @@ public class ExerciseDetailActivity extends AppCompatActivity {
         });
         AlertDialog edit_exercise_dialog = edit_exercise_dialog_builder.create();
         edit_exercise_dialog.show();
+    }
+
+    private void showSortExerciseHistoryDialog()
+    {
+        AlertDialog.Builder dialog_builder = new AlertDialog.Builder(ExerciseDetailActivity.this);
+        String[] choices = {"Latest", "Earliest", "Heaviest", "Lightest", "Hardest", "Easiest"};
+        dialog_builder.setItems(choices, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which)
+            {
+                switch (which) {
+                    case 0:
+                        exercise_detail_fragment.reloadExerciseHistory(SelectExerciseHistoryParams.ExerciseListOrder.DATE_DESC);
+                        break;
+                    case 1:
+                        exercise_detail_fragment.reloadExerciseHistory(SelectExerciseHistoryParams.ExerciseListOrder.DATE_ASC);
+                        break;
+                    case 2:
+                        exercise_detail_fragment.reloadExerciseHistory(SelectExerciseHistoryParams.ExerciseListOrder.WEIGHT_DESC);
+                        break;
+                    case 3:
+                        exercise_detail_fragment.reloadExerciseHistory(SelectExerciseHistoryParams.ExerciseListOrder.WEIGHT_ASC);
+                        break;
+                    case 4:
+                        exercise_detail_fragment.reloadExerciseHistory(SelectExerciseHistoryParams.ExerciseListOrder.MAX_DESC);
+                        break;
+                    case 5:
+                        exercise_detail_fragment.reloadExerciseHistory(SelectExerciseHistoryParams.ExerciseListOrder.MAX_ASC);
+                        break;
+                }
+            }
+        });
+        AlertDialog dialog = dialog_builder.create();
+        dialog.show();
     }
 }

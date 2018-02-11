@@ -24,30 +24,45 @@ import edu.wvu.tsmith.logmylift.LiftDbHelper;
  * @author Tommy Smith
  */
 
-public class FindSimilarExercisesAlgorithm implements Parcelable {
+public class FindSimilarExercisesAlgorithm implements Parcelable
+{
     // The exercise IDs used to add data into the algorithm.
     private ArrayList<Long> current_exercise_ids;
 
     // A map of similar exercise IDs to the count of sets they have accounted for.
     private Map<Long, Integer> similar_exercise_ids_to_previous_set_counts;
 
+    /**
+     * Constructs the algorithm.
+     */
     FindSimilarExercisesAlgorithm()
     {
+        // No exercises are added to the algorithm.
         this.current_exercise_ids = new ArrayList<>();
 
         // todo Change this to a different implementation?
         this.similar_exercise_ids_to_previous_set_counts = new TreeMap<>();
     }
 
-    // Implement the functions required to parcel the algorithm, allowing it to be passed between activities.
-    // This is necessary because a workout must be parcelable, and the algorithm is contained in a workout.
+    /**
+     * This function must be implemented for the algorithm to be parcelable.
+     * @return This functions always returns 0.
+     */
     @Override
     public int describeContents() {
         return 0;
     }
 
+    /**
+     * Implement the function to write the algorithm to a parcel, allowing it to be passed between
+     * activities. This is necessary because a workout must be parcelable, and the algorithm is a
+     * member of the workout.
+     * @param dest  The destination parcel.
+     * @param flags The parcel flags.
+     */
     @Override
-    public void writeToParcel(Parcel dest, int flags) {
+    public void writeToParcel(Parcel dest, int flags)
+    {
         dest.writeSerializable(this.current_exercise_ids);
 
         // Write the size of the map of similar exercise IDs to the count of previous sets.
@@ -61,19 +76,38 @@ public class FindSimilarExercisesAlgorithm implements Parcelable {
         }
     }
 
+    /**
+     * Allows the algorithm to be created from a parcelable.
+     */
     public static final Parcelable.Creator<FindSimilarExercisesAlgorithm> CREATOR = new Parcelable.Creator<FindSimilarExercisesAlgorithm>()
     {
+        /**
+         * Creates the algorithm from a parcel.
+         * @param source    The source parcel.
+         * @return  The algorithm created from the parcel.
+         */
         @Override
-        public FindSimilarExercisesAlgorithm createFromParcel(Parcel source) {
+        public FindSimilarExercisesAlgorithm createFromParcel(Parcel source)
+        {
             return new FindSimilarExercisesAlgorithm(source);
         }
 
+        /**
+         * Creates an array of algorithms.
+         * @param size  The size of the array of algorithms.
+         * @return  The array of algorithms.
+         */
         @Override
-        public FindSimilarExercisesAlgorithm[] newArray(int size) {
+        public FindSimilarExercisesAlgorithm[] newArray(int size)
+        {
             return new FindSimilarExercisesAlgorithm[size];
         }
     };
 
+    /**
+     * Creates an algorithm from a parcel.
+     * @param source    The source parcel.
+     */
     private FindSimilarExercisesAlgorithm(Parcel source)
     {
         this.current_exercise_ids = (ArrayList<Long>) source.readSerializable();

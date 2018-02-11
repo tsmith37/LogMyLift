@@ -1,30 +1,19 @@
 package edu.wvu.tsmith.logmylift;
 
-import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.os.Environment;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.pm.ActivityInfoCompat;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.jar.Manifest;
 
 import edu.wvu.tsmith.logmylift.exercise.Exercise;
 import edu.wvu.tsmith.logmylift.lift.Lift;
+import edu.wvu.tsmith.logmylift.lift.SelectExerciseHistoryParams;
 import edu.wvu.tsmith.logmylift.workout.Workout;
 
 /**
@@ -468,15 +457,39 @@ public class LiftDbHelper extends SQLiteOpenHelper {
 
     /**
      * Select a list of lift objects based on the exercise ID.
-     * @param exercise  The exercise of which to get all the lifts.
+     * @param params    Parameters used to select the lifts in the history of the exercise.
      * @return          An ArrayList of the lifts.
      */
-    public ArrayList<Lift> selectExerciseHistoryLifts(Exercise exercise) {
+    public ArrayList<Lift> selectExerciseHistoryLifts(SelectExerciseHistoryParams params) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String[] RETURN_COLUMNS = { LIFT_COLUMN_LIFT_ID, LIFT_COLUMN_REPS, LIFT_COLUMN_START_DATE, LIFT_COLUMN_WEIGHT, LIFT_COLUMN_WORKOUT_ID, LIFT_COLUMN_COMMENT };
+        String MAX_EFFORT_COLUMN_NAME = "MaxEffort";
+        String MAX_EFFORT_COLUMN = "(" + LIFT_COLUMN_WEIGHT + " / (1.0278 - (0.0278 * " + LIFT_COLUMN_REPS + "))) AS " + MAX_EFFORT_COLUMN_NAME;
+        String[] RETURN_COLUMNS = { LIFT_COLUMN_LIFT_ID, LIFT_COLUMN_REPS, LIFT_COLUMN_START_DATE, LIFT_COLUMN_WEIGHT, LIFT_COLUMN_WORKOUT_ID, LIFT_COLUMN_COMMENT, MAX_EFFORT_COLUMN };
         String WHERE = LIFT_COLUMN_EXERCISE_ID + " LIKE ?";
-        String[] where_args = { Long.toString(exercise.getExerciseId()) };
-        String SORT_ORDER = LIFT_COLUMN_LIFT_ID + " DESC";
+        String[] where_args = { Long.toString(params.getExercise().getExerciseId()) };
+        String sort_order = "";
+        switch (params.getOrder())
+        {
+            case DATE_DESC:
+                sort_order = LIFT_COLUMN_START_DATE + " DESC";
+                break;
+            case DATE_ASC:
+                sort_order = LIFT_COLUMN_START_DATE + " ASC";
+                break;
+            case WEIGHT_DESC:
+                sort_order = LIFT_COLUMN_WEIGHT + " DESC";
+                break;
+            case WEIGHT_ASC:
+                sort_order = LIFT_COLUMN_WEIGHT + " ASC";
+                break;
+            case MAX_DESC:
+                sort_order = MAX_EFFORT_COLUMN_NAME + " DESC";
+                break;
+            case MAX_ASC:
+                sort_order = MAX_EFFORT_COLUMN_NAME + " ASC";
+                break;
+        }
+
         Cursor select_cursor = db.query(
                 LIFT_TABLE_NAME,
                 RETURN_COLUMNS,
@@ -484,13 +497,13 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                 where_args,
                 null,
                 null,
-                SORT_ORDER);
+                sort_order);
         ArrayList<Lift> exercise_history_lifts = new ArrayList<>();
 
         while(select_cursor.moveToNext()) {
             exercise_history_lifts.add(new Lift(
                     select_cursor.getLong(select_cursor.getColumnIndex(LIFT_COLUMN_LIFT_ID)),
-                    exercise,
+                    params.getExercise(),
                     select_cursor.getInt(select_cursor.getColumnIndex(LIFT_COLUMN_REPS)),
                     new Date(select_cursor.getLong(select_cursor.getColumnIndex(LIFT_COLUMN_START_DATE))),
                     select_cursor.getInt(select_cursor.getColumnIndex(LIFT_COLUMN_WEIGHT)),

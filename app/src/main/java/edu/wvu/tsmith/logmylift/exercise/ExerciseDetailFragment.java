@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
+import edu.wvu.tsmith.logmylift.lift.SelectExerciseHistoryParams;
 
     /**
  * A fragment representing a single Exercise detail screen.
@@ -55,12 +56,12 @@ public class ExerciseDetailFragment extends Fragment {
 
         // Show the exercise description a TextView.
         if (current_exercise != null) {
-            TextView exercise_description_text_view = (TextView) rootView.findViewById(R.id.exercise_description_text_view);
+            TextView exercise_description_text_view = rootView.findViewById(R.id.exercise_description_text_view);
             current_exercise_history = new ExerciseHistoryCardAdapter(this.getActivity(), lift_db_helper, exercise_description_text_view, current_exercise);
             current_exercise_history.reloadExerciseDetails();
 
             // Show the exercise history in a list.
-            RecyclerView exercise_history_list = (RecyclerView) rootView.findViewById(R.id.exercise_history_list);
+            RecyclerView exercise_history_list = rootView.findViewById(R.id.exercise_history_list);
             RecyclerView.LayoutManager exercise_history_layout_manager = new LinearLayoutManager(getContext());
             exercise_history_list.setLayoutManager(exercise_history_layout_manager);
             exercise_history_list.setAdapter(current_exercise_history);
@@ -76,5 +77,10 @@ public class ExerciseDetailFragment extends Fragment {
     public void setExerciseDescription(String description)
     {
         current_exercise_history.setExerciseDescription(description);
+    }
+
+    public void reloadExerciseHistory(SelectExerciseHistoryParams.ExerciseListOrder order)
+    {
+        current_exercise_history.reloadExerciseHistory(order);
     }
 }

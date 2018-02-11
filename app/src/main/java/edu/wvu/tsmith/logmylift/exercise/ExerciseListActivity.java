@@ -12,6 +12,7 @@ import android.support.v7.widget.Toolbar;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.text.Editable;
+import android.text.InputFilter;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -27,6 +28,7 @@ import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
 import edu.wvu.tsmith.logmylift.lift.Lift;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
@@ -382,19 +384,26 @@ public class ExerciseListActivity extends AppCompatActivity {
 
         final int theoretical_max = lift_db_helper.selectLiftFromLiftId(current_exercise.getMaxLiftId()).calculateMaxEffort();
 
-        exercise_description_text_view.setText(current_exercise.getDescription());
-        percent_max_number_picker.setMinValue(5);
-        percent_max_number_picker.setMaxValue(100);
-        percent_max_number_picker.setWrapSelectorWheel(false);
         percent_max_number_picker.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
             @Override
             public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
-                Double percentage_of_max = theoretical_max * ((double) (newVal / 100.00));
-                percent_max_text_view.setText(Integer.toString(percentage_of_max.intValue()));
+                int percent = newVal * 5;
+                Double percentage_of_max = theoretical_max * ((double) (percent / 100.00));
+                percent_max_text_view.setText(String.format("%.2f", percentage_of_max));
             }
         });
-        percent_max_number_picker.setValue(100);
-        percent_max_text_view.setText(Integer.toString(theoretical_max));
+        percent_max_number_picker.setMaxValue(20);
+        percent_max_number_picker.setMinValue(0);
+        percent_max_number_picker.setValue(20);
+        percent_max_number_picker.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
+        NumberPicker.Formatter max_lift_percentage_formatter = new NumberPicker.Formatter() {
+            @Override
+            public String format(int i) {
+                int percentage = i * 5;
+                return Integer.toString(percentage);
+            }
+        };
+        percent_max_number_picker.setFormatter(max_lift_percentage_formatter);
 
         AlertDialog percent_max_calculator_dialog = percent_max_calculator_dialog_builder.create();
         percent_max_calculator_dialog.show();
