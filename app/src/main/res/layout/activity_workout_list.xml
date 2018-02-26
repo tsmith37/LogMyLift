@@ -79,14 +79,14 @@
                 android:background="@null"
                 android:contentDescription="@string/pick_date_range"/>
             <Button
-                android:layout_width="wrap_content"
+                android:layout_width="50sp"
                 android:layout_height="match_parent"
                 android:layout_gravity="bottom"
-                android:layout_marginStart="10dp"
+                android:layout_marginStart="7dp"
                 android:text="Go"
                 android:id="@+id/select_date_button"/>
             <Button
-                android:layout_width="wrap_content"
+                android:layout_width="70sp"
                 android:layout_height="match_parent"
                 android:layout_gravity="bottom"
                 android:layout_marginStart="5dp"
