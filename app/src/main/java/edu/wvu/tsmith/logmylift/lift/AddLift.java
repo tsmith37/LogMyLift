@@ -2,6 +2,7 @@ package edu.wvu.tsmith.logmylift.lift;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -9,10 +10,13 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import java.util.concurrent.Callable;
 
@@ -24,10 +28,12 @@ import edu.wvu.tsmith.logmylift.workout.WorkoutDetailFragment;
 
 /**
  * Created by Tommy Smith on 6/8/2017.
- * Activity to add a lift to a workout. This activity displays the current workout history in a
- * CardView, which allows swiping to delete each lift and long-clicking to edit each lift. The FAB
- * allows a new lift to be added via a dialog box, and long-clicking the FAB allows a new exercise
- * to be added or a new lift to be added.
+ * Activity to add a lift to a workout. This activity displays the current workout history in a CardView,
+ * which allows long-clicking to edit, delete, or copy each lift. A long-click also allows the user
+ * to view past information about the lift's exercise. A FAB is present on the page that allows the
+ * user to create a new lift via a dialog box. Long-clicking the FAB allows a new exercise to be added
+ * or a new lift to be added. A menu is present in the activity with two menu options: one to edit the
+ * workout description, and one to display a dialog with statistics about the workout.
  */
 
 public class AddLift extends AppCompatActivity {
@@ -37,13 +43,6 @@ public class AddLift extends AppCompatActivity {
         setContentView(R.layout.add_lift_layout);
         Toolbar toolbar = findViewById(R.id.detail_toolbar);
         setSupportActionBar(toolbar);
-        FloatingActionButton edit_workout_button = findViewById(R.id.edit_workout_button);
-        edit_workout_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showEditWorkoutDialog();
-            }
-        });
 
         // Show the Up button in the action bar.
         ActionBar actionBar = getSupportActionBar();
@@ -72,7 +71,7 @@ public class AddLift extends AppCompatActivity {
                     .commit();
 
             // If the FAB is clicked, show the add lift dialog.
-            final FloatingActionButton add_lift_button = (FloatingActionButton) findViewById(R.id.add_lift_button);
+            final FloatingActionButton add_lift_button = findViewById(R.id.add_lift_button);
             add_lift_button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -80,7 +79,7 @@ public class AddLift extends AppCompatActivity {
                 }
             });
 
-            // If the FAB is long clicked, offer options to add a new exercise, new lift, or select a suggested exercise.
+            // If the FAB is long clicked, offer options to add a new exercise or a new lift.
             add_lift_button.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(final View v) {
@@ -115,7 +114,8 @@ public class AddLift extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == android.R.id.home) {
+        if (id == android.R.id.home)
+        {
             // This ID represents the Home or Up button. In the case of this
             // activity, the Up button is shown. For
             // more details, see the Navigation pattern on Android Design:
@@ -125,7 +125,22 @@ public class AddLift extends AppCompatActivity {
             navigateUpTo(new Intent(this, Start.class));
             return true;
         }
+        else if (id == R.id.edit_workout_menu_item)
+        {
+            this.showEditWorkoutDialog();
+        }
+        else if (id == R.id.workout_stats_menu_item)
+        {
+            this.showWorkoutStatsDialog(new LiftDbHelper(this.getBaseContext()));
+        }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
+        getMenuInflater().inflate(R.menu.add_lift_menu, menu);
+        return true;
     }
 
     /**
@@ -141,7 +156,7 @@ public class AddLift extends AppCompatActivity {
         String edit_workout_title = getString(R.string.edit_workout) + ": " + workout_detail_fragment.current_workout.getReadableStartDate();
         edit_workout_dialog_builder.setTitle(edit_workout_title);
         edit_workout_dialog_builder.setView(edit_workout_dialog_view);
-        final EditText workout_description_text = (EditText) edit_workout_dialog_view.findViewById(R.id.workout_description_edit_text);
+        final EditText workout_description_text = edit_workout_dialog_view.findViewById(R.id.workout_description_edit_text);
         final String workout_before_editing_description = workout_detail_fragment.current_workout.getDescription();
         workout_description_text.setText(workout_before_editing_description);
 
@@ -166,6 +181,38 @@ public class AddLift extends AppCompatActivity {
 
         AlertDialog edit_workout_dialog = edit_workout_dialog_builder.create();
         edit_workout_dialog.show();
+    }
+
+    /**
+     * Show a dialog to the user presenting them with statistics relating to the workout..
+     */
+    private void showWorkoutStatsDialog(LiftDbHelper lift_db_helper) {
+        LayoutInflater li = LayoutInflater.from(this);
+        View workout_stats_dialog_view = li.inflate(R.layout.workout_stats_dialog, null);
+        AlertDialog.Builder workout_stats_dialog_builder = new AlertDialog.Builder(this);
+
+        TextView title = new TextView(this);
+        title.setText(R.string.workout_statistics);
+        title.setAllCaps(true);
+        title.setTypeface(null, Typeface.BOLD);
+        title.setTextSize(20);
+        title.setGravity(Gravity.CENTER);
+        workout_stats_dialog_builder.setCustomTitle(title);
+        workout_stats_dialog_builder.setView(workout_stats_dialog_view);
+
+        // Set the workout duration text.
+        final WorkoutDetailFragment workout_detail_fragment = (WorkoutDetailFragment) getSupportFragmentManager().findFragmentByTag("detail_fragment");
+        final String workout_duration = String.format("%s %s", getString(R.string.workout_duration), workout_detail_fragment.current_workout.getReadableDuration(lift_db_helper));
+        final TextView workout_duration_text_view = workout_stats_dialog_view.findViewById(R.id.workout_duration_text_view);
+        workout_duration_text_view.setText(workout_duration);
+
+        // Set the lifts performed count.
+        final String lifts_performed_count = String.format("%s %d", getString(R.string.lifts_performed), workout_detail_fragment.current_workout.getLiftsPerformedCount());
+        final TextView lifts_performed_text_view = workout_stats_dialog_view.findViewById(R.id.workout_lifts_count_text_view);
+        lifts_performed_text_view.setText(lifts_performed_count);
+
+        AlertDialog workout_stats_dialog = workout_stats_dialog_builder.create();
+        workout_stats_dialog.show();
     }
 
     // Undo updating the workout.

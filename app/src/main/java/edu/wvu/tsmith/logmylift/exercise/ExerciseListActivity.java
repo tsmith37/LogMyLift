@@ -378,9 +378,9 @@ public class ExerciseListActivity extends AppCompatActivity {
         percent_max_calculator_dialog_builder.setTitle("Calculate Percentage of Max - " + current_exercise.getName());
         percent_max_calculator_dialog_builder.setView(percent_max_calculator_view);
 
-        final TextView exercise_description_text_view = (TextView) percent_max_calculator_view.findViewById(R.id.exercise_description_text_view);
-        final NumberPicker percent_max_number_picker = (NumberPicker) percent_max_calculator_view.findViewById(R.id.percent_number_picker);
-        final TextView percent_max_text_view = (TextView) percent_max_calculator_view.findViewById(R.id.percent_max_text_view);
+        final TextView exercise_description_text_view = percent_max_calculator_view.findViewById(R.id.exercise_description_text_view);
+        final NumberPicker percent_max_number_picker = percent_max_calculator_view.findViewById(R.id.percent_number_picker);
+        final TextView percent_max_text_view = percent_max_calculator_view.findViewById(R.id.percent_max_text_view);
 
         final int theoretical_max = lift_db_helper.selectLiftFromLiftId(current_exercise.getMaxLiftId()).calculateMaxEffort();
 

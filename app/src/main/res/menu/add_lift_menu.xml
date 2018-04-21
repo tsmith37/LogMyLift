@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/edit_workout_menu_item"
+        android:orderInCategory="100"
+        android:title="@string/edit_workout"
+        app:showAsAction="never">
+    </item>
+    <item
+        android:id="@+id/workout_stats_menu_item"
+        android:orderInCategory="100"
+        android:title="@string/workout_statistics"
+        app:showAsAction="never">
+    </item>
+</menu>

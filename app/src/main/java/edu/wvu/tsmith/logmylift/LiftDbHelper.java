@@ -939,5 +939,27 @@ public class LiftDbHelper extends SQLiteOpenHelper {
 
         return similar_exercise_ids_to_set_counts;
     }
+
+    public long getWorkoutDurationInMs(Workout workout)
+    {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String DURATION_COLUMN_NAME = "dur";
+        String SELECT_WORKOUT_DURATION_QUERY =
+                "SELECT MAX(" + LIFT_COLUMN_START_DATE + ") - MIN(" + LIFT_COLUMN_START_DATE + ") AS " + DURATION_COLUMN_NAME +
+                        " FROM " + LIFT_TABLE_NAME +
+                        " WHERE " + LIFT_COLUMN_WORKOUT_ID + " = ?;";
+
+        String[] where_args = {Long.toString(workout.getWorkoutId())};
+        Cursor select_cursor = db.rawQuery(SELECT_WORKOUT_DURATION_QUERY, where_args);
+
+        boolean id_in_db = select_cursor.moveToFirst();
+        if (!id_in_db) {
+            return 0;
+        }
+
+        long workout_duration_as_long = select_cursor.getLong(
+                select_cursor.getColumnIndexOrThrow(DURATION_COLUMN_NAME));
+        return workout_duration_as_long;
+    }
 }
 

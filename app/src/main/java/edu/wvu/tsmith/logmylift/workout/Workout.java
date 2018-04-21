@@ -139,6 +139,31 @@ public class Workout implements Parcelable
         return new_lift;
     }
 
+    public String getReadableDuration(LiftDbHelper lift_db_helper)
+    {
+        long workout_duration_in_ms = lift_db_helper.getWorkoutDurationInMs(this);
+        int ms_in_one_s = 1000;
+        int s_in_one_min = 60;
+        int ms_in_one_min = ms_in_one_s * s_in_one_min;
+        int min_in_one_hour = 60;
+        int ms_in_one_hour = ms_in_one_min * min_in_one_hour;
+
+        int duration_in_hours = ((int) workout_duration_in_ms / ms_in_one_hour);
+        workout_duration_in_ms -= (duration_in_hours * ms_in_one_hour);
+
+        int duration_in_mins = ((int) workout_duration_in_ms / ms_in_one_min);
+        workout_duration_in_ms -= (duration_in_mins * ms_in_one_min);
+
+        int duration_in_s = ((int) workout_duration_in_ms / ms_in_one_s);
+
+        return String.format("%02d:%02d:%02d", duration_in_hours, duration_in_mins, duration_in_s);
+    }
+
+    public int getLiftsPerformedCount()
+    {
+        return this.lift_ids.size();
+    }
+
     /**
      * Readd a lift to the workout without adding it back into the database.
      * @param lift          Lift to readd.
