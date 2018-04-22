@@ -47,7 +47,8 @@ import static android.content.Context.INPUT_METHOD_SERVICE;
  * @author Tommy Smith
  */
 
-class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardAdapter.WorkoutHistoryCardViewHolder> {
+class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardAdapter.WorkoutHistoryCardViewHolder>
+{
     private final Workout current_workout;
     private final ArrayList<Lift> current_workout_lifts;
     private final Activity parent_activity;
@@ -395,7 +396,7 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
                 else
                 {
                     // The lift isn't valid.
-                    Snackbar.make(parent_activity.findViewById(R.id.edit_workout_button), R.string.lift_not_valid, Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(parent_activity.findViewById(R.id.add_lift_button), R.string.lift_not_valid, Snackbar.LENGTH_LONG).show();
                 }
 
                 // Hide the keyboard.
@@ -411,7 +412,7 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 // Let the user know that the lift was not updated.
-                Snackbar.make(parent_activity.findViewById(R.id.edit_workout_button), R.string.lift_not_updated, Snackbar.LENGTH_LONG).show();
+                Snackbar.make(parent_activity.findViewById(R.id.add_lift_button), R.string.lift_not_updated, Snackbar.LENGTH_LONG).show();
                 dialog.dismiss();
             }
         });
@@ -576,7 +577,7 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
                     {
                         // Offer to the user via Snackbar to add an exercise named the same as the
                         // input to the add lift dialog.
-                        Snackbar exercise_name_invalid = Snackbar.make(parent_activity.findViewById(R.id.edit_workout_button), R.string.exercise_name_not_valid, Snackbar.LENGTH_LONG);
+                        Snackbar exercise_name_invalid = Snackbar.make(parent_activity.findViewById(R.id.add_lift_button), R.string.exercise_name_not_valid, Snackbar.LENGTH_LONG);
                         exercise_name_invalid.setAction(R.string.add_exercise, new View.OnClickListener()
                         {
                             @Override
@@ -624,7 +625,7 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
                 }
                 else
                 {
-                    Snackbar.make(parent_activity.findViewById(R.id.edit_workout_button), R.string.lift_not_valid, Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(parent_activity.findViewById(R.id.add_lift_button), R.string.lift_not_valid, Snackbar.LENGTH_LONG).show();
                 }
             }
         });
@@ -635,7 +636,7 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
             @Override
             public void onClick(DialogInterface dialog, int which)
             {
-                Snackbar.make(parent_activity.findViewById(R.id.edit_workout_button), R.string.lift_not_added, Snackbar.LENGTH_LONG).show();
+                Snackbar.make(parent_activity.findViewById(R.id.add_lift_button), R.string.lift_not_added, Snackbar.LENGTH_LONG).show();
             }
         });
 
@@ -723,7 +724,7 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
         notifyItemRemoved(lift_position_in_adapter);
 
         // Allow for the lift deletion to be reverted.
-        Snackbar delete_lift_snackbar = Snackbar.make(parent_activity.findViewById(R.id.edit_workout_button), "Lift deleted.", Snackbar.LENGTH_LONG);
+        Snackbar delete_lift_snackbar = Snackbar.make(parent_activity.findViewById(R.id.add_lift_button), "Lift deleted.", Snackbar.LENGTH_LONG);
         delete_lift_snackbar.setAction(R.string.undo, new UndoDeleteLiftListener(this, lift_position_in_adapter, lift_to_delete));
         delete_lift_snackbar.addCallback(new Snackbar.Callback()
         {
@@ -911,7 +912,7 @@ class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHistoryCardA
                 if (allow_undo)
                 {
                     // Notify the user that the lift has been updated. Allow the action to be undone.
-                    Snackbar edit_lift_snackbar = Snackbar.make(parent_activity.findViewById(R.id.edit_workout_button), R.string.lift_updated, Snackbar.LENGTH_LONG);
+                    Snackbar edit_lift_snackbar = Snackbar.make(parent_activity.findViewById(R.id.add_lift_button), R.string.lift_updated, Snackbar.LENGTH_LONG);
                     edit_lift_snackbar.setAction(R.string.undo, new UndoEditLiftListener(lift_position_in_adapter, old_lift_weight, old_lift_reps, old_lift_comment));
                     edit_lift_snackbar.show();
                 }
