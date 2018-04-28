@@ -211,6 +211,11 @@ public class AddLift extends AppCompatActivity {
         final TextView lifts_performed_text_view = workout_stats_dialog_view.findViewById(R.id.workout_lifts_count_text_view);
         lifts_performed_text_view.setText(lifts_performed_count);
 
+        // Set the time per lift text.
+        final String time_per_lift = String.format("%s %s", getString(R.string.average_time_per_lift), workout_detail_fragment.current_workout.getReadableTimePerSet(lift_db_helper));
+        final TextView time_per_lift_text_view = workout_stats_dialog_view.findViewById(R.id.average_time_per_lift_text_view);
+        time_per_lift_text_view.setText(time_per_lift);
+
         AlertDialog workout_stats_dialog = workout_stats_dialog_builder.create();
         workout_stats_dialog.show();
     }

@@ -17,4 +17,11 @@
         android:id="@+id/workout_lifts_count_text_view"
         android:text="@string/lifts_performed"
         style="@style/ListMinorTextView"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10sp"
+        android:id="@+id/average_time_per_lift_text_view"
+        android:text="@string/average_time_per_lift"
+        style="@style/ListMinorTextView"/>
 </LinearLayout>

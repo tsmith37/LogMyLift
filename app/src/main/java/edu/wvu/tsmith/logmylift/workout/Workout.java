@@ -141,20 +141,37 @@ public class Workout implements Parcelable
 
     public String getReadableDuration(LiftDbHelper lift_db_helper)
     {
-        long workout_duration_in_ms = lift_db_helper.getWorkoutDurationInMs(this);
+        return convertDurationInMsToReadableString(getDurationInMs(lift_db_helper));
+    }
+
+    public String getReadableTimePerSet(LiftDbHelper lift_db_helper)
+    {
+        long duration_in_ms = this.getDurationInMs(lift_db_helper);
+        int lifts_performed = this.getLiftsPerformedCount();
+        long time_per_set_in_ms = duration_in_ms / lifts_performed;
+        return (lifts_performed == 0 ? "00:00:00" : convertDurationInMsToReadableString(time_per_set_in_ms));
+    }
+    private long getDurationInMs(LiftDbHelper lift_db_helper)
+    {
+        return lift_db_helper.getWorkoutDurationInMs(this);
+    }
+
+    private static String convertDurationInMsToReadableString(long duration_in_ms)
+    {
+        long duration = duration_in_ms;
         int ms_in_one_s = 1000;
         int s_in_one_min = 60;
         int ms_in_one_min = ms_in_one_s * s_in_one_min;
         int min_in_one_hour = 60;
         int ms_in_one_hour = ms_in_one_min * min_in_one_hour;
 
-        int duration_in_hours = ((int) workout_duration_in_ms / ms_in_one_hour);
-        workout_duration_in_ms -= (duration_in_hours * ms_in_one_hour);
+        int duration_in_hours = ((int) duration / ms_in_one_hour);
+        duration -= (duration_in_hours * ms_in_one_hour);
 
-        int duration_in_mins = ((int) workout_duration_in_ms / ms_in_one_min);
-        workout_duration_in_ms -= (duration_in_mins * ms_in_one_min);
+        int duration_in_mins = ((int) duration / ms_in_one_min);
+        duration -= (duration_in_mins * ms_in_one_min);
 
-        int duration_in_s = ((int) workout_duration_in_ms / ms_in_one_s);
+        int duration_in_s = ((int) duration / ms_in_one_s);
 
         return String.format("%02d:%02d:%02d", duration_in_hours, duration_in_mins, duration_in_s);
     }
