@@ -73,7 +73,7 @@ public class WorkoutDetailFragment extends Fragment {
                 new Exercise(lift_db_helper, getString(R.string.deadlift), getString(R.string.deadlift_description));
             }
 
-            // Create a carda adapter for the workout history.
+            // Create a card adapter for the workout history.
             current_workout_history = new WorkoutHistoryCardAdapter(this.getActivity(), lift_db_helper, current_workout_list, current_workout);
 
             // Load the description of the workout.

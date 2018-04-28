@@ -2,21 +2,15 @@ package edu.wvu.tsmith.logmylift.lift;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.EditText;
-import android.widget.TextView;
 
 import java.util.concurrent.Callable;
 
@@ -24,7 +18,9 @@ import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
 import edu.wvu.tsmith.logmylift.Start;
 import edu.wvu.tsmith.logmylift.exercise.Exercise;
+import edu.wvu.tsmith.logmylift.workout.EditWorkoutDialog;
 import edu.wvu.tsmith.logmylift.workout.WorkoutDetailFragment;
+import edu.wvu.tsmith.logmylift.workout.WorkoutStatsDialog;
 
 /**
  * Created by Tommy Smith on 6/8/2017.
@@ -114,6 +110,8 @@ public class AddLift extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
+        WorkoutDetailFragment workout_detail_fragment = (WorkoutDetailFragment) getSupportFragmentManager().findFragmentByTag("detail_fragment");
+
         if (id == android.R.id.home)
         {
             // This ID represents the Home or Up button. In the case of this
@@ -127,11 +125,13 @@ public class AddLift extends AppCompatActivity {
         }
         else if (id == R.id.edit_workout_menu_item)
         {
-            this.showEditWorkoutDialog();
+            EditWorkoutDialog edit_workout_dialog = new EditWorkoutDialog(this, workout_detail_fragment, findViewById(R.id.current_workout_list));
+            edit_workout_dialog.show();
         }
         else if (id == R.id.workout_stats_menu_item)
         {
-            this.showWorkoutStatsDialog(new LiftDbHelper(this.getBaseContext()));
+            WorkoutStatsDialog workout_stats_dialog = new WorkoutStatsDialog(this, new LiftDbHelper(this.getBaseContext()), workout_detail_fragment);
+            workout_stats_dialog.show();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -141,102 +141,5 @@ public class AddLift extends AppCompatActivity {
     {
         getMenuInflater().inflate(R.menu.add_lift_menu, menu);
         return true;
-    }
-
-    /**
-     * Show a dialog to the user allowing them to edit the description of the workout.
-     */
-    private void showEditWorkoutDialog() {
-        LayoutInflater li = LayoutInflater.from(this);
-        View edit_workout_dialog_view = li.inflate(R.layout.edit_workout_dialog, null);
-        AlertDialog.Builder edit_workout_dialog_builder = new AlertDialog.Builder(this);
-
-        // Set the edit workout dialog to reflect the current workout details.
-        final WorkoutDetailFragment workout_detail_fragment = (WorkoutDetailFragment) getSupportFragmentManager().findFragmentByTag("detail_fragment");
-        String edit_workout_title = getString(R.string.edit_workout) + ": " + workout_detail_fragment.current_workout.getReadableStartDate();
-        edit_workout_dialog_builder.setTitle(edit_workout_title);
-        edit_workout_dialog_builder.setView(edit_workout_dialog_view);
-        final EditText workout_description_text = edit_workout_dialog_view.findViewById(R.id.workout_description_edit_text);
-        final String workout_before_editing_description = workout_detail_fragment.current_workout.getDescription();
-        workout_description_text.setText(workout_before_editing_description);
-
-        // Change the workout details.
-        edit_workout_dialog_builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Snackbar update_workout_snackbar = Snackbar.make(findViewById(R.id.current_workout_list), R.string.workout_updated, Snackbar.LENGTH_LONG);
-                update_workout_snackbar.setAction(R.string.undo, new AddLift.UndoUpdateWorkoutListener(workout_before_editing_description, workout_detail_fragment));
-                update_workout_snackbar.show();
-                workout_detail_fragment.setWorkoutDescription(workout_description_text.getText().toString());
-            }
-        });
-
-        // Cancel the changes.
-        edit_workout_dialog_builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Snackbar.make(findViewById(R.id.current_workout_list), R.string.workout_not_updated, Snackbar.LENGTH_LONG).show();
-            }
-        });
-
-        AlertDialog edit_workout_dialog = edit_workout_dialog_builder.create();
-        edit_workout_dialog.show();
-    }
-
-    /**
-     * Show a dialog to the user presenting them with statistics relating to the workout..
-     */
-    private void showWorkoutStatsDialog(LiftDbHelper lift_db_helper) {
-        LayoutInflater li = LayoutInflater.from(this);
-        View workout_stats_dialog_view = li.inflate(R.layout.workout_stats_dialog, null);
-        AlertDialog.Builder workout_stats_dialog_builder = new AlertDialog.Builder(this);
-
-        TextView title = new TextView(this);
-        title.setText(R.string.workout_statistics);
-        title.setAllCaps(true);
-        title.setTypeface(null, Typeface.BOLD);
-        title.setTextSize(20);
-        title.setGravity(Gravity.CENTER);
-        workout_stats_dialog_builder.setCustomTitle(title);
-        workout_stats_dialog_builder.setView(workout_stats_dialog_view);
-
-        // Set the workout duration text.
-        final WorkoutDetailFragment workout_detail_fragment = (WorkoutDetailFragment) getSupportFragmentManager().findFragmentByTag("detail_fragment");
-        final String workout_duration = String.format("%s %s", getString(R.string.workout_duration), workout_detail_fragment.current_workout.getReadableDuration(lift_db_helper));
-        final TextView workout_duration_text_view = workout_stats_dialog_view.findViewById(R.id.workout_duration_text_view);
-        workout_duration_text_view.setText(workout_duration);
-
-        // Set the lifts performed count.
-        final String lifts_performed_count = String.format("%s %d", getString(R.string.lifts_performed), workout_detail_fragment.current_workout.getLiftsPerformedCount());
-        final TextView lifts_performed_text_view = workout_stats_dialog_view.findViewById(R.id.workout_lifts_count_text_view);
-        lifts_performed_text_view.setText(lifts_performed_count);
-
-        // Set the time per lift text.
-        final String time_per_lift = String.format("%s %s", getString(R.string.average_time_per_lift), workout_detail_fragment.current_workout.getReadableTimePerSet(lift_db_helper));
-        final TextView time_per_lift_text_view = workout_stats_dialog_view.findViewById(R.id.average_time_per_lift_text_view);
-        time_per_lift_text_view.setText(time_per_lift);
-
-        AlertDialog workout_stats_dialog = workout_stats_dialog_builder.create();
-        workout_stats_dialog.show();
-    }
-
-    // Undo updating the workout.
-    private class UndoUpdateWorkoutListener implements View.OnClickListener
-    {
-        final String old_description;
-        final WorkoutDetailFragment workout_detail_fragment;
-
-        UndoUpdateWorkoutListener(String old_description, WorkoutDetailFragment workout_detail_fragment)
-        {
-            super();
-            this.old_description = old_description;
-            this.workout_detail_fragment = workout_detail_fragment;
-        }
-
-        @Override
-        public void onClick(View v)
-        {
-            this.workout_detail_fragment.setWorkoutDescription(old_description);
-        }
     }
 }
