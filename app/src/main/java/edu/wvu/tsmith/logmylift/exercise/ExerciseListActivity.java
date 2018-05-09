@@ -1,18 +1,14 @@
 package edu.wvu.tsmith.logmylift.exercise;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.text.Editable;
-import android.text.InputFilter;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -20,19 +16,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
 
-import edu.wvu.tsmith.logmylift.LiftDbHelper;
-import edu.wvu.tsmith.logmylift.R;
-import edu.wvu.tsmith.logmylift.lift.Lift;
-
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.Callable;
+
+import edu.wvu.tsmith.logmylift.LiftDbHelper;
+import edu.wvu.tsmith.logmylift.R;
+import edu.wvu.tsmith.logmylift.lift.Lift;
 
 /**
  * An activity representing a list of Exercises. This activity
@@ -47,13 +41,14 @@ public class ExerciseListActivity extends AppCompatActivity {
     private LiftDbHelper lift_db_helper;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_exercise_list);
 
         lift_db_helper = new LiftDbHelper(getApplicationContext());
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
 
@@ -67,12 +62,9 @@ public class ExerciseListActivity extends AppCompatActivity {
         add_exercise_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Exercise.showAddExerciseDialog(view.getContext(), findViewById(R.id.add_exercise_button), lift_db_helper, "", new Callable<Long>() {
-                    public Long call()
-                    {
-                        return reloadExerciseList("");
-                    }
-                });
+                AddExerciseDialog add_exercise_dialog = new AddExerciseDialog(view.getContext(), lift_db_helper, view, "");
+                add_exercise_dialog.show();
+                reloadExerciseList("");
             }
         });
 
@@ -190,7 +182,9 @@ public class ExerciseListActivity extends AppCompatActivity {
             holder.delete_exercise_button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    showDeleteExerciseDialog(current_exercise, position);
+                    RecyclerView recycler_view = findViewById(R.id.exercise_list);
+                    DeleteExerciseDialog delete_exercise_dialog = new DeleteExerciseDialog(v.getContext(), recycler_view, lift_db_helper, v, position, current_exercise);
+                    delete_exercise_dialog.show();
                     holder.view_flipper.setDisplayedChild(0);
                 }
             });
@@ -198,7 +192,18 @@ public class ExerciseListActivity extends AppCompatActivity {
             holder.edit_exercise_button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    showEditExerciseDialog(current_exercise, position);
+                    EditExerciseDialog edit_exercise_dialog = new EditExerciseDialog(v.getContext(), v, current_exercise);
+                    edit_exercise_dialog.show(new Callable<Integer>()
+                    {
+                        @Override
+                        public Integer call() throws Exception
+                        {
+                            RecyclerView recyclerView = findViewById(R.id.exercise_list);
+                            ExerciseListCardAdapter recycler_view_adapter = (ExerciseListCardAdapter) recyclerView.getAdapter();
+                            recycler_view_adapter.notifyItemChanged(position);
+                            return null;
+                        }
+                    });
                     holder.view_flipper.setDisplayedChild(0);
                 }
             });
@@ -213,7 +218,8 @@ public class ExerciseListActivity extends AppCompatActivity {
             holder.exercise_info_button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    showPercentMaxCalculatorDialog(current_exercise);
+                    PercentMaxCalculatorDialog max_calculator_dialog = new PercentMaxCalculatorDialog(getApplicationContext(), lift_db_helper, current_exercise);
+                    max_calculator_dialog.show();
                     holder.view_flipper.setDisplayedChild(0);
                 }
             });
@@ -292,121 +298,4 @@ public class ExerciseListActivity extends AppCompatActivity {
 
         context.startActivity(intent);
     }
-
-    /**
-     * Show the dialog to edit an exercise, and act according to the user input.
-     * @param current_exercise              The exercise to edit.
-     * @param exercise_position_in_adapter  The position of the exercise in the adapter holding the data.
-     *                                      This is used to reload the adapter if the exercise is updated.
-     */
-    private void showEditExerciseDialog(final Exercise current_exercise, final int exercise_position_in_adapter)
-    {
-        LayoutInflater li = LayoutInflater.from(this);
-
-        // Re-use the add exercise dialog here...
-        View edit_exercise_dialog_view = li.inflate(R.layout.add_exercise_dialog, null);
-        AlertDialog.Builder edit_exercise_dialog_builder = new AlertDialog.Builder(this);
-        edit_exercise_dialog_builder.setTitle("Edit Exercise");
-        edit_exercise_dialog_builder.setView(edit_exercise_dialog_view);
-        final EditText exercise_name_edit_text = (EditText) edit_exercise_dialog_view.findViewById(R.id.exercise_name_edit_text);
-        exercise_name_edit_text.setText(current_exercise.getName());
-        final EditText exercise_description_edit_text = (EditText) edit_exercise_dialog_view.findViewById(R.id.exercise_description_edit_text);
-        exercise_description_edit_text.setText(current_exercise.getDescription());
-
-        // Handle the positive button press.
-        edit_exercise_dialog_builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                String edited_exercise_name = exercise_name_edit_text.getText().toString();
-                if (!edited_exercise_name.isEmpty())
-                {
-                    current_exercise.setName(lift_db_helper, edited_exercise_name);
-                    current_exercise.setDescription(lift_db_helper, exercise_description_edit_text.getText().toString());
-                    Snackbar.make(findViewById(R.id.add_exercise_button), R.string.exercise_updated, Snackbar.LENGTH_LONG).show();
-                    RecyclerView recyclerView = (RecyclerView) findViewById(R.id.exercise_list);
-                    ExerciseListCardAdapter recycler_view_adapter = (ExerciseListCardAdapter) recyclerView.getAdapter();
-                    recycler_view_adapter.notifyItemChanged(exercise_position_in_adapter);
-                }
-                else
-                {
-                    Snackbar.make(findViewById(R.id.add_exercise_button), R.string.exercise_name_not_valid, Snackbar.LENGTH_LONG).show();
-                }
-            }});
-
-        // Handle the negative button press.
-        edit_exercise_dialog_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Snackbar.make(findViewById(R.id.add_exercise_button), R.string.exercise_not_updated, Snackbar.LENGTH_LONG).show();
-            }
-        });
-
-        AlertDialog edit_exercise_dialog = edit_exercise_dialog_builder.create();
-        edit_exercise_dialog.show();
-    }
-
-    private void showDeleteExerciseDialog(final Exercise exercise_to_delete, final int exercise_position_in_adapter)
-    {
-        AlertDialog.Builder delete_exercise_dialog_builder = new AlertDialog.Builder(this);
-        delete_exercise_dialog_builder.setTitle("Delete Exercise");
-        delete_exercise_dialog_builder.setMessage("Are you sure you want to delete " + exercise_to_delete.getName() + "? This action cannot be undone.");
-        delete_exercise_dialog_builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                exercise_to_delete.delete(lift_db_helper);
-
-                RecyclerView recyclerView = (RecyclerView) findViewById(R.id.exercise_list);
-                ExerciseListCardAdapter recycler_view_adapter = (ExerciseListCardAdapter) recyclerView.getAdapter();
-                recycler_view_adapter.deleteExercise(exercise_position_in_adapter);
-                Snackbar.make(findViewById(R.id.exercise_list), "Exercise deleted.", Snackbar.LENGTH_LONG).show();
-            }
-        });
-        delete_exercise_dialog_builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Snackbar.make(findViewById(R.id.exercise_list), "Exercise not deleted.", Snackbar.LENGTH_LONG).show();
-            }
-        });
-        delete_exercise_dialog_builder.show();
-    }
-
-    private void showPercentMaxCalculatorDialog(final Exercise current_exercise)
-    {
-        LayoutInflater li = LayoutInflater.from(this);
-        View percent_max_calculator_view = li.inflate(R.layout.percent_max_calculator_dialog, null);
-        AlertDialog.Builder percent_max_calculator_dialog_builder = new AlertDialog.Builder(this);
-        percent_max_calculator_dialog_builder.setTitle("Calculate Percentage of Max - " + current_exercise.getName());
-        percent_max_calculator_dialog_builder.setView(percent_max_calculator_view);
-
-        final TextView exercise_description_text_view = percent_max_calculator_view.findViewById(R.id.exercise_description_text_view);
-        final NumberPicker percent_max_number_picker = percent_max_calculator_view.findViewById(R.id.percent_number_picker);
-        final TextView percent_max_text_view = percent_max_calculator_view.findViewById(R.id.percent_max_text_view);
-
-        final int theoretical_max = lift_db_helper.selectLiftFromLiftId(current_exercise.getMaxLiftId()).calculateMaxEffort();
-
-        percent_max_number_picker.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
-            @Override
-            public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
-                int percent = newVal * 5;
-                Double percentage_of_max = theoretical_max * ((double) (percent / 100.00));
-                percent_max_text_view.setText(String.format("%.2f", percentage_of_max));
-            }
-        });
-        percent_max_number_picker.setMaxValue(20);
-        percent_max_number_picker.setMinValue(0);
-        percent_max_number_picker.setValue(20);
-        percent_max_number_picker.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
-        NumberPicker.Formatter max_lift_percentage_formatter = new NumberPicker.Formatter() {
-            @Override
-            public String format(int i) {
-                int percentage = i * 5;
-                return Integer.toString(percentage);
-            }
-        };
-        percent_max_number_picker.setFormatter(max_lift_percentage_formatter);
-
-        AlertDialog percent_max_calculator_dialog = percent_max_calculator_dialog_builder.create();
-        percent_max_calculator_dialog.show();
-    }
-
 }

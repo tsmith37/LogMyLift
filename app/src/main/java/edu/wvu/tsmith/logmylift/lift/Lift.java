@@ -6,6 +6,7 @@ import java.util.Locale;
 
 import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.exercise.Exercise;
+import edu.wvu.tsmith.logmylift.exercise.SelectExerciseHistoryParams;
 
 /**
  * Created by Tommy Smith on 3/19/2017.
@@ -14,7 +15,8 @@ import edu.wvu.tsmith.logmylift.exercise.Exercise;
  * @author Tommy Smith
  */
 
-public class Lift {
+public class Lift
+{
     private String comment;
     private final Exercise exercise;
     private final long lift_id;

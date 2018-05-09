@@ -13,7 +13,7 @@ import java.util.TreeMap;
 
 import edu.wvu.tsmith.logmylift.exercise.Exercise;
 import edu.wvu.tsmith.logmylift.lift.Lift;
-import edu.wvu.tsmith.logmylift.lift.SelectExerciseHistoryParams;
+import edu.wvu.tsmith.logmylift.exercise.SelectExerciseHistoryParams;
 import edu.wvu.tsmith.logmylift.workout.Workout;
 
 /**
@@ -24,7 +24,7 @@ import edu.wvu.tsmith.logmylift.workout.Workout;
  */
 public class LiftDbHelper extends SQLiteOpenHelper {
     public static final String DATABASE_NAME = "LogMyLiftDb.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     public static final String EXERCISE_TABLE_NAME = "Exercise";
     public static final String EXERCISE_COLUMN_EXERCISE_ID = "ExerciseId";
@@ -46,6 +46,10 @@ public class LiftDbHelper extends SQLiteOpenHelper {
     public static final String WORKOUT_COLUMN_WORKOUT_ID = "WorkoutId";
     public static final String WORKOUT_COLUMN_DESCRIPTION = "Description";
     public static final String WORKOUT_COLUMN_START_DATE = "StartDate";
+
+    public static final String SELECTED_EXERCISE_TABLE_NAME = "SelectedExercise";
+    public static final String SELECTED_EXERCISE_COLUMN_EXERCISE_ID = "ExerciseId";
+    public static final String SELECTED_EXERCISE_COLUMN_DATE = "Date";
 
     private static final String CREATE_TABLE_EXERCISE =
             "CREATE TABLE Exercise (" +
@@ -75,13 +79,19 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                     "Description TEXT," +
                     "StartDate INTEGER);";
 
+    private static final String CREATE_TABLE_SELECTED_EXERCISE =
+            "CREATE TABLE SelectedExercise (" +
+                    "ExerciseId INTEGER," +
+                    "Date INTEGER," +
+                    "FOREIGN KEY(ExerciseId) REFERENCES Exercise(ExerciseId));";
+
     /**
      * Default constructor for the SQLiteOpenHelper class.
      *
      * @param context Application context.
      */
     public LiftDbHelper(Context context) {
-        super(context, DATABASE_NAME, null, 1);
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     /**
@@ -90,10 +100,12 @@ public class LiftDbHelper extends SQLiteOpenHelper {
      * @param db Database to use.
      */
     @Override
-    public void onCreate(SQLiteDatabase db) {
+    public void onCreate(SQLiteDatabase db)
+    {
         db.execSQL(CREATE_TABLE_WORKOUT);
         db.execSQL(CREATE_TABLE_LIFT);
         db.execSQL(CREATE_TABLE_EXERCISE);
+        db.execSQL(CREATE_TABLE_SELECTED_EXERCISE);
     }
 
     /**
@@ -104,7 +116,12 @@ public class LiftDbHelper extends SQLiteOpenHelper {
      * @param newVersion New version of the database.
      */
     @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
+    {
+        if (oldVersion == 1 && newVersion >= 2)
+        {
+            db.execSQL(CREATE_TABLE_SELECTED_EXERCISE);
+        }
     }
 
     /**
@@ -827,6 +844,47 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                 workout.getWorkoutId(),
                 WORKOUT_COLUMN_DESCRIPTION,
                 workout.getDescription());
+    }
+
+    public void updateSelectedExercise(long exercise_id)
+    {
+        removeSelectedExercise();
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues insert_values = new ContentValues();
+        insert_values.put(SELECTED_EXERCISE_COLUMN_EXERCISE_ID, exercise_id);
+        insert_values.put(SELECTED_EXERCISE_COLUMN_DATE, new Date().getTime());
+        db.insert(SELECTED_EXERCISE_TABLE_NAME, null, insert_values);
+        db.close();
+    }
+
+    public void removeSelectedExercise()
+    {
+        SQLiteDatabase db = this.getWritableDatabase();
+        String[] no_where_args = {};
+        db.delete(SELECTED_EXERCISE_TABLE_NAME, "",no_where_args);
+        db.close();
+    }
+
+    public long getSelectedExercise()
+    {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] RETURN_COLUMNS =
+                { SELECTED_EXERCISE_COLUMN_EXERCISE_ID };
+        String sort_order = SELECTED_EXERCISE_COLUMN_DATE + " DESC";
+        Cursor select_cursor = db.query(SELECTED_EXERCISE_TABLE_NAME, RETURN_COLUMNS, null, null, null, null, sort_order);
+
+        boolean any_selected_exercise_exists = select_cursor.moveToFirst();
+        if (!any_selected_exercise_exists)
+        {
+            return -1;
+        }
+
+        long selected_exercise_id = select_cursor.getLong(
+                select_cursor.getColumnIndexOrThrow(SELECTED_EXERCISE_COLUMN_EXERCISE_ID));
+        select_cursor.close();
+        db.close();
+        return selected_exercise_id;
     }
 
     public Date selectDateFromWorkoutId(long workout_id)

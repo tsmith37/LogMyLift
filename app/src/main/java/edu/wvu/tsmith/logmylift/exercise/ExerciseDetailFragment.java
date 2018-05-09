@@ -11,7 +11,6 @@ import android.widget.TextView;
 
 import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
-import edu.wvu.tsmith.logmylift.lift.SelectExerciseHistoryParams;
 
     /**
  * A fragment representing a single Exercise detail screen.

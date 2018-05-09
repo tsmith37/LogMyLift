@@ -11,6 +11,8 @@ import android.view.ViewGroup;
 import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
 import edu.wvu.tsmith.logmylift.exercise.Exercise;
+import edu.wvu.tsmith.logmylift.lift.AddLiftDialog;
+import edu.wvu.tsmith.logmylift.lift.AddLiftParams;
 
 /**
  * A fragment representing a single Workout detail screen.
@@ -90,13 +92,16 @@ public class WorkoutDetailFragment extends Fragment {
      * Show the add lift dialog.
      * Note that this method is really just a pass through to the card adapter.
      */
-    public void showAddLiftDialog()
+    public void showAddLiftDialog(LiftDbHelper lift_db_helper, AddLiftParams params)
     {
-        // Create parameters to add a new lift.
-        WorkoutHistoryCardAdapter.AddLiftParams add_lift_params = new WorkoutHistoryCardAdapter.AddLiftParams(getContext(), current_workout_list);
-
-        // Show the add lift dialog.
-        current_workout_history.showAddLiftDialog(add_lift_params);
+        AddLiftDialog add_lift_dialog = new AddLiftDialog(
+                getContext(),
+                current_workout_list,
+                lift_db_helper,
+                current_workout,
+                current_workout_history.getLifts(),
+                params);
+        add_lift_dialog.show();
     }
 
     /**
@@ -107,16 +112,5 @@ public class WorkoutDetailFragment extends Fragment {
     public void setWorkoutDescription(String description)
     {
         current_workout_history.setWorkoutDescription(description);
-    }
-
-    /**
-     * Change the current exercise to the most recent exercise.
-     * Note that this method is really just a pass through to the card adapter.
-     * @return  This method always returns 0.
-     */
-    public long changeCurrentExerciseToMostRecent()
-    {
-        current_workout_history.changeCurrentExerciseToMostRecent();
-        return 0;
     }
 }

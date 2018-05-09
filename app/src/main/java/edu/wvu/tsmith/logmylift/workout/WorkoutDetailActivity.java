@@ -7,6 +7,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+
+import java.util.concurrent.Callable;
 
 import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
@@ -70,7 +73,7 @@ public class WorkoutDetailActivity extends AppCompatActivity
     {
         int id = item.getItemId();
 
-        WorkoutDetailFragment workout_detail_fragment = (WorkoutDetailFragment) getSupportFragmentManager().findFragmentByTag("detail_fragment");
+        final WorkoutDetailFragment workout_detail_fragment = (WorkoutDetailFragment) getSupportFragmentManager().findFragmentByTag("detail_fragment");
         if (id == android.R.id.home)
         {
             // This ID represents the Home or Up button. In the case of this
@@ -84,8 +87,15 @@ public class WorkoutDetailActivity extends AppCompatActivity
         }
         else if (id == R.id.edit_workout_menu_item)
         {
-            EditWorkoutDialog edit_workout_dialog = new EditWorkoutDialog(this, workout_detail_fragment, findViewById(R.id.current_workout_list));
-            edit_workout_dialog.show();
+            final View snackbar_parent_view = findViewById(R.id.current_workout_list);
+            final EditWorkoutDialog edit_workout_dialog = new EditWorkoutDialog(this, workout_detail_fragment.current_workout, snackbar_parent_view);
+            edit_workout_dialog.show(new Callable<Integer>() {
+                @Override
+                public Integer call() throws Exception {
+                    workout_detail_fragment.setWorkoutDescription(edit_workout_dialog.workout_description_after_editing);
+                    return 0;
+                }
+            });
         }
         else if (id == R.id.workout_stats_menu_item)
         {

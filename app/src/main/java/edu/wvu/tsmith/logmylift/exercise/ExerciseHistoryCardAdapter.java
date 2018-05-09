@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
 import edu.wvu.tsmith.logmylift.lift.Lift;
-import edu.wvu.tsmith.logmylift.lift.SelectExerciseHistoryParams;
 
 /**
  * Created by Tommy Smith on 6/10/2017.
@@ -119,10 +118,10 @@ class ExerciseHistoryCardAdapter extends RecyclerView.Adapter<ExerciseHistoryCar
          */
         ExerciseHistoryCardViewHolder(View view) {
             super(view);
-            this.date_text_view = (TextView) view.findViewById(R.id.date_text_view);
-            this.weight_and_reps_text_view = (TextView) view.findViewById(R.id.weight_and_reps_text_view);
-            this.lift_time_text_view = (TextView) view.findViewById(R.id.lift_time_text_view);
-            this.comment_text_view = (TextView) view.findViewById(R.id.comment_text_view);
+            this.date_text_view = view.findViewById(R.id.date_text_view);
+            this.weight_and_reps_text_view = view.findViewById(R.id.weight_and_reps_text_view);
+            this.lift_time_text_view = view.findViewById(R.id.lift_time_text_view);
+            this.comment_text_view = view.findViewById(R.id.comment_text_view);
         }
     }
 }

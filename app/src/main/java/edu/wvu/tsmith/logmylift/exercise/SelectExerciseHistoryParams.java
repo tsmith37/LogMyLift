@@ -1,6 +1,4 @@
-package edu.wvu.tsmith.logmylift.lift;
-
-import edu.wvu.tsmith.logmylift.exercise.Exercise;
+package edu.wvu.tsmith.logmylift.exercise;
 
 public class SelectExerciseHistoryParams
 {

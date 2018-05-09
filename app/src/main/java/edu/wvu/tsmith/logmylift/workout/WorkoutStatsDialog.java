@@ -13,6 +13,7 @@ import edu.wvu.tsmith.logmylift.R;
 
 /**
  * Created by Tommy Smith on 4/27/2018.
+ * A dialog used to show workout statistics.
  * @author Tommy Smith
  */
 
@@ -27,6 +28,12 @@ public class WorkoutStatsDialog
     private String lifts_performed_text;
     private String time_per_lift_text;
 
+    /**
+     * Constructor.
+     * @param context                   The context in which to show the dialog.
+     * @param lift_db_helper            The database helper.
+     * @param workout_detail_fragment   The fragment to which the workout belongs.
+     */
     public WorkoutStatsDialog(Context context, LiftDbHelper lift_db_helper, WorkoutDetailFragment workout_detail_fragment)
     {
         this.context = context;
@@ -39,6 +46,9 @@ public class WorkoutStatsDialog
         this.time_per_lift_text = this.context.getString(R.string.average_time_per_lift);
     }
 
+    /**
+     * Show the dialog.
+     */
     public void show()
     {
         LayoutInflater li = LayoutInflater.from(this.context);

@@ -2,14 +2,12 @@ package edu.wvu.tsmith.logmylift.workout;
 
 import android.app.DatePickerDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -30,10 +28,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.Callable;
 
 import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
-import edu.wvu.tsmith.logmylift.lift.AddLift;
 
 /**
  * An activity representing a list of Workouts. This activity
@@ -70,7 +68,8 @@ public class WorkoutListActivity extends AppCompatActivity
         {
             @Override
             public void onClick(View view) {
-                showNewWorkoutDialog();
+                NewWorkoutDialog new_workout_dialog = new NewWorkoutDialog(view.getContext(), lift_db_helper, view);
+                new_workout_dialog.show();
             }
         });
 
@@ -484,9 +483,26 @@ public class WorkoutListActivity extends AppCompatActivity
                  * @return  This method always returns false.
                  */
                 @Override
-                public boolean onLongClick(View v)
+                public boolean onLongClick(final View v)
                 {
-                    showEditWorkoutDialog(holder.workout);
+                    final EditWorkoutDialog edit_workout_dialog = new EditWorkoutDialog(v.getContext(), holder.workout, v);
+                    edit_workout_dialog.show(new Callable<Integer>() {
+                        @Override
+                        public Integer call() throws Exception {
+                            // Set the description of the workout.
+                            holder.workout.setDescription(lift_db_helper, edit_workout_dialog.workout_description_after_editing);
+
+                            // Notify the user that the workout was updated.
+                            Snackbar.make(v, "Workout updated.", Snackbar.LENGTH_LONG).show();
+                            RecyclerView recyclerView = findViewById(R.id.workout_list);
+
+                            // Notify the recycler view adapter that a member has changed. This forces the recycler
+                            // view to redraw the description of the workout.
+                            WorkoutHistoryRecyclerViewAdapter recycler_view_adapter = (WorkoutHistoryRecyclerViewAdapter) recyclerView.getAdapter();
+                            recycler_view_adapter.notifyDataSetChanged();
+                            return null;
+                        }
+                    });
                     return false;
                 }
             });
@@ -539,105 +555,5 @@ public class WorkoutListActivity extends AppCompatActivity
                 return super.toString() + " '" + workout_description_text_view.getText() + "'";
             }
         }
-    }
-
-    /**
-     * Allow the user to start a new workout.
-     */
-    private void showNewWorkoutDialog()
-    {
-        // Creates the new workout dialog.
-        LayoutInflater li = LayoutInflater.from(this);
-        View add_workout_dialog_view = li.inflate(R.layout.add_workout_dialog, null);
-        AlertDialog.Builder add_workout_dialog_builder = new AlertDialog.Builder(this);
-
-        // The title of the dialog contains the date that the workout is being created.
-        String new_workout_title = getString(R.string.new_workout) + ": " + new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
-        add_workout_dialog_builder.setTitle(new_workout_title);
-        add_workout_dialog_builder.setView(add_workout_dialog_view);
-        final EditText workout_description_text = add_workout_dialog_view.findViewById(R.id.workout_description_edit_text);
-
-        // Handle a positive button press.
-        add_workout_dialog_builder.setPositiveButton("OK", new DialogInterface.OnClickListener()
-        {
-            @Override
-            public void onClick(DialogInterface dialog, int which)
-            {
-                // Create the new workout.
-                Workout new_workout = new Workout(lift_db_helper, workout_description_text.getText().toString());
-
-                // Start the new activity with the ability to add a lift to a workout.
-                Intent workout_intent = new Intent(getBaseContext(), AddLift.class);
-                workout_intent.putExtra(LiftDbHelper.WORKOUT_COLUMN_WORKOUT_ID, new_workout.getWorkoutId());
-                startActivity(workout_intent);
-            }
-        });
-
-        // Handle a negative button press.
-        add_workout_dialog_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener()
-        {
-            @Override
-            public void onClick(DialogInterface dialog, int which)
-            {
-                // Notify the user that the workout was not added.
-                Snackbar.make(findViewById(R.id.add_workout_button), "Workout not added.", Snackbar.LENGTH_LONG).show();
-            }
-        });
-
-        AlertDialog add_exercise_dialog = add_workout_dialog_builder.create();
-        add_exercise_dialog.show();
-    }
-
-    /**
-     * Allow the user to edit the workout description via a dialog.
-     * @param current_workout   The workout to edit.
-     */
-    private void showEditWorkoutDialog(final Workout current_workout)
-    {
-        LayoutInflater li = LayoutInflater.from(this);
-
-        // Re-use the add workout dialog here...
-        View edit_workout_dialog_view = li.inflate(R.layout.add_workout_dialog, null);
-        AlertDialog.Builder edit_workout_dialog_builder = new AlertDialog.Builder(this);
-        String new_workout_title = getString(R.string.edit_workout) + ": " + current_workout.getReadableStartDate();
-        edit_workout_dialog_builder.setTitle(new_workout_title);
-        edit_workout_dialog_builder.setView(edit_workout_dialog_view);
-        final EditText workout_description_text = edit_workout_dialog_view.findViewById(R.id.workout_description_edit_text);
-        workout_description_text.setText(current_workout.getDescription());
-
-        // Handle the positive button press.
-        edit_workout_dialog_builder.setPositiveButton("OK", new DialogInterface.OnClickListener()
-        {
-            @Override
-            public void onClick(DialogInterface dialog, int which)
-            {
-                // Set the description of the workout.
-                current_workout.setDescription(lift_db_helper, workout_description_text.getText().toString());
-
-                // Notify the user that the workout was updated.
-                Snackbar.make(findViewById(R.id.add_workout_button), "Workout updated.", Snackbar.LENGTH_LONG).show();
-                RecyclerView recyclerView = findViewById(R.id.workout_list);
-
-                // Notify the recycler view adapter that a member has changed. This forces the recycler
-                // view to redraw the description of the workout.
-                WorkoutHistoryRecyclerViewAdapter recycler_view_adapter = (WorkoutHistoryRecyclerViewAdapter) recyclerView.getAdapter();
-                recycler_view_adapter.notifyDataSetChanged();
-            }
-        });
-
-        // Handle the negative button press.
-        edit_workout_dialog_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener()
-        {
-            @Override
-            public void onClick(DialogInterface dialog, int which)
-            {
-                // Notify the user that the workout was not updated.
-                Snackbar.make(findViewById(R.id.add_workout_button), "Workout not updated.", Snackbar.LENGTH_LONG).show();
-            }
-        });
-
-        // Show the edit workout dialog.
-        AlertDialog edit_workout_dialog = edit_workout_dialog_builder.create();
-        edit_workout_dialog.show();
     }
 }

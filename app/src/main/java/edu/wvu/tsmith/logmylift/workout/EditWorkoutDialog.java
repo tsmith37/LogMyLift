@@ -8,30 +8,44 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 
+import java.util.concurrent.Callable;
+
 import edu.wvu.tsmith.logmylift.R;
 
 /**
  * Created by Tommy Smith on 4/27/2018.
+ * A dialog used to edit a workout's description.
  */
 
 public class EditWorkoutDialog
 {
     private Context context;
     private int edit_workout_dialog_resource;
-    private WorkoutDetailFragment workout_detail_fragment;
+    private Workout workout;
     private String edit_workout_text;
     private View snackbar_parent_view;
+    public String workout_description_before_editing;
+    public String workout_description_after_editing;
 
-    public EditWorkoutDialog(Context context, WorkoutDetailFragment workout_detail_fragment, View snackbar_parent_view)
+    /**
+     * Constructor for the dialog.
+     * @param context                   The context in which to show the dialog.
+     * @param workout                   The workout to edit.
+     * @param snackbar_parent_view      The parent view used to show the snackbar.
+     */
+    public EditWorkoutDialog(Context context, Workout workout, View snackbar_parent_view)
     {
         this.context = context;
         this.edit_workout_dialog_resource = R.layout.edit_workout_dialog;
-        this.workout_detail_fragment = workout_detail_fragment;
+        this.workout = workout;
         this.edit_workout_text = this.context.getString(R.string.edit_workout);
         this.snackbar_parent_view = snackbar_parent_view;
     }
 
-    public void show()
+    /**
+     * Show the dialog.
+     */
+    public void show(final Callable<Integer> post_edit_function)
     {
         LayoutInflater li = LayoutInflater.from(this.context);
         View edit_workout_dialog_view = li.inflate(this.edit_workout_dialog_resource, null);
@@ -41,22 +55,24 @@ public class EditWorkoutDialog
         String edit_workout_title = String.format(
                 "%s: %s",
                 this.edit_workout_text,
-                this.workout_detail_fragment.current_workout.getReadableStartDate());
+                this.workout.getReadableStartDate());
         edit_workout_dialog_builder.setTitle(edit_workout_title);
         edit_workout_dialog_builder.setView(edit_workout_dialog_view);
         final EditText workout_description_text = edit_workout_dialog_view.findViewById(R.id.workout_description_edit_text);
-        final String workout_before_editing_description = workout_detail_fragment.current_workout.getDescription();
-        workout_description_text.setText(workout_before_editing_description);
+        this.workout_description_before_editing = workout.getDescription();
+        workout_description_text.setText(this.workout_description_before_editing);
 
         // Change the workout details.
         edit_workout_dialog_builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener()
         {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Snackbar update_workout_snackbar = Snackbar.make(snackbar_parent_view, R.string.workout_updated, Snackbar.LENGTH_LONG);
-                update_workout_snackbar.setAction(R.string.undo, new UndoUpdateWorkoutListener(workout_before_editing_description, workout_detail_fragment));
-                update_workout_snackbar.show();
-                workout_detail_fragment.setWorkoutDescription(workout_description_text.getText().toString());
+                workout_description_after_editing = workout_description_text.getText().toString();
+                try
+                {
+                    post_edit_function.call();
+                }
+                catch (Exception ignored) {};
             }
         });
 
@@ -72,25 +88,5 @@ public class EditWorkoutDialog
         AlertDialog edit_workout_dialog = edit_workout_dialog_builder.create();
         edit_workout_dialog.show();
 
-    }
-
-    // Undo updating the workout.
-    private class UndoUpdateWorkoutListener implements View.OnClickListener
-    {
-        final String old_description;
-        final WorkoutDetailFragment workout_detail_fragment;
-
-        UndoUpdateWorkoutListener(String old_description, WorkoutDetailFragment workout_detail_fragment)
-        {
-            super();
-            this.old_description = old_description;
-            this.workout_detail_fragment = workout_detail_fragment;
-        }
-
-        @Override
-        public void onClick(View v)
-        {
-            this.workout_detail_fragment.setWorkoutDescription(old_description);
-        }
     }
 }

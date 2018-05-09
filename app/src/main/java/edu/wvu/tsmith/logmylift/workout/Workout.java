@@ -127,7 +127,7 @@ public class Workout implements Parcelable
      * @param weight            The weight of the new lift.
      * @param comment           A comment for the lift.
      */
-    Lift addLift(LiftDbHelper lift_db_helper, Exercise exercise, int reps, int weight, String comment) {
+    public Lift addLift(LiftDbHelper lift_db_helper, Exercise exercise, int reps, int weight, String comment) {
         Lift new_lift =  new Lift(lift_db_helper, exercise, reps, weight, this.workout_id, comment);
         this.lift_ids.add(0, new_lift.getLiftId());
 
@@ -148,8 +148,8 @@ public class Workout implements Parcelable
     {
         long duration_in_ms = this.getDurationInMs(lift_db_helper);
         int lifts_performed = this.getLiftsPerformedCount();
-        long time_per_set_in_ms = duration_in_ms / lifts_performed;
-        return (lifts_performed == 0 ? "00:00:00" : convertDurationInMsToReadableString(time_per_set_in_ms));
+        long time_per_set_in_ms = ((lifts_performed > 0) ? (duration_in_ms / lifts_performed) : 0);
+        return convertDurationInMsToReadableString(time_per_set_in_ms);
     }
     private long getDurationInMs(LiftDbHelper lift_db_helper)
     {
