@@ -74,4 +74,7 @@
     <string name="workout_statistics">Workout Statistics</string>
     <string name="average_time_per_lift">Average time per lift:</string>
     <string name="calculate_percentage_of_max">Calculate Percentage of Max</string>
+    <string name="sort_exercise_history">Sort Exercise History</string>
+    <string name="change_sort_order">Change Sort Order</string>
+    <string name="max_effort_lift">Max Effort Lift</string>
 </resources>

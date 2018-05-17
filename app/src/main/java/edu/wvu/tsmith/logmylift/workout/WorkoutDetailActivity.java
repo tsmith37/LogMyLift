@@ -52,6 +52,7 @@ public class WorkoutDetailActivity extends AppCompatActivity
             // using a fragment transaction.
             Bundle arguments = new Bundle();
             arguments.putParcelable(WorkoutDetailFragment.workout_parcel, getIntent().getParcelableExtra(WorkoutDetailFragment.workout_parcel));
+            arguments.putBoolean(WorkoutDetailFragment.enable_edit_key, false);
             final WorkoutDetailFragment fragment = new WorkoutDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
@@ -63,8 +64,7 @@ public class WorkoutDetailActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
-        // Use the "Add Lift" menu because it doesn't actually contain any menu items for adding a lift.
-        getMenuInflater().inflate(R.menu.add_lift_menu, menu);
+        getMenuInflater().inflate(R.menu.workout_detail_menu, menu);
         return true;
     }
 

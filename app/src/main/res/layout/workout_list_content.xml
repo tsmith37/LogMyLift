@@ -9,20 +9,60 @@
         android:layout_width="match_parent"
         android:id="@+id/workout_list_card_view"
         style="@style/AppTheme.CardView">
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <TextView
-                android:id="@+id/workout_date_text_view"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                style="@style/ListMajorTextView" />
-            <TextView
-                android:id="@+id/workout_description_text_view"
+                android:orientation="horizontal"
+                android:weightSum="2">
+                <TextView
+                    android:id="@+id/workout_description_text_view"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start"
+                    android:layout_marginStart="5dp"
+                    android:textAlignment="textStart"
+                    style="@style/ListMajorTextView"/>
+                <TextView
+                    android:id="@+id/workout_date_text_view"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:layout_marginEnd="5dp"
+                    android:textAlignment="textEnd"
+                    style="@style/ListMinorTextView">
+                </TextView>
+            </LinearLayout>
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/workout_date_text_view"
-                style="@style/ListMinorTextView" />
-        </RelativeLayout>
+                android:weightSum="2">
+                <TextView
+                    android:id="@+id/workout_duration_text_view"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start"
+                    android:layout_marginStart="5dp"
+                    android:textAlignment="textStart"
+                    style="@style/ListMinorTextView">
+                </TextView>
+                <TextView
+                    android:id="@+id/workout_set_count_text_view"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:layout_marginEnd="5dp"
+                    android:textAlignment="textEnd"
+                    style="@style/ListMinorTextView">
+                </TextView>
+            </LinearLayout>
+        </LinearLayout>
     </android.support.v7.widget.CardView>
 </LinearLayout>

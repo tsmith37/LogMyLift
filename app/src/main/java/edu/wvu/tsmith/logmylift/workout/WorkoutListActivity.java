@@ -441,6 +441,14 @@ public class WorkoutListActivity extends AppCompatActivity
             holder.workout = workout_list.get(position);
             holder.workout_description_text_view.setText(workout_list.get(position).getDescription());
             holder.workout_date_text_view.setText(workout_list.get(position).getReadableStartDate());
+            String duration = String.format(
+                    "Duration: %s",
+                    workout_list.get(position).getReadableDuration(lift_db_helper));
+            holder.workout_duration_text_view.setText(duration);
+            String set_count = String.format(
+                    "Lift Count: %d",
+                    workout_list.get(position).getLiftsPerformedCount());
+            holder.workout_set_count_text_view.setText(set_count);
 
             // On a click, go to the workout details.
             holder.workout_list_view.setOnClickListener(new View.OnClickListener()
@@ -525,9 +533,11 @@ public class WorkoutListActivity extends AppCompatActivity
             // The list view containing all workouts in the history.
             final View workout_list_view;
 
-            // The description and date text views for the workout.
+            // The text views for the workout.
             final TextView workout_description_text_view;
             final TextView workout_date_text_view;
+            final TextView workout_duration_text_view;
+            final TextView workout_set_count_text_view;
 
             // The workout in the view holder.
             public Workout workout;
@@ -542,7 +552,8 @@ public class WorkoutListActivity extends AppCompatActivity
                 this.workout_list_view = view;
                 this.workout_description_text_view = view.findViewById(R.id.workout_description_text_view);
                 this.workout_date_text_view = view.findViewById(R.id.workout_date_text_view);
-
+                this.workout_duration_text_view = view.findViewById(R.id.workout_duration_text_view);
+                this.workout_set_count_text_view = view.findViewById(R.id.workout_set_count_text_view);
             }
 
             /**

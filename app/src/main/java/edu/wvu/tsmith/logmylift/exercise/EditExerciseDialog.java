@@ -10,6 +10,7 @@ import android.widget.EditText;
 
 import java.util.concurrent.Callable;
 
+import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
 
 /**
@@ -22,6 +23,7 @@ public class EditExerciseDialog
     private Context context;
     private View snackbar_parent_view;
     private Exercise exercise;
+    private LiftDbHelper lift_db_helper;
 
     /**
      * Constructor for the dialog.
@@ -38,6 +40,7 @@ public class EditExerciseDialog
         this.context = context;
         this.snackbar_parent_view = snackbar_parent_view;
         this.exercise = exercise;
+        this.lift_db_helper = new LiftDbHelper(this.context);
     }
 
     /**
@@ -71,6 +74,8 @@ public class EditExerciseDialog
                 }
                 else
                 {
+                    exercise.setName(lift_db_helper, exercise_name_text.getText().toString());
+                    exercise.setDescription(lift_db_helper, exercise_description_text.getText().toString());
                     Snackbar.make(snackbar_parent_view, "Exercise updated.", Snackbar.LENGTH_LONG).show();
 
                     try

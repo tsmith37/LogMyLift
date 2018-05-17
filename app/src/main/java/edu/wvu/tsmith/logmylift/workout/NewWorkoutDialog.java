@@ -53,6 +53,9 @@ public class NewWorkoutDialog
             @Override
             public void onClick(DialogInterface dialog, int which)
             {
+                // Clear the last exercise that was performed.
+                lift_db_helper.removeSelectedExercise();
+
                 // Create the new workout.
                 Workout new_workout = new Workout(lift_db_helper, workout_description_text.getText().toString());
 

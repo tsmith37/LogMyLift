@@ -63,8 +63,13 @@ public class ExerciseListActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 AddExerciseDialog add_exercise_dialog = new AddExerciseDialog(view.getContext(), lift_db_helper, view, "");
-                add_exercise_dialog.show();
-                reloadExerciseList("");
+                add_exercise_dialog.show(new Callable<Integer>() {
+                    @Override
+                    public Integer call() throws Exception {
+                        reloadExerciseList("");
+                        return null;
+                    }
+                });
             }
         });
 
@@ -145,13 +150,26 @@ public class ExerciseListActivity extends AppCompatActivity {
             // Display the exercise.
             final Exercise current_exercise = exercise_list_values.get(position);
             holder.exercise_name_text_view.setText(current_exercise.getName());
-            holder.exercise_description_text_view.setText(current_exercise.getDescription());
+
+            String description = current_exercise.getDescription();
+            if (description.equals(""))
+            {
+                holder.exercise_description_text_view.setVisibility(View.GONE);
+            }
+            else
+            {
+                holder.exercise_description_text_view.setText(current_exercise.getDescription());
+            }
 
             // If the exercise has a max effort lift, display it.
             Lift max_effort_lift = lift_db_helper.selectLiftFromLiftId(current_exercise.getMaxLiftId());
             if (max_effort_lift != null)
             {
                 holder.max_effort_text_view.setText(getString(R.string.max_effort) + ": " + Integer.toString(max_effort_lift.getWeight()) + " for " + Integer.toString(max_effort_lift.getReps()) + " on " + max_effort_lift.getReadableStartDate());
+            }
+            else
+            {
+                holder.max_effort_text_view.setVisibility(View.GONE);
             }
 
             // Display the last time the lift was performed if possible.
@@ -160,6 +178,10 @@ public class ExerciseListActivity extends AppCompatActivity {
             {
                 String last_performed_text = getString(R.string.last_performed_on) + " " + date_format.format(last_performed_workout_date);
                 holder.last_performed_text_view.setText(last_performed_text);
+            }
+            else
+            {
+                holder.last_performed_text_view.setVisibility(View.GONE);
             }
 
             holder.exercise_list_view.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -218,7 +240,7 @@ public class ExerciseListActivity extends AppCompatActivity {
             holder.exercise_info_button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    PercentMaxCalculatorDialog max_calculator_dialog = new PercentMaxCalculatorDialog(getApplicationContext(), lift_db_helper, current_exercise);
+                    PercentMaxCalculatorDialog max_calculator_dialog = new PercentMaxCalculatorDialog(v.getContext(), lift_db_helper, current_exercise);
                     max_calculator_dialog.show();
                     holder.view_flipper.setDisplayedChild(0);
                 }

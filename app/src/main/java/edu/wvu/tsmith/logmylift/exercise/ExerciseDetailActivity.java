@@ -4,13 +4,16 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
 import java.util.concurrent.Callable;
 
+import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
 
 /**
@@ -33,37 +36,6 @@ public class ExerciseDetailActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         exercise_detail_fragment = new ExerciseDetailFragment();
-
-        FloatingActionButton edit_exercise_button = findViewById(R.id.edit_exercise_button);
-        edit_exercise_button.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                EditExerciseDialog edit_exercise_dialog = new EditExerciseDialog(view.getContext(), view, exercise_detail_fragment.current_exercise);
-                edit_exercise_dialog.show(new Callable<Integer>()
-                {
-                    @Override
-                    public Integer call() throws Exception
-                    {
-                        exercise_detail_fragment.setExerciseName(exercise_detail_fragment.current_exercise.getName());
-                        exercise_detail_fragment.setExerciseDescription(exercise_detail_fragment.current_exercise.getDescription());
-                        return null;
-                    }
-                });
-            }
-        });
-
-        final FloatingActionButton sort_exercise_history_button = findViewById(R.id.sort_exercise_history_button);
-        sort_exercise_history_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                SortExerciseHistoryDialog sort_exercise_history_dialog = new SortExerciseHistoryDialog(ExerciseDetailActivity.this, exercise_detail_fragment);
-                sort_exercise_history_dialog.show();
-            }
-        });
-
-
 
         // Show the Up button in the action bar.
         ActionBar actionBar = getSupportActionBar();
@@ -97,6 +69,8 @@ public class ExerciseDetailActivity extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item)
     {
         int id = item.getItemId();
+        View parent_view = findViewById(R.id.exercise_detail_container);
+
         if (id == android.R.id.home) {
             // This ID represents the Home or Up button. In the case of this
             // activity, the Up button is shown. For
@@ -107,6 +81,47 @@ public class ExerciseDetailActivity extends AppCompatActivity
             navigateUpTo(new Intent(this, ExerciseListActivity.class));
             return true;
         }
+        else if (id == R.id.exercise_history_sort_menu_item)
+        {
+            SortExerciseHistoryDialog sort_exercise_history_dialog = new SortExerciseHistoryDialog(ExerciseDetailActivity.this, exercise_detail_fragment);
+            sort_exercise_history_dialog.show();
+        }
+        else if (id == R.id.edit_exercise_menu_item)
+        {
+            findViewById(R.id.edit_exercise_menu_item);
+            EditExerciseDialog edit_exercise_dialog = new EditExerciseDialog(parent_view.getContext(), parent_view, exercise_detail_fragment.current_exercise);
+            edit_exercise_dialog.show(new Callable<Integer>()
+            {
+                @Override
+                public Integer call() throws Exception
+                {
+                    exercise_detail_fragment.reloadExerciseDescription();
+                    return null;
+                }
+            });
+        }
+        else if (id == R.id.exercise_description_menu_item)
+        {
+            AlertDialog alert_dialog = new AlertDialog.Builder(ExerciseDetailActivity.this).create();
+            alert_dialog.setTitle(R.string.exercise_description);
+            alert_dialog.setMessage(exercise_detail_fragment.current_exercise.getDescription());
+            alert_dialog.show();
+        }
+        else if (id == R.id.percent_max_menu_item)
+        {
+            LiftDbHelper lift_db_helper = new LiftDbHelper(parent_view.getContext());
+            PercentMaxCalculatorDialog max_calculator_dialog = new PercentMaxCalculatorDialog(parent_view.getContext(), lift_db_helper, exercise_detail_fragment.current_exercise);
+            max_calculator_dialog.show();
+        }
+
         return super.onOptionsItemSelected(item);
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
+        getMenuInflater().inflate(R.menu.exercise_detail_menu, menu);
+        return true;
     }
 }

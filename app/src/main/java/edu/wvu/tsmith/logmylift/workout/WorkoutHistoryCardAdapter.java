@@ -2,7 +2,6 @@ package edu.wvu.tsmith.logmylift.workout;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -38,6 +37,7 @@ public class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHisto
     private final Activity parent_activity;
     private final LiftDbHelper lift_db_helper;
     private final RecyclerView recycler_view;
+    private final boolean enable_edit;
 
     /**
      * Constructs the CardView for the history of the workout.
@@ -51,7 +51,9 @@ public class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHisto
             Activity parent_activity,
             LiftDbHelper lift_db_helper,
             RecyclerView recycler_view,
-            Workout current_workout) {
+            Workout current_workout,
+            boolean enable_edit)
+    {
         this.parent_activity = parent_activity;
         this.lift_db_helper = lift_db_helper;
         this.recycler_view = recycler_view;
@@ -63,6 +65,7 @@ public class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHisto
             // The current workout doesn't exist, so there are no lifts/
             this.current_workout_lifts = null;
         }
+        this.enable_edit = enable_edit;
     }
 
     /**
@@ -140,7 +143,7 @@ public class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHisto
                 intent.putExtra(ExerciseDetailFragment.exercise_id, exercise_id);
                 parent.getContext().startActivity(intent);
             }
-        });
+        }, enable_edit);
     }
 
     /**
@@ -157,10 +160,20 @@ public class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHisto
 
         // Display the current lift's properties.
         holder.exercise_name_text_view.setText(current_lift.getExercise().getName());
-        String weight_and_reps = "Weight: " + Integer.toString(current_lift.getWeight()) + ". Reps: " + Integer.toString(current_lift.getReps()) + ".";
+        String weight = String.format("Weight: %d", current_lift.getWeight());
+        holder.weight_text_view.setText(weight);
+        String reps = String.format("Reps: %d", current_lift.getReps());
+        holder.reps_text_view.setText(reps);
         holder.lift_time_text_view.setText(current_lift.getReadableStartTime());
-        holder.weight_and_reps_text_view.setText(weight_and_reps);
-        holder.comment_text_view.setText(current_lift.getComment());
+
+        String comment = current_lift.getComment();
+        if (comment.equals(""))
+        {
+            holder.comment_text_view.setVisibility(View.GONE);
+        }
+        else {
+            holder.comment_text_view.setText(current_lift.getComment());
+        }
     }
 
     /**
@@ -190,10 +203,12 @@ public class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHisto
     static class WorkoutHistoryCardViewHolder extends RecyclerView.ViewHolder implements View.OnLongClickListener
     {
         final TextView exercise_name_text_view;
-        final TextView weight_and_reps_text_view;
+        final TextView weight_text_view;
+        final TextView reps_text_view;
         final TextView lift_time_text_view;
         final TextView comment_text_view;
         final ViewFlipper view_flipper;
+        final boolean enable_edit;
 
         /**
          * Constructs the view holder.
@@ -201,13 +216,17 @@ public class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHisto
          * @param workout_history_listener  The interface used to edit or interact with each lift in
          *                                  the workout history.
          */
-        WorkoutHistoryCardViewHolder(final View view, final IWorkoutHistoryViewHolderClicks workout_history_listener)
+        WorkoutHistoryCardViewHolder(
+                final View view,
+                final IWorkoutHistoryViewHolderClicks workout_history_listener,
+                boolean enable_edit)
         {
             super(view);
 
             // Set the name, weight & reps, time, and comment text view.
             this.exercise_name_text_view = view.findViewById(R.id.exercise_name_text_view);
-            this.weight_and_reps_text_view = view.findViewById(R.id.weight_and_reps_text_view);
+            this.weight_text_view = view.findViewById(R.id.weight_text_view);
+            this.reps_text_view = view.findViewById(R.id.reps_text_view);
             this.lift_time_text_view = view.findViewById(R.id.lift_time_text_view);
             this.comment_text_view = view.findViewById(R.id.comment_text_view);
 
@@ -279,6 +298,8 @@ public class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHisto
                     workout_history_listener.deleteLift(getAdapterPosition());
                 }
             });
+
+            this.enable_edit = enable_edit;
         }
 
         // On long click, flip the view from displaying the exercise name, weight & reps, time, and
@@ -287,7 +308,10 @@ public class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHisto
         public boolean onLongClick(final View v)
         {
             v.requestFocus();
-            view_flipper.setDisplayedChild(1);
+            if (enable_edit)
+            {
+                view_flipper.setDisplayedChild(1);
+            }
             return false;
         }
 
@@ -357,10 +381,10 @@ public class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHisto
      */
     void reloadWorkoutDescription()
     {
-        CollapsingToolbarLayout appBarLayout = parent_activity.findViewById(R.id.toolbar_layout);
-        if (appBarLayout != null)
+        android.support.v7.widget.Toolbar toolbar = parent_activity.findViewById(R.id.detail_toolbar);
+        if (toolbar != null)
         {
-            appBarLayout.setTitle(current_workout.getDescription());
+            toolbar.setTitle(current_workout.getDescription());
         }
     }
 

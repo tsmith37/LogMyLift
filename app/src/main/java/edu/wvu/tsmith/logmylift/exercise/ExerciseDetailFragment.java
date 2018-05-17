@@ -54,9 +54,9 @@ public class ExerciseDetailFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.exercise_detail, container, false);
 
         // Show the exercise description a TextView.
-        if (current_exercise != null) {
-            TextView exercise_description_text_view = rootView.findViewById(R.id.exercise_description_text_view);
-            current_exercise_history = new ExerciseHistoryCardAdapter(this.getActivity(), lift_db_helper, exercise_description_text_view, current_exercise);
+        if (current_exercise != null)
+        {
+            current_exercise_history = new ExerciseHistoryCardAdapter(this.getActivity(), lift_db_helper, current_exercise);
             current_exercise_history.reloadExerciseDetails();
 
             // Show the exercise history in a list.
@@ -65,17 +65,12 @@ public class ExerciseDetailFragment extends Fragment {
             exercise_history_list.setLayoutManager(exercise_history_layout_manager);
             exercise_history_list.setAdapter(current_exercise_history);
         }
-            return rootView;
+        return rootView;
     }
 
-    public void setExerciseName(String name)
+    public void reloadExerciseDescription()
     {
-        current_exercise_history.setExerciseName(name);
-    }
-
-    public void setExerciseDescription(String description)
-    {
-        current_exercise_history.setExerciseDescription(description);
+        current_exercise_history.reloadExerciseDetails();
     }
 
     public void reloadExerciseHistory(SelectExerciseHistoryParams.ExerciseListOrder order)

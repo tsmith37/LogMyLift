@@ -13,6 +13,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AutoCompleteTextView;
 
 import java.util.concurrent.Callable;
 
@@ -21,6 +22,7 @@ import edu.wvu.tsmith.logmylift.R;
 import edu.wvu.tsmith.logmylift.Start;
 import edu.wvu.tsmith.logmylift.exercise.AddExerciseDialog;
 import edu.wvu.tsmith.logmylift.workout.EditWorkoutDialog;
+import edu.wvu.tsmith.logmylift.workout.SuggestedExercisesDialog;
 import edu.wvu.tsmith.logmylift.workout.UndoEditWorkoutListener;
 import edu.wvu.tsmith.logmylift.workout.WorkoutDetailFragment;
 import edu.wvu.tsmith.logmylift.workout.WorkoutStatsDialog;
@@ -67,6 +69,7 @@ public class AddLift extends AppCompatActivity
             // using a fragment transaction.
             Bundle arguments = new Bundle();
             arguments.putParcelable(WorkoutDetailFragment.workout_parcel, getIntent().getParcelableExtra(WorkoutDetailFragment.workout_parcel));
+            arguments.putBoolean(WorkoutDetailFragment.enable_edit_key, true);
             final WorkoutDetailFragment fragment = new WorkoutDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
@@ -86,44 +89,6 @@ public class AddLift extends AppCompatActivity
                     boolean any_exercise_selected = (selected_exercise_id != -1);
                     AddLiftParams add_lift_params = (any_exercise_selected ? AddLiftParams.createFromExistingExercise(selected_exercise_id) : AddLiftParams.createBlank());
                     fragment.showAddLiftDialog(lift_db_helper, add_lift_params);
-                }
-            });
-
-            // If the FAB is long clicked, offer options to add a new exercise or a new lift.
-            add_lift_button.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(final View v) {
-                    AlertDialog.Builder dialog_builder = new AlertDialog.Builder(AddLift.this);
-                    String[] choices = {getString(R.string.add_exercise), getString(R.string.add_lift)};
-                    final Context current_context = v.getContext();
-                    final LiftDbHelper lift_db_helper = new LiftDbHelper(current_context);
-                    dialog_builder.setItems(choices, new DialogInterface.OnClickListener()
-                    {
-                        public void onClick(DialogInterface dialog, int which)
-                        {
-                            switch (which)
-                            {
-                                case 0:
-                                {
-                                    AddExerciseDialog add_exercise_dialog = new AddExerciseDialog(current_context, lift_db_helper, add_lift_button, "");
-                                    add_exercise_dialog.show();
-                                    break;
-                                }
-                                case 1:
-                                {
-                                    // Check if an exercise is currently selected.
-                                    long selected_exercise_id = lift_db_helper.getSelectedExercise();
-                                    boolean any_exercise_selected = (selected_exercise_id != -1);
-                                    AddLiftParams add_lift_params = (any_exercise_selected ? AddLiftParams.createFromExistingExercise(selected_exercise_id) : AddLiftParams.createBlank());
-                                    fragment.showAddLiftDialog(lift_db_helper, add_lift_params);
-                                    break;
-                                }
-                            }
-                        }
-                    });
-                    AlertDialog dialog = dialog_builder.create();
-                    dialog.show();
-                    return false;
                 }
             });
         }
@@ -165,6 +130,30 @@ public class AddLift extends AppCompatActivity
         {
             WorkoutStatsDialog workout_stats_dialog = new WorkoutStatsDialog(this, new LiftDbHelper(this.getBaseContext()), workout_detail_fragment);
             workout_stats_dialog.show();
+        }
+        else if (id == R.id.add_exercise_menu_item)
+        {
+            View snackbar_parent_view = findViewById(R.id.current_workout_list);
+            AddExerciseDialog add_exercise_dialog = new AddExerciseDialog(this, new LiftDbHelper(this), snackbar_parent_view, "");
+            add_exercise_dialog.show();
+        }
+        else if (id == R.id.suggested_exercises_menu_item)
+        {
+            final AutoCompleteTextView text_view = new AutoCompleteTextView(this);
+            final LiftDbHelper lift_db_helper = new LiftDbHelper(this);
+            SuggestedExercisesDialog suggested_exercises_dialog = new SuggestedExercisesDialog(this, lift_db_helper, workout_detail_fragment.current_workout, text_view);
+            suggested_exercises_dialog.show(new Callable<Integer>()
+            {
+                @Override
+                public Integer call() throws Exception
+                {
+                    AddLiftParams add_lift_params = (AddLiftParams.createFromExistingExercise(lift_db_helper.selectExerciseFromName(text_view.getText().toString()).getExerciseId()));
+                    workout_detail_fragment.showAddLiftDialog(lift_db_helper, add_lift_params);
+                    return null;
+                }
+            });
+
+
         }
         return super.onOptionsItemSelected(item);
     }

@@ -8,6 +8,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 
+import java.util.concurrent.Callable;
+
 import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
 
@@ -45,9 +47,18 @@ public class AddExerciseDialog
     }
 
     /**
-     * Show the dialog to the user.
+     * Show the dialog to the user without a post-add function.
      */
     public void show()
+    {
+        // Set the post add function to null. That exception will be caught and no error will be thrown.
+        this.show(null);
+    }
+
+    /**
+     * Show the dialog to the user with a post-add function.
+     */
+    public void show(final Callable<Integer> post_add_function)
     {
         // Inflate the dialog with the layout.
         LayoutInflater li = LayoutInflater.from(this.context);
@@ -84,6 +95,12 @@ public class AddExerciseDialog
 
                         // Set the selected exercise as the new one.
                         lift_db_helper.updateSelectedExercise(new_exercise.getExerciseId());
+
+                        try
+                        {
+                            post_add_function.call();
+                        }
+                        catch (Exception ignored) {};
                     }
                     catch (Exception e)
                     {

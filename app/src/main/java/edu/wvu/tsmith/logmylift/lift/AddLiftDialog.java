@@ -18,6 +18,7 @@ import android.widget.ImageButton;
 import android.widget.SimpleCursorAdapter;
 
 import java.util.ArrayList;
+import java.util.concurrent.Callable;
 
 import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
@@ -249,7 +250,14 @@ public class AddLiftDialog
                                         lift_db_helper,
                                         recycler_view,
                                         exercise_input.getText().toString());
-                                add_exercise_dialog.show();
+                                add_exercise_dialog.show(new Callable<Integer>() {
+                                    @Override
+                                    public Integer call() throws Exception {
+                                        AddLiftDialog add_lift_dialog = new AddLiftDialog(context, recycler_view, lift_db_helper, current_workout, current_workout_lifts, AddLiftParams.createFromExistingExercise(lift_db_helper.getSelectedExercise()));
+                                        add_lift_dialog.show();
+                                        return null;
+                                    }
+                                });
                             }
                         });
                         exercise_name_invalid.show();

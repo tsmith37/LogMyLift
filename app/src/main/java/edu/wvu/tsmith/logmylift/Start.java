@@ -44,10 +44,12 @@ public class Start extends AppCompatActivity
         lift_db_helper = new LiftDbHelper(current_context);
 
         Button continue_workout_button = this.findViewById(R.id.continue_workout_button);
-        continue_workout_button.setOnClickListener(new View.OnClickListener() {
+        continue_workout_button.setOnClickListener(new View.OnClickListener()
+        {
             @Override
             public void onClick(View v)
-            {continueLastWorkout();
+            {
+                continueLastWorkout();
             }
         });
 
@@ -136,11 +138,13 @@ public class Start extends AppCompatActivity
         else
         {
             Snackbar no_previous_workouts = Snackbar.make(findViewById(R.id.continue_workout_button), R.string.no_workouts_to_continue, Snackbar.LENGTH_LONG);
-            no_previous_workouts.setAction(R.string.start_new_workout, new View.OnClickListener() {
+            no_previous_workouts.setAction(R.string.start_new_workout, new View.OnClickListener()
+            {
                 @Override
-                public void onClick(View v) {
+                public void onClick(View v)
+                {
 
-                    NewWorkoutDialog new_workout_dialog = new NewWorkoutDialog(current_context, lift_db_helper, v);
+                    NewWorkoutDialog new_workout_dialog = new NewWorkoutDialog(v.getContext(), lift_db_helper, v);
                     new_workout_dialog.show();
                 }
             });

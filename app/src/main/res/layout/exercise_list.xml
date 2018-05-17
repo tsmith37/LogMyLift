@@ -7,8 +7,6 @@
     android:name="edu.wvu.tsmith.logmylift.ExerciseListFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginLeft="16dp"
-    android:layout_marginRight="16dp"
     app:layoutManager="LinearLayoutManager"
     tools:context="edu.wvu.tsmith.logmylift.exercise.ExerciseListActivity"
     tools:listitem="@layout/exercise_list_content" />

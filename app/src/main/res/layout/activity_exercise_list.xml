@@ -12,6 +12,7 @@
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        app:layout_behavior="edu.wvu.tsmith.logmylift.FlingBehavior"
         android:theme="@style/AppTheme.AppBarOverlay">
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar"
@@ -59,6 +60,4 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
         app:srcCompat="@drawable/ic_add_white_24dp" />
-
-
 </android.support.design.widget.CoordinatorLayout>

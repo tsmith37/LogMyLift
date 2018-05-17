@@ -3,6 +3,7 @@ package edu.wvu.tsmith.logmylift.exercise;
 import android.app.Activity;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,9 +25,8 @@ class ExerciseHistoryCardAdapter extends RecyclerView.Adapter<ExerciseHistoryCar
     private ArrayList<Lift> current_exercise_lifts;
     private final Activity parent_activity;
     private final LiftDbHelper lift_db_helper;
-    private final TextView exercise_description_text_view;
 
-    ExerciseHistoryCardAdapter(Activity parent_activity, LiftDbHelper lift_db_helper, TextView exercise_description_text_view, Exercise current_exercise)
+    ExerciseHistoryCardAdapter(Activity parent_activity, LiftDbHelper lift_db_helper, Exercise current_exercise)
     {
         this.parent_activity = parent_activity;
         this.lift_db_helper = lift_db_helper;
@@ -40,8 +40,6 @@ class ExerciseHistoryCardAdapter extends RecyclerView.Adapter<ExerciseHistoryCar
         {
             this.current_exercise_lifts = null;
         }
-
-        this.exercise_description_text_view = exercise_description_text_view;
     }
 
     public void reloadExerciseHistory(SelectExerciseHistoryParams.ExerciseListOrder order)
@@ -61,20 +59,27 @@ class ExerciseHistoryCardAdapter extends RecyclerView.Adapter<ExerciseHistoryCar
     public void onBindViewHolder(ExerciseHistoryCardAdapter.ExerciseHistoryCardViewHolder holder, int position) {
         Lift current_lift = current_exercise_lifts.get(position);
 
-        // If this lift is the max of the exercise, display that along with the date.
-        String date_text_view_text = "";
-        if (current_exercise.getMaxLiftId() == current_lift.getLiftId())
+        holder.date_text_view.setText(current_lift.getReadableStartDate());
+        String weight = String.format("Weight: %d", current_lift.getWeight());
+        holder.weight_text_view.setText(weight);
+        String reps = String.format("Reps: %d", current_lift.getReps());
+        holder.reps_text_view.setText(reps);
+        holder.lift_time_text_view.setText(current_lift.getReadableStartTime());
+
+        String comment = current_lift.getComment();
+        if (comment.equals(""))
         {
-            date_text_view_text += "Max Effort: ";
+            holder.comment_text_view.setVisibility(View.GONE);
+        }
+        else
+        {
+            holder.comment_text_view.setText(comment);
         }
 
-        // Display the rest of the lift.
-        date_text_view_text += current_lift.getReadableStartDate();
-        holder.date_text_view.setText(date_text_view_text);
-        String weight_and_reps = "Weight: " + Integer.toString(current_lift.getWeight()) + ". Reps: " + Integer.toString(current_lift.getReps()) + ".";
-        holder.lift_time_text_view.setText(current_lift.getReadableStartTime());
-        holder.weight_and_reps_text_view.setText(weight_and_reps);
-        holder.comment_text_view.setText(current_lift.getComment());
+        if (current_exercise.getMaxLiftId() != current_lift.getLiftId())
+        {
+            holder.max_effort_text_view.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -86,31 +91,22 @@ class ExerciseHistoryCardAdapter extends RecyclerView.Adapter<ExerciseHistoryCar
         return 0;
     }
 
-    void setExerciseName(String name)
-    {
-        current_exercise.setName(lift_db_helper, name);
-    }
-
-    void setExerciseDescription(String description)
-    {
-        current_exercise.setDescription(lift_db_helper, description);
-    }
-
     void reloadExerciseDetails()
     {
-        CollapsingToolbarLayout appBarLayout = parent_activity.findViewById(R.id.toolbar_layout);
-        if (appBarLayout != null) {
-            appBarLayout.setTitle(current_exercise.getName());
+        Toolbar toolbar = parent_activity.findViewById(R.id.detail_toolbar);
+        if (toolbar != null)
+        {
+            toolbar.setTitle(current_exercise.getName());
         }
-
-        exercise_description_text_view.setText(current_exercise.getDescription());
     }
 
     static class ExerciseHistoryCardViewHolder extends RecyclerView.ViewHolder {
         final TextView date_text_view;
-        final TextView weight_and_reps_text_view;
+        final TextView weight_text_view;
+        final TextView reps_text_view;
         final TextView lift_time_text_view;
         final TextView comment_text_view;
+        final TextView max_effort_text_view;
 
         /**
          * Constrcutor for the view holder.
@@ -119,9 +115,11 @@ class ExerciseHistoryCardAdapter extends RecyclerView.Adapter<ExerciseHistoryCar
         ExerciseHistoryCardViewHolder(View view) {
             super(view);
             this.date_text_view = view.findViewById(R.id.date_text_view);
-            this.weight_and_reps_text_view = view.findViewById(R.id.weight_and_reps_text_view);
+            this.weight_text_view = view.findViewById(R.id.weight_text_view);
+            this.reps_text_view = view.findViewById(R.id.reps_text_view);
             this.lift_time_text_view = view.findViewById(R.id.lift_time_text_view);
             this.comment_text_view = view.findViewById(R.id.comment_text_view);
+            this.max_effort_text_view = view.findViewById(R.id.max_effort_text_view);
         }
     }
 }

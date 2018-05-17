@@ -23,12 +23,14 @@ import edu.wvu.tsmith.logmylift.lift.AddLiftParams;
 public class WorkoutDetailFragment extends Fragment {
     private WorkoutHistoryCardAdapter current_workout_history;
     private RecyclerView current_workout_list;
+    private boolean enable_edit;
 
     /**
      * The fragment argument representing the item ID that this fragment
      * represents.
      */
     public static final String workout_parcel = "workout";
+    public static final String enable_edit_key = "enable_edit";
 
     // The workout that this fragment should represent.
     public Workout current_workout;
@@ -48,6 +50,11 @@ public class WorkoutDetailFragment extends Fragment {
         {
             // Load the workout from the database based on the ID bundled with the fragment.
             current_workout = getArguments().getParcelable(workout_parcel);
+        }
+
+        if (getArguments().containsKey(enable_edit_key))
+        {
+            enable_edit = getArguments().getBoolean(enable_edit_key);
         }
     }
 
@@ -76,7 +83,12 @@ public class WorkoutDetailFragment extends Fragment {
             }
 
             // Create a card adapter for the workout history.
-            current_workout_history = new WorkoutHistoryCardAdapter(this.getActivity(), lift_db_helper, current_workout_list, current_workout);
+            current_workout_history = new WorkoutHistoryCardAdapter(
+                    this.getActivity(),
+                    lift_db_helper,
+                    current_workout_list,
+                    current_workout,
+                    enable_edit);
 
             // Load the description of the workout.
             current_workout_history.reloadWorkoutDescription();

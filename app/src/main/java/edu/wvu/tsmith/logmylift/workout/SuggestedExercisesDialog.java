@@ -9,6 +9,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.ListView;
 
 import java.util.ArrayList;
+import java.util.concurrent.Callable;
 
 import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
@@ -33,7 +34,11 @@ public class SuggestedExercisesDialog
      * @param workout               The workout for which to show suggested exercises.
      * @param exercise_text_view    The text view to insert the user's choice of suggested exercise into.
      */
-    public SuggestedExercisesDialog(Context context, LiftDbHelper lift_db_helper, Workout workout, AutoCompleteTextView exercise_text_view)
+    public SuggestedExercisesDialog(
+            Context context,
+            LiftDbHelper lift_db_helper,
+            Workout workout,
+            AutoCompleteTextView exercise_text_view)
     {
         this.context = context;
         this.lift_db_helper = lift_db_helper;
@@ -42,9 +47,17 @@ public class SuggestedExercisesDialog
     }
 
     /**
-     * Show the dialog.
+     * Show the dialog without a post-selection function.
      */
     public void show()
+    {
+        this.show(null);
+    }
+
+    /**
+     * Show the dialog, with a post-selection function.
+     */
+    public void show(final Callable<Integer> post_selection_function)
     {
         // Create the suggested exercise dialog.
         LayoutInflater li = LayoutInflater.from(this.context);
@@ -94,6 +107,11 @@ public class SuggestedExercisesDialog
                 exercise_text_view.setText(similar_exercises.get(position).getName());
                 exercise_text_view.dismissDropDown();
                 suggested_exercises_dialog.cancel();
+                try
+                {
+                    post_selection_function.call();
+                }
+                catch (Exception ignored) {};
             }
         });
         suggested_exercises_dialog.show();

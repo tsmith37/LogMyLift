@@ -15,16 +15,4 @@
         android:icon="@drawable/ic_info_outline_white_24dp"
         app:showAsAction="ifRoom">
     </item>
-    <item
-        android:id="@+id/add_exercise_menu_item"
-        android:orderInCategory="3"
-        android:title="@string/add_exercise"
-        app:showAsAction="never">
-    </item>
-    <item
-        android:id="@+id/suggested_exercises_menu_item"
-        android:orderInCategory="4"
-        android:title="@string/suggested_exercises_text"
-        app:showAsAction="never">
-    </item>
 </menu>

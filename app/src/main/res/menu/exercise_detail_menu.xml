@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/exercise_description_menu_item"
+        android:orderInCategory="1"
+        android:title="@string/exercise_description"
+        android:icon="@drawable/ic_info_outline_white_24dp"
+        app:showAsAction="ifRoom">
+    </item>
+    <item
+        android:id="@+id/edit_exercise_menu_item"
+        android:orderInCategory="2"
+        android:title="@string/edit_exercise"
+        android:icon="@drawable/ic_mode_edit_white_24dp"
+        app:showAsAction="ifRoom">
+    </item>
+    <item
+        android:id="@+id/exercise_history_sort_menu_item"
+        android:orderInCategory="3"
+        android:title="@string/change_sort_order"
+        android:icon="@drawable/ic_sort_white_24dp"
+        app:showAsAction="ifRoom">
+    </item>
+    <item
+        android:id="@+id/percent_max_menu_item"
+        android:orderInCategory="4"
+        android:title="@string/calculate_percentage_of_max"
+        app:showAsAction="never">
+    </item>
+</menu>
