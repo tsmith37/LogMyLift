@@ -4,8 +4,10 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.database.Cursor;
+import android.graphics.Typeface;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
@@ -16,6 +18,7 @@ import android.widget.EditText;
 import android.widget.FilterQueryProvider;
 import android.widget.ImageButton;
 import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
@@ -81,9 +84,19 @@ public class AddLiftDialog
         // Create the dialog to add a new lift.
         LayoutInflater li = LayoutInflater.from(context);
         final View add_lift_dialog_view = li.inflate(this.add_lift_dialog_resource, null);
-        AlertDialog.Builder add_lift_dialog_builder = new AlertDialog.Builder(context);
-        add_lift_dialog_builder.setTitle(R.string.add_lift);
+        final AlertDialog.Builder add_lift_dialog_builder = new AlertDialog.Builder(context);
+
+        TextView title = new TextView(this.context);
+        title.setText(this.context.getString(R.string.add_lift));
+        title.setAllCaps(true);
+        title.setTypeface(null, Typeface.BOLD);
+        title.setTextSize(20);
+        title.setGravity(Gravity.CENTER);
+        add_lift_dialog_builder.setCustomTitle(title);
+
         add_lift_dialog_builder.setView(add_lift_dialog_view);
+
+        final AlertDialog add_lift_dialog = add_lift_dialog_builder.create();
 
         // Set up the exercise adapter, with nothing in it.
         final SimpleCursorAdapter exercise_adapter = new SimpleCursorAdapter(
@@ -201,7 +214,7 @@ public class AddLiftDialog
         });
 
         // Set up the suggested exercises dialog.
-        final Button suggested_exercises_button = add_lift_dialog_view.findViewById(R.id.suggested_exercises_button);
+        final ImageButton suggested_exercises_button = add_lift_dialog_view.findViewById(R.id.suggested_exercises_button);
         if (suggested_exercises_button != null)
         {
             suggested_exercises_button.setOnClickListener(new View.OnClickListener()
@@ -219,101 +232,100 @@ public class AddLiftDialog
             });
         }
 
-        // Handle the positive button press.
-        add_lift_dialog_builder.setPositiveButton(R.string.add_lift, new DialogInterface.OnClickListener()
+        // Set up the add lift button press.
+        final Button add_lift_button = add_lift_dialog_view.findViewById(R.id.add_lift_button);
+        if (add_lift_button != null)
         {
-            @Override
-            public void onClick(DialogInterface dialog, int which)
-            {
-                // Check if the exercise input currently contains an actual exercise.
-                if (!exercise_currently_selected)
+            add_lift_button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v)
                 {
-                    // Check if the inputted text actually does match an exercise.
-                    Exercise potential_exercise_from_input = lift_db_helper.selectExerciseFromName(exercise_input.getText().toString());
-                    if (potential_exercise_from_input != null)
+                    // Check if the exercise input currently contains an actual exercise.
+                    if (!exercise_currently_selected)
                     {
-                        current_exercise = potential_exercise_from_input;
-                        exercise_currently_selected = true;
+                        // Check if the inputted text actually does match an exercise.
+                        Exercise potential_exercise_from_input = lift_db_helper.selectExerciseFromName(exercise_input.getText().toString());
+                        if (potential_exercise_from_input != null)
+                        {
+                            current_exercise = potential_exercise_from_input;
+                            exercise_currently_selected = true;
+                        }
+                        else
+                        {
+                            // Offer to the user via Snackbar to add an exercise named the same as the
+                            // input to the add lift dialog.
+                            Snackbar exercise_name_invalid = Snackbar.make(recycler_view, R.string.exercise_name_not_valid, Snackbar.LENGTH_LONG);
+                            exercise_name_invalid.setAction(R.string.add_exercise, new View.OnClickListener()
+                            {
+                                @Override
+                                public void onClick(View v)
+                                {
+                                    AddExerciseDialog add_exercise_dialog = new AddExerciseDialog(
+                                            context,
+                                            lift_db_helper,
+                                            recycler_view,
+                                            exercise_input.getText().toString());
+                                    add_exercise_dialog.show(new Callable<Integer>() {
+                                        @Override
+                                        public Integer call() throws Exception {
+                                            AddLiftDialog add_lift_dialog = new AddLiftDialog(context, recycler_view, lift_db_helper, current_workout, current_workout_lifts, AddLiftParams.createFromExistingExercise(lift_db_helper.getSelectedExercise()));
+                                            add_lift_dialog.show();
+                                            return null;
+                                        }
+                                    });
+                                }
+                            });
+                            exercise_name_invalid.show();
+                            add_lift_dialog.cancel();
+                            return;
+                        }
+                    }
+
+                    // An exercise is currently selected, so update the currently selected exercise in
+                    // the database. That way, if the user entered an invalid weight or amount of reps,
+                    // their exercise selection will be retained.
+                    lift_db_helper.updateSelectedExercise(current_exercise.getExerciseId());
+
+                    // Check that the weight and reps are valid for the new lift.
+                    int weight = -1;
+                    try
+                    {
+                        weight = Integer.parseInt(weight_text.getText().toString());
+                    }
+                    catch (Throwable ignored) {}
+                    int reps = -1;
+                    try
+                    {
+                        reps = Integer.parseInt(reps_text.getText().toString());
+                    }
+                    catch (Throwable ignored) {}
+
+                    if ((weight > 0) && (reps > 0))
+                    {
+                        // Add the lift.
+                        String comment = comment_text.getText().toString();
+                        current_workout_lifts.add(0, current_workout.addLift(lift_db_helper, current_exercise, reps, weight, comment));
+                        recycler_view.getAdapter().notifyItemInserted(0);
+
+                        add_lift_dialog.cancel();
+
+                        // Go to the top of the recycler view.
+                        RecyclerView.LayoutManager layout_manager = recycler_view.getLayoutManager();
+                        layout_manager.smoothScrollToPosition(recycler_view, new RecyclerView.State(), 0);
                     }
                     else
                     {
-                        // Offer to the user via Snackbar to add an exercise named the same as the
-                        // input to the add lift dialog.
-                        Snackbar exercise_name_invalid = Snackbar.make(recycler_view, R.string.exercise_name_not_valid, Snackbar.LENGTH_LONG);
-                        exercise_name_invalid.setAction(R.string.add_exercise, new View.OnClickListener()
-                        {
-                            @Override
-                            public void onClick(View v)
-                            {
-                                AddExerciseDialog add_exercise_dialog = new AddExerciseDialog(
-                                        context,
-                                        lift_db_helper,
-                                        recycler_view,
-                                        exercise_input.getText().toString());
-                                add_exercise_dialog.show(new Callable<Integer>() {
-                                    @Override
-                                    public Integer call() throws Exception {
-                                        AddLiftDialog add_lift_dialog = new AddLiftDialog(context, recycler_view, lift_db_helper, current_workout, current_workout_lifts, AddLiftParams.createFromExistingExercise(lift_db_helper.getSelectedExercise()));
-                                        add_lift_dialog.show();
-                                        return null;
-                                    }
-                                });
-                            }
-                        });
-                        exercise_name_invalid.show();
-                        return;
+                        add_lift_dialog.cancel();
+                        Snackbar.make(recycler_view, R.string.lift_not_valid, Snackbar.LENGTH_LONG).show();
                     }
                 }
+            });
 
-                // An exercise is currently selected, so update the currently selected exercise in
-                // the database. That way, if the user entered an invalid weight or amount of reps,
-                // their exercise selection will be retained.
-                lift_db_helper.updateSelectedExercise(current_exercise.getExerciseId());
-
-                // Check that the weight and reps are valid for the new lift.
-                int weight = -1;
-                try
-                {
-                    weight = Integer.parseInt(weight_text.getText().toString());
-                }
-                catch (Throwable ignored) {}
-                int reps = -1;
-                try
-                {
-                    reps = Integer.parseInt(reps_text.getText().toString());
-                }
-                catch (Throwable ignored) {}
-
-                if ((weight > 0) && (reps > 0))
-                {
-                    // Add the lift.
-                    String comment = comment_text.getText().toString();
-                    current_workout_lifts.add(0, current_workout.addLift(lift_db_helper, current_exercise, reps, weight, comment));
-                    recycler_view.getAdapter().notifyItemInserted(0);
-
-                    // Go to the top of the recycler view.
-                    RecyclerView.LayoutManager layout_manager = recycler_view.getLayoutManager();
-                    layout_manager.smoothScrollToPosition(recycler_view, new RecyclerView.State(), 0);
-                }
-                else
-                {
-                    Snackbar.make(recycler_view, R.string.lift_not_valid, Snackbar.LENGTH_LONG).show();
-                }
-            }
-        });
-
-        // Handle the negative button press.
-        add_lift_dialog_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener()
-        {
-            @Override
-            public void onClick(DialogInterface dialog, int which)
-            {
-                Snackbar.make(recycler_view, R.string.lift_not_added, Snackbar.LENGTH_LONG).show();
-            }
-        });
+            add_lift_dialog.cancel();
+        }
 
         // Show the dialog.
-        AlertDialog add_lift_dialog = add_lift_dialog_builder.create();
+        add_lift_dialog.getWindow().setBackgroundDrawableResource(R.color.lightGray);
         add_lift_dialog.show();
     }
 

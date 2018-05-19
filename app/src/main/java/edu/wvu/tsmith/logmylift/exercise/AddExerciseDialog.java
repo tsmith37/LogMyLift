@@ -3,10 +3,14 @@ package edu.wvu.tsmith.logmylift.exercise;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Typeface;
 import android.support.design.widget.Snackbar;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import java.util.concurrent.Callable;
 
@@ -64,7 +68,13 @@ public class AddExerciseDialog
         LayoutInflater li = LayoutInflater.from(this.context);
         View add_exercise_dialog_view = li.inflate(R.layout.add_exercise_dialog, null);
         AlertDialog.Builder add_exercise_dialog_builder = new AlertDialog.Builder(context);
-        add_exercise_dialog_builder.setTitle(R.string.create_exercise);
+        TextView title = new TextView(this.context);
+        title.setText(this.context.getString(R.string.add_exercise));
+        title.setAllCaps(true);
+        title.setTypeface(null, Typeface.BOLD);
+        title.setTextSize(20);
+        title.setGravity(Gravity.CENTER);
+        add_exercise_dialog_builder.setCustomTitle(title);
         add_exercise_dialog_builder.setView(add_exercise_dialog_view);
 
         // Get the exercise name text box. Display any hint to the user.
@@ -74,57 +84,61 @@ public class AddExerciseDialog
         // Get the exercise description text box.
         final EditText exercise_description_edit_text = add_exercise_dialog_view.findViewById(R.id.exercise_description_edit_text);
 
+        final AlertDialog add_exercise_dialog = add_exercise_dialog_builder.create();
+
         // Handle the positive button press.
+        Button add_exercise_button = add_exercise_dialog_view.findViewById(R.id.add_exercise_button);
+        if (add_exercise_button != null)
+        {
+            add_exercise_button.setOnClickListener(new View.OnClickListener()
+            {
+                @Override
+                public void onClick(View v)
+                {
+                    // Check that a name has been inserted.
+                    if (exercise_name_edit_text.getText().toString().isEmpty())
+                    {
+                        Snackbar.make(snackbar_parent_view, "Exercise name not valid.", Snackbar.LENGTH_LONG).show();
+                    }
+                    else
+                    {
+                        try
+                        {
+                            // Create the new exercise.
+                            Exercise new_exercise = new Exercise(lift_db_helper, exercise_name_edit_text.getText().toString(), exercise_description_edit_text.getText().toString());
+                            Snackbar.make(snackbar_parent_view, "Exercise added.", Snackbar.LENGTH_LONG).show();
+
+                            // Set the selected exercise as the new one.
+                            lift_db_helper.updateSelectedExercise(new_exercise.getExerciseId());
+
+                            try
+                            {
+                                post_add_function.call();
+                            }
+                            catch (Exception ignored) {};
+                        }
+                        catch (Exception e)
+                        {
+                            // Are there any other reasons for an exception to happen here?
+                            Snackbar.make(snackbar_parent_view, "Exercise already exists.", Snackbar.LENGTH_LONG).show();
+                        }
+
+                    }
+
+                    add_exercise_dialog.cancel();
+                }
+            });
+        }
         add_exercise_dialog_builder.setPositiveButton("OK", new DialogInterface.OnClickListener()
         {
             @Override
             public void onClick(DialogInterface dialog, int which)
             {
-                // Check that a name has been inserted.
-                if (exercise_name_edit_text.getText().toString().isEmpty())
-                {
-                    Snackbar.make(snackbar_parent_view, "Exercise name not valid.", Snackbar.LENGTH_LONG).show();
-                }
-                else
-                {
-                    try
-                    {
-                        // Create the new exercise.
-                        Exercise new_exercise = new Exercise(lift_db_helper, exercise_name_edit_text.getText().toString(), exercise_description_edit_text.getText().toString());
-                        Snackbar.make(snackbar_parent_view, "Exercise added.", Snackbar.LENGTH_LONG).show();
 
-                        // Set the selected exercise as the new one.
-                        lift_db_helper.updateSelectedExercise(new_exercise.getExerciseId());
-
-                        try
-                        {
-                            post_add_function.call();
-                        }
-                        catch (Exception ignored) {};
-                    }
-                    catch (Exception e)
-                    {
-                        // Are there any other reasons for an exception to happen here?
-                        Snackbar.make(snackbar_parent_view, "Exercise already exists.", Snackbar.LENGTH_LONG).show();
-                    }
-
-                }
-            }
-        });
-
-        // Handle the negative button press.
-        add_exercise_dialog_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener()
-        {
-            @Override
-            public void onClick(DialogInterface dialog, int which)
-            {
-                // Tell the user that the exercise was not added.
-                Snackbar.make(snackbar_parent_view, "Exercise not added.", Snackbar.LENGTH_LONG).show();
             }
         });
 
         // Display the dialog.
-        AlertDialog add_exercise_dialog = add_exercise_dialog_builder.create();
         add_exercise_dialog.show();
     }
 }

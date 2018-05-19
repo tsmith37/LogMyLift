@@ -2,11 +2,14 @@ package edu.wvu.tsmith.logmylift.workout;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.graphics.Typeface;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
@@ -63,7 +66,15 @@ public class SuggestedExercisesDialog
         LayoutInflater li = LayoutInflater.from(this.context);
         final View suggested_exercises_dialog_view = li.inflate(R.layout.suggested_exercises_dialog, null);
         AlertDialog.Builder suggested_exercises_dialog_builder = new AlertDialog.Builder(this.context);
-        suggested_exercises_dialog_builder.setTitle(R.string.suggested_exercises_text);
+
+        TextView title = new TextView(this.context);
+        String edit_workout_title = this.context.getString(R.string.suggested_exercises_text);
+        title.setText(edit_workout_title);
+        title.setAllCaps(true);
+        title.setTypeface(null, Typeface.BOLD);
+        title.setTextSize(20);
+        title.setGravity(Gravity.CENTER);
+        suggested_exercises_dialog_builder.setCustomTitle(title);
         suggested_exercises_dialog_builder.setView(suggested_exercises_dialog_view);
 
         // Get the list of similar exercise's IDs.

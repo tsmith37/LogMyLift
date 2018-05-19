@@ -2,14 +2,18 @@ package edu.wvu.tsmith.logmylift.lift;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
@@ -59,8 +63,18 @@ public class EditLiftDialog
         AlertDialog.Builder edit_lift_dialog_builder = new AlertDialog.Builder(this.context);
 
         // Reflect the current lift's properties in the edit lift dialog.
-        edit_lift_dialog_builder.setTitle(this.lift_to_edit.getExercise().getName());
+        TextView title = new TextView(this.context);
+        title.setText(this.context.getString(R.string.edit_lift));
+        title.setAllCaps(true);
+        title.setTypeface(null, Typeface.BOLD);
+        title.setTextSize(20);
+        title.setGravity(Gravity.CENTER);
+        edit_lift_dialog_builder.setCustomTitle(title);
         edit_lift_dialog_builder.setView(edit_lift_dialog_view);
+
+        final TextView exercise_name_text = edit_lift_dialog_view.findViewById(R.id.exercise_text_view);
+        exercise_name_text.setText(lift_to_edit.getExercise().getName());
+
         final EditText weight_text = edit_lift_dialog_view.findViewById(R.id.weight_edit_text);
         final EditText reps_text = edit_lift_dialog_view.findViewById(R.id.reps_edit_text);
         final EditText comment_text = edit_lift_dialog_view.findViewById(R.id.comment_edit_text);
@@ -86,11 +100,13 @@ public class EditLiftDialog
         // Set the comment.
         comment_text.setText(lift_to_edit.getComment());
 
-        // Handle the positive button press.
-        edit_lift_dialog_builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener()
+        final AlertDialog edit_dialog = edit_lift_dialog_builder.create();
+
+        Button edit_lift_button = edit_lift_dialog_view.findViewById(R.id.edit_lift_button);
+        edit_lift_button.setOnClickListener(new View.OnClickListener()
         {
             @Override
-            public void onClick(DialogInterface dialog, int which)
+            public void onClick(View v)
             {
                 // Check that the weight is valid (i.e., an integer).
                 int weight = -1;
@@ -123,32 +139,21 @@ public class EditLiftDialog
                             snackbar_parent_view);
                     // Start the edit lift operation in the background.
                     new EditLiftOperation().execute(edit_lift_params);
+                    edit_dialog.cancel();
                 }
                 else
                 {
                     // The lift isn't valid.
+                    edit_dialog.cancel();
                     Snackbar.make(snackbar_parent_view, R.string.lift_not_valid, Snackbar.LENGTH_LONG).show();
                 }
 
                 // Hide the keyboard.
                 InputMethodManager input_method_manager = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
                 input_method_manager.hideSoftInputFromWindow(edit_lift_dialog_view.getWindowToken(), 0);
-                dialog.dismiss();
             }
         });
 
-        // Handle the negative button press.
-        edit_lift_dialog_builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener()
-        {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                // Let the user know that the lift was not updated.
-                Snackbar.make(snackbar_parent_view, R.string.lift_not_updated, Snackbar.LENGTH_LONG).show();
-                dialog.dismiss();
-            }
-        });
-
-        AlertDialog edit_dialog = edit_lift_dialog_builder.create();
         edit_dialog.show();
     }
 
