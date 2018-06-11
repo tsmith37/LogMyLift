@@ -172,8 +172,9 @@ public class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHisto
             holder.comment_text_view.setVisibility(View.GONE);
         }
         else
-            {
+        {
             holder.comment_text_view.setText(current_lift.getComment());
+            holder.comment_text_view.setVisibility(View.VISIBLE);
         }
     }
 

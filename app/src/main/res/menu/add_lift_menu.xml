@@ -27,4 +27,10 @@
         android:title="@string/suggested_exercises_text"
         app:showAsAction="never">
     </item>
+    <item
+        android:id="@+id/percent_max_menu_item"
+        android:orderInCategory="5"
+        android:title="@string/calculate_percentage_of_max"
+        app:showAsAction="never">
+    </item>
 </menu>

@@ -59,7 +59,7 @@ public class Start extends AppCompatActivity
             @Override
             public void onClick(View v)
             {
-                NewWorkoutDialog new_workout_dialog = new NewWorkoutDialog(v.getContext(), lift_db_helper, v);
+                NewWorkoutDialog new_workout_dialog = new NewWorkoutDialog(v.getContext(), lift_db_helper);
                 new_workout_dialog.show();
             }
         });
@@ -144,7 +144,7 @@ public class Start extends AppCompatActivity
                 public void onClick(View v)
                 {
 
-                    NewWorkoutDialog new_workout_dialog = new NewWorkoutDialog(v.getContext(), lift_db_helper, v);
+                    NewWorkoutDialog new_workout_dialog = new NewWorkoutDialog(v.getContext(), lift_db_helper);
                     new_workout_dialog.show();
                 }
             });

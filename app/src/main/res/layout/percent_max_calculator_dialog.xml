@@ -3,37 +3,70 @@
     android:orientation="vertical"
     android:layout_width="wrap_content"
     android:layout_height="match_parent">
-    <TextView
-        android:id="@+id/exercise_description_text_view"
+    <LinearLayout
+        android:id="@+id/weight_reps_horizontal_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textAlignment="center"/>
+        android:layout_marginBottom="@dimen/dialog_vertical_margin"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:weightSum="3"
+        android:orientation="horizontal">
+        <EditText
+            android:id="@+id/weight_edit_text"
+            android:hint= "@string/weight"
+            android:inputType="number"
+            android:background="@drawable/rounded_autocompletetextview"
+            style="@style/Widget.AppCompat.EditText"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="@dimen/dialog_button_height"
+            android:layout_marginStart="@dimen/dialog_start_and_end_horizontal_margins"
+            android:layout_marginEnd="@dimen/dialog_horizontal_margins"
+            android:ellipsize="start"
+            android:gravity="center"
+            android:textSize="@dimen/dialog_text_size"/>
+        <EditText
+            android:id="@+id/reps_edit_text"
+            android:hint= "@string/reps"
+            android:inputType="number"
+            android:background="@drawable/rounded_autocompletetextview"
+            style="@style/Widget.AppCompat.EditText"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="@dimen/dialog_button_height"
+            android:layout_marginStart="@dimen/dialog_horizontal_margins"
+            android:layout_marginEnd="@dimen/dialog_start_and_end_horizontal_margins"
+            android:ellipsize="start"
+            android:gravity="center"
+            android:textSize="@dimen/dialog_text_size"/>
+    </LinearLayout>
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center">
-    <TextView
-        android:text="% of max: "
-        android:layout_gravity="center"
-        android:gravity="center"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent" />
-    <NumberPicker
-        android:id="@+id/percent_number_picker"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent" />
-    <TextView
-        android:text=" = "
-        android:layout_gravity="center"
-        android:gravity="center"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent" />
-    <TextView
-        android:layout_gravity="center"
-        android:gravity="center"
-        android:id="@+id/percent_max_text_view"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent" />
+        <TextView
+            android:text="% of max: "
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent" />
+        <NumberPicker
+            android:id="@+id/percent_number_picker"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent" />
+        <TextView
+            android:text=" = "
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent" />
+        <TextView
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:id="@+id/percent_max_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent" />
     </LinearLayout>
 </LinearLayout>

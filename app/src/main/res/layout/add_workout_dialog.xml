@@ -6,10 +6,23 @@
     <EditText
         android:hint="@string/workout_description"
         android:id="@+id/workout_description_edit_text"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:layout_marginLeft="4dp"
-        android:layout_marginRight="4dp"
-        android:layout_marginBottom="4dp"
-        android:layout_width="match_parent"/>
+        android:background="@drawable/rounded_autocompletetextview"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dialog_button_height"
+        android:layout_marginStart="@dimen/dialog_start_and_end_horizontal_margins"
+        android:layout_marginEnd="@dimen/dialog_start_and_end_horizontal_margins"
+        android:textAlignment="center"
+        android:textSize="@dimen/dialog_text_size"
+        android:layout_marginTop="@dimen/dialog_vertical_margin"
+        android:layout_marginBottom="@dimen/dialog_vertical_margin"/>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dialog_button_height"
+        android:layout_marginStart="@dimen/dialog_start_and_end_horizontal_margins"
+        android:layout_marginEnd="@dimen/dialog_start_and_end_horizontal_margins"
+        android:layout_marginBottom="@dimen/dialog_vertical_margin"
+        android:text="@string/add_workout"
+        android:textColor="@android:color/white"
+        android:background="@drawable/rounded_button"
+        android:id="@+id/add_workout_button"/>
 </LinearLayout>

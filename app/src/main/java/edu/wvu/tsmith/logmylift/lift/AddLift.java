@@ -21,6 +21,7 @@ import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
 import edu.wvu.tsmith.logmylift.Start;
 import edu.wvu.tsmith.logmylift.exercise.AddExerciseDialog;
+import edu.wvu.tsmith.logmylift.exercise.PercentMaxCalculatorDialog;
 import edu.wvu.tsmith.logmylift.workout.EditWorkoutDialog;
 import edu.wvu.tsmith.logmylift.workout.SuggestedExercisesDialog;
 import edu.wvu.tsmith.logmylift.workout.UndoEditWorkoutListener;
@@ -152,8 +153,11 @@ public class AddLift extends AppCompatActivity
                     return null;
                 }
             });
-
-
+        }
+        else if (id == R.id.percent_max_menu_item)
+        {
+            PercentMaxCalculatorDialog max_calculator_dialog = new PercentMaxCalculatorDialog(this);
+            max_calculator_dialog.show();
         }
         return super.onOptionsItemSelected(item);
     }

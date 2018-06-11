@@ -68,7 +68,7 @@ public class WorkoutListActivity extends AppCompatActivity
         {
             @Override
             public void onClick(View view) {
-                NewWorkoutDialog new_workout_dialog = new NewWorkoutDialog(view.getContext(), lift_db_helper, view);
+                NewWorkoutDialog new_workout_dialog = new NewWorkoutDialog(view.getContext(), lift_db_helper);
                 new_workout_dialog.show();
             }
         });

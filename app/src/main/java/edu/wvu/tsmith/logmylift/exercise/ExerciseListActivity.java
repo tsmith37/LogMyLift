@@ -159,6 +159,7 @@ public class ExerciseListActivity extends AppCompatActivity {
             else
             {
                 holder.exercise_description_text_view.setText(current_exercise.getDescription());
+                holder.exercise_description_text_view.setVisibility(View.VISIBLE);
             }
 
             // If the exercise has a max effort lift, display it.
@@ -166,6 +167,7 @@ public class ExerciseListActivity extends AppCompatActivity {
             if (max_effort_lift != null)
             {
                 holder.max_effort_text_view.setText(getString(R.string.max_effort) + ": " + Integer.toString(max_effort_lift.getWeight()) + " for " + Integer.toString(max_effort_lift.getReps()) + " on " + max_effort_lift.getReadableStartDate());
+                holder.max_effort_text_view.setVisibility(View.VISIBLE);
             }
             else
             {
@@ -178,6 +180,7 @@ public class ExerciseListActivity extends AppCompatActivity {
             {
                 String last_performed_text = getString(R.string.last_performed_on) + " " + date_format.format(last_performed_workout_date);
                 holder.last_performed_text_view.setText(last_performed_text);
+                holder.last_performed_text_view.setVisibility(View.VISIBLE);
             }
             else
             {
@@ -236,15 +239,6 @@ public class ExerciseListActivity extends AppCompatActivity {
                     goToExerciseHistory(v.getContext(), current_exercise.getExerciseId());
                 }
             });
-
-            holder.exercise_info_button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    PercentMaxCalculatorDialog max_calculator_dialog = new PercentMaxCalculatorDialog(v.getContext(), lift_db_helper, current_exercise);
-                    max_calculator_dialog.show();
-                    holder.view_flipper.setDisplayedChild(0);
-                }
-            });
         }
 
         public void deleteExercise(int exercise_position_in_adapter)
@@ -277,7 +271,6 @@ public class ExerciseListActivity extends AppCompatActivity {
 
             final ImageButton delete_exercise_button;
             final ImageButton edit_exercise_button;
-            final ImageButton exercise_info_button;
             final ImageButton exercise_history_button;
 
             ViewHolder(View view) {
@@ -292,7 +285,6 @@ public class ExerciseListActivity extends AppCompatActivity {
 
                 this.delete_exercise_button = view.findViewById(R.id.delete_exercise_button);
                 this.edit_exercise_button = view.findViewById(R.id.edit_exercise_button);
-                this.exercise_info_button = view.findViewById(R.id.exercise_info_button);
                 this.exercise_history_button = view.findViewById(R.id.exercise_history_button);
             }
 

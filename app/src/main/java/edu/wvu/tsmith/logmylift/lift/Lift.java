@@ -105,8 +105,13 @@ public class Lift
      */
     public int calculateMaxEffort()
     {
-        Double maximum_effort = this.weight/(1.0278-(0.0278*this.reps));
-        return maximum_effort.intValue();
+        return findMaxEffort(this.weight, this.reps);
+    }
+
+    public static int findMaxEffort(int weight, int reps)
+    {
+        Double max_effort = (weight/(1.0278 - (0.0278 * reps)));
+        return max_effort.intValue();
     }
 
     /**

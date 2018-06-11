@@ -74,11 +74,16 @@ class ExerciseHistoryCardAdapter extends RecyclerView.Adapter<ExerciseHistoryCar
         else
         {
             holder.comment_text_view.setText(comment);
+            holder.comment_text_view.setVisibility(View.VISIBLE);
         }
 
         if (current_exercise.getMaxLiftId() != current_lift.getLiftId())
         {
             holder.max_effort_text_view.setVisibility(View.GONE);
+        }
+        else
+        {
+            holder.max_effort_text_view.setVisibility(View.VISIBLE);
         }
     }
 

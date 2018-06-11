@@ -6,6 +6,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.jjoe64.graphview.series.DataPoint;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
@@ -1018,6 +1020,40 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         long workout_duration_as_long = select_cursor.getLong(
                 select_cursor.getColumnIndexOrThrow(DURATION_COLUMN_NAME));
         return workout_duration_as_long;
+    }
+
+    public DataPoint[] getDataPointsFromExercise(Long exercise_id, Date from_date, Date to_date)
+    {
+        ArrayList<DataPoint> ret = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String max_effort_col = "MaxEffort";
+        String lift_date_col = "LiftDate";
+        String from_date_string = Long.toString(from_date.getTime());
+        String to_date_string = Long.toString(to_date.getTime());
+
+        String query = "SELECT MAX(" + max_effort_col + ") AS " + max_effort_col + ", " + lift_date_col + ", " + LIFT_COLUMN_WEIGHT + ", " + LIFT_COLUMN_REPS + " FROM " +
+                "(SELECT (" + LIFT_COLUMN_WEIGHT + " / (1.0278 - (0.0278 * " + LIFT_COLUMN_REPS + "))) AS " + max_effort_col + ", " +
+                "(" + LIFT_COLUMN_START_DATE + " - (" + LIFT_COLUMN_START_DATE + " % (1000 * 60 * 60 * 24))) AS " + lift_date_col + ", " + LIFT_COLUMN_WEIGHT + ", " + LIFT_COLUMN_REPS +
+                " FROM " + LIFT_TABLE_NAME + " WHERE " + LIFT_COLUMN_EXERCISE_ID + " = " + Long.toString(exercise_id) + ") " +
+                "WHERE " + lift_date_col + " BETWEEN " + from_date_string + " AND " + to_date_string +
+                " GROUP BY  " + lift_date_col + " ORDER BY " + lift_date_col;
+
+        Cursor select_cursor = db.rawQuery(query, null);
+        while(select_cursor.moveToNext())
+        {
+            long lift_date_as_long = select_cursor.getLong(
+                    select_cursor.getColumnIndexOrThrow("LiftDate"));
+            Date lift_date = new Date(lift_date_as_long);
+            int max_effort = select_cursor.getInt(select_cursor.getColumnIndexOrThrow("MaxEffort"));
+
+            DataPoint dp = new DataPoint(lift_date, max_effort);
+            ret.add(dp);
+        }
+        select_cursor.close();
+        db.close();
+        DataPoint[] retArray = new DataPoint[ret.size()];
+        retArray = ret.toArray(retArray);
+        return retArray;
     }
 }
 

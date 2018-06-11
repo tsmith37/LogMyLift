@@ -1,16 +1,15 @@
 package edu.wvu.tsmith.logmylift.workout;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.support.design.widget.Snackbar;
+import android.graphics.Typeface;
 import android.support.v7.app.AlertDialog;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
-
-import java.util.Date;
-import java.util.Locale;
+import android.widget.TextView;
 
 import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
@@ -25,13 +24,11 @@ public class NewWorkoutDialog
 {
     private Context context;
     private LiftDbHelper lift_db_helper;
-    private View snackbar_parent_view;
 
-    public NewWorkoutDialog(Context context, LiftDbHelper lift_db_helper, View snackbar_parent_view)
+    public NewWorkoutDialog(Context context, LiftDbHelper lift_db_helper)
     {
         this.context = context;
         this.lift_db_helper = lift_db_helper;
-        this.snackbar_parent_view = snackbar_parent_view;
     }
 
     public void show()
@@ -41,17 +38,25 @@ public class NewWorkoutDialog
         View add_workout_dialog_view = li.inflate(R.layout.add_workout_dialog, null);
         AlertDialog.Builder add_workout_dialog_builder = new AlertDialog.Builder(this.context);
 
-        // The title of the dialog contains the date that the workout is being created.
-        String new_workout_title = this.context.getString(R.string.new_workout) + ": " + new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
-        add_workout_dialog_builder.setTitle(new_workout_title);
+        TextView title = new TextView(this.context);
+        String add_workout_title = this.context.getString(R.string.add_workout);
+        title.setText(add_workout_title);
+        title.setAllCaps(true);
+        title.setTypeface(null, Typeface.BOLD);
+        title.setTextSize(20);
+        title.setGravity(Gravity.CENTER);
+        add_workout_dialog_builder.setCustomTitle(title);
+
         add_workout_dialog_builder.setView(add_workout_dialog_view);
+
+        final AlertDialog add_workout_dialog = add_workout_dialog_builder.create();
         final EditText workout_description_text = add_workout_dialog_view.findViewById(R.id.workout_description_edit_text);
 
-        // Handle a positive button press.
-        add_workout_dialog_builder.setPositiveButton("OK", new DialogInterface.OnClickListener()
+        Button add_workout_button = add_workout_dialog_view.findViewById(R.id.add_workout_button);
+        add_workout_button.setOnClickListener(new View.OnClickListener()
         {
             @Override
-            public void onClick(DialogInterface dialog, int which)
+            public void onClick(View v)
             {
                 // Clear the last exercise that was performed.
                 lift_db_helper.removeSelectedExercise();
@@ -66,18 +71,7 @@ public class NewWorkoutDialog
             }
         });
 
-        // Handle a negative button press.
-        add_workout_dialog_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener()
-        {
-            @Override
-            public void onClick(DialogInterface dialog, int which)
-            {
-                // Notify the user that the workout was not added.
-                Snackbar.make(snackbar_parent_view, "Workout not added.", Snackbar.LENGTH_LONG).show();
-            }
-        });
-
-        AlertDialog add_workout_dialog = add_workout_dialog_builder.create();
+        add_workout_dialog.getWindow().setBackgroundDrawableResource(R.color.lightGray);
         add_workout_dialog.show();
     }
 }

@@ -77,4 +77,5 @@
     <string name="sort_exercise_history">Sort Exercise History</string>
     <string name="change_sort_order">Change Sort Order</string>
     <string name="max_effort_lift">Max Effort Lift</string>
+    <string name="add_workout">Add Workout</string>
 </resources>
