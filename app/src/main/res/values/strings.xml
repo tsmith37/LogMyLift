@@ -78,4 +78,16 @@
     <string name="change_sort_order">Change Sort Order</string>
     <string name="max_effort_lift">Max Effort Lift</string>
     <string name="add_workout">Add Workout</string>
+    <string name="heaviest_lift">Heaviest Lift:</string>
+    <string name="workouts_performed_during">Workouts performed during:</string>
+    <string name="trends">Trends</string>
+    <string name="exercise_stats">Exercise Statistics</string>
+    <string name="max_effort_trend">Max Effort Trend</string>
+    <string name="weight_trend">Weight Trend</string>
+    <string-array name="date_filter_array">
+        <item>All Time</item>
+        <item>This Year</item>
+        <item>6 Months</item>
+        <item>This Month</item>
+    </string-array>
 </resources>

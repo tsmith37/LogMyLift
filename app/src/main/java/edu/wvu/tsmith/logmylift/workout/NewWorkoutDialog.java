@@ -68,6 +68,8 @@ public class NewWorkoutDialog
                 Intent workout_intent = new Intent(context, AddLift.class);
                 workout_intent.putExtra(WorkoutDetailFragment.workout_parcel, new_workout);
                 context.startActivity(workout_intent);
+
+                add_workout_dialog.cancel();
             }
         });
 

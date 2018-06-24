@@ -16,6 +16,7 @@ import java.util.TreeMap;
 import edu.wvu.tsmith.logmylift.exercise.Exercise;
 import edu.wvu.tsmith.logmylift.lift.Lift;
 import edu.wvu.tsmith.logmylift.exercise.SelectExerciseHistoryParams;
+import edu.wvu.tsmith.logmylift.workout.LoadWorkoutHistoryListParams;
 import edu.wvu.tsmith.logmylift.workout.Workout;
 
 /**
@@ -484,8 +485,8 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         String MAX_EFFORT_COLUMN_NAME = "MaxEffort";
         String MAX_EFFORT_COLUMN = "(" + LIFT_COLUMN_WEIGHT + " / (1.0278 - (0.0278 * " + LIFT_COLUMN_REPS + "))) AS " + MAX_EFFORT_COLUMN_NAME;
         String[] RETURN_COLUMNS = { LIFT_COLUMN_LIFT_ID, LIFT_COLUMN_REPS, LIFT_COLUMN_START_DATE, LIFT_COLUMN_WEIGHT, LIFT_COLUMN_WORKOUT_ID, LIFT_COLUMN_COMMENT, MAX_EFFORT_COLUMN };
-        String WHERE = LIFT_COLUMN_EXERCISE_ID + " LIKE ?";
-        String[] where_args = { Long.toString(params.getExercise().getExerciseId()) };
+        String WHERE = LIFT_COLUMN_EXERCISE_ID + " LIKE ? AND " + LIFT_COLUMN_START_DATE + " BETWEEN ? AND ?";
+        String[] where_args = { Long.toString(params.getExercise().getExerciseId()), Long.toString(params.getFromDate().getTime()), Long.toString(params.getToDate().getTime()) };
         String sort_order = "";
         switch (params.getOrder())
         {
@@ -603,19 +604,54 @@ public class LiftDbHelper extends SQLiteOpenHelper {
 
     /**
      * Selects all workouts, returned as an array list.
-     * @param filter    Filter on the workout name.
      * @return          An ArrayList of workouts.
      */
-    public ArrayList<Workout> selectWorkoutList(String filter, Date from_date, Date to_date) {
+    public ArrayList<Workout> selectWorkoutList(LoadWorkoutHistoryListParams params)
+    {
         SQLiteDatabase db = this.getReadableDatabase();
 
-        String SELECT_WORKOUT_QUERY = "SELECT " + WORKOUT_COLUMN_WORKOUT_ID + ", " + WORKOUT_COLUMN_DESCRIPTION + ", " + WORKOUT_COLUMN_START_DATE +
+        String LIFT_COUNT_COL_NAME = "LiftCount";
+        String LENGTH_COL_NAME = "WorkoutLength";
+        String order_by = "";
+        switch (params.getOrder())
+        {
+            case DATE_ASC:
+                order_by = " ORDER BY " + WORKOUT_TABLE_NAME + "." + WORKOUT_COLUMN_START_DATE + " ASC";
+                break;
+            case DATE_DESC:
+                order_by = " ORDER BY " + WORKOUT_TABLE_NAME + "." + WORKOUT_COLUMN_START_DATE + " DESC";
+                break;
+            case LENGTH_ASC:
+                order_by = " ORDER BY " + LENGTH_COL_NAME + " ASC";
+                break;
+            case LENGTH_DESC:
+                order_by = " ORDER BY " + LENGTH_COL_NAME + " DESC";
+                break;
+            case LIFT_COUNT_ASC:
+                order_by = " ORDER BY " + LIFT_COUNT_COL_NAME + " ASC";
+                break;
+            case LIFT_COUNT_DESC:
+                order_by = " ORDER BY " + LIFT_COUNT_COL_NAME + " DESC";
+                break;
+            default:
+                order_by = " ORDER BY " + WORKOUT_TABLE_NAME + "." + WORKOUT_COLUMN_START_DATE + " DESC";
+                break;
+        }
+        String SELECT_WORKOUT_QUERY =
+                "SELECT " + WORKOUT_TABLE_NAME + "." + WORKOUT_COLUMN_WORKOUT_ID + ", "
+                        + WORKOUT_TABLE_NAME + "." + WORKOUT_COLUMN_DESCRIPTION + ", "
+                        + WORKOUT_TABLE_NAME + "." + WORKOUT_COLUMN_START_DATE + ", "
+                        + "COUNT(" + LIFT_TABLE_NAME + "." + LIFT_COLUMN_LIFT_ID + ") AS " + LIFT_COUNT_COL_NAME + ", "
+                        + "(MAX(" + LIFT_TABLE_NAME + "." + LIFT_COLUMN_START_DATE +") - MIN(" + LIFT_TABLE_NAME + "." + LIFT_COLUMN_START_DATE + ")) AS " + LENGTH_COL_NAME +
                 " FROM " + WORKOUT_TABLE_NAME +
-                " WHERE " + WORKOUT_COLUMN_DESCRIPTION + " LIKE ?" +
-                " AND " + WORKOUT_COLUMN_START_DATE + " BETWEEN ? AND ?" +
-                " ORDER BY " + WORKOUT_COLUMN_START_DATE + " DESC";
+                        " JOIN " + LIFT_TABLE_NAME +
+                        " ON " + LIFT_TABLE_NAME + "." + LIFT_COLUMN_WORKOUT_ID + " = " + WORKOUT_TABLE_NAME + "." + WORKOUT_COLUMN_WORKOUT_ID +
+                " WHERE " + WORKOUT_TABLE_NAME + "." + WORKOUT_COLUMN_DESCRIPTION + " LIKE ?" +
+                " AND " + WORKOUT_TABLE_NAME + "." + WORKOUT_COLUMN_START_DATE + " BETWEEN ? AND ?" +
+                " GROUP BY " + WORKOUT_TABLE_NAME + "." + WORKOUT_COLUMN_WORKOUT_ID + ", " + WORKOUT_TABLE_NAME + "." + WORKOUT_COLUMN_DESCRIPTION + ", " + WORKOUT_TABLE_NAME + "." + WORKOUT_COLUMN_START_DATE +
+                order_by;
 
-        String[] where_args = {"%" + filter + "%", Long.toString(from_date.getTime()), Long.toString(to_date.getTime())};
+        String[] where_args = {"%" + params.getNameFilter() + "%", Long.toString(params.getFromDate().getTime()), Long.toString(params.getToDate().getTime())};
         try {
             final Cursor select_cursor = db.rawQuery(SELECT_WORKOUT_QUERY, where_args);
         ArrayList<Workout> workout_list = new ArrayList<>();
@@ -1054,6 +1090,103 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         DataPoint[] retArray = new DataPoint[ret.size()];
         retArray = ret.toArray(retArray);
         return retArray;
+    }
+
+    public Lift selectHeaviestLiftByExercise(long exercise_id)
+    {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] RETURN_COLUMNS =
+        {
+                LIFT_COLUMN_LIFT_ID,
+                LIFT_COLUMN_EXERCISE_ID,
+                LIFT_COLUMN_REPS,
+                LIFT_COLUMN_WEIGHT,
+                LIFT_COLUMN_WORKOUT_ID,
+                LIFT_COLUMN_COMMENT,
+                LIFT_COLUMN_START_DATE
+        };
+
+        String WHERE = LIFT_COLUMN_EXERCISE_ID + " = ?";
+        String[] where_args = { Long.toString(exercise_id) };
+
+        String sort_order = LIFT_COLUMN_WEIGHT + " DESC, " + LIFT_COLUMN_REPS + " DESC";
+
+        Cursor select_cursor = db.query(
+                LIFT_TABLE_NAME,
+                RETURN_COLUMNS,
+                WHERE,
+                where_args,
+                null,
+                null,
+                sort_order);
+
+        boolean id_in_db = select_cursor.moveToFirst();
+        if (!id_in_db) {
+            return null;
+        }
+
+        long lift_id = select_cursor.getLong(
+                select_cursor.getColumnIndexOrThrow(LIFT_COLUMN_LIFT_ID));
+        Exercise exercise = selectExerciseFromExerciseId(exercise_id);
+        int reps = select_cursor.getInt(
+                select_cursor.getColumnIndexOrThrow(LIFT_COLUMN_REPS));
+        int weight = select_cursor.getInt(
+                select_cursor.getColumnIndexOrThrow(LIFT_COLUMN_WEIGHT));
+        long workout_id = select_cursor.getLong(
+                select_cursor.getColumnIndexOrThrow(LIFT_COLUMN_WORKOUT_ID));
+        String comment = select_cursor.getString(
+                select_cursor.getColumnIndexOrThrow(LIFT_COLUMN_COMMENT));
+        long start_date_as_long = select_cursor.getLong(
+                select_cursor.getColumnIndexOrThrow(WORKOUT_COLUMN_START_DATE));
+        Date start_date = new Date(start_date_as_long);
+        select_cursor.close();
+        db.close();
+        return new Lift(lift_id, exercise, reps, start_date, weight, workout_id, comment);
+    }
+
+    public int selectCountOfLiftsByExercise(long exercise_id)
+    {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String COUNT_COLUMN_NAME = "ct";
+        String SELECT_LIFT_COUNT_QUERY =
+                "SELECT COUNT(*) AS " + COUNT_COLUMN_NAME +
+                        " FROM " + LIFT_TABLE_NAME +
+                        " WHERE " + LIFT_COLUMN_EXERCISE_ID + " = ?;";
+
+        String[] where_args = {Long.toString(exercise_id)};
+        Cursor select_cursor = db.rawQuery(SELECT_LIFT_COUNT_QUERY, where_args);
+
+        boolean id_in_db = select_cursor.moveToFirst();
+        if (!id_in_db) {
+            return 0;
+        }
+
+        int lift_count = select_cursor.getInt(
+                select_cursor.getColumnIndexOrThrow(COUNT_COLUMN_NAME));
+        return lift_count;
+    }
+
+    public int selectCountOfWorkoutsByExercise(long exercise_id)
+    {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String COUNT_COLUMN_NAME = "ct";
+        String SELECT_LIFT_COUNT_QUERY =
+                "SELECT COUNT(*) AS " + COUNT_COLUMN_NAME + " FROM " +
+                        "(SELECT COUNT(*) FROM " + LIFT_TABLE_NAME +
+                        " WHERE " + LIFT_COLUMN_EXERCISE_ID + " = ?" +
+                        " GROUP BY " + LIFT_COLUMN_WORKOUT_ID + ") AS Sub";
+
+        String[] where_args = {Long.toString(exercise_id)};
+        Cursor select_cursor = db.rawQuery(SELECT_LIFT_COUNT_QUERY, where_args);
+
+        boolean id_in_db = select_cursor.moveToFirst();
+        if (!id_in_db) {
+            return 0;
+        }
+
+        int workout_count = select_cursor.getInt(
+                select_cursor.getColumnIndexOrThrow(COUNT_COLUMN_NAME));
+        return workout_count;
     }
 }
 

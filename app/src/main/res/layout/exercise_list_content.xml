@@ -71,6 +71,14 @@
                     android:src="@drawable/ic_history_black_24dp"
                     android:background="@null"
                     android:contentDescription="@string/exercise_history"/>
+                <ImageButton
+                    android:id="@+id/exercise_stats_button"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:src="@drawable/ic_info_outline_black_24dp"
+                    android:background="@null"
+                    android:contentDescription="@string/exercise_stats"/>
             </LinearLayout>
         </ViewFlipper>
     </android.support.v7.widget.CardView>

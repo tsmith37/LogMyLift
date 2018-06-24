@@ -26,6 +26,7 @@ import java.util.concurrent.Callable;
 
 import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
+import edu.wvu.tsmith.logmylift.exercise.exercise_stats.ExerciseStatsDialog;
 import edu.wvu.tsmith.logmylift.lift.Lift;
 
 /**
@@ -239,6 +240,14 @@ public class ExerciseListActivity extends AppCompatActivity {
                     goToExerciseHistory(v.getContext(), current_exercise.getExerciseId());
                 }
             });
+
+            holder.exercise_stats_button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ExerciseStatsDialog exercise_stats_dialog = new ExerciseStatsDialog(v.getContext(), lift_db_helper, current_exercise.getExerciseId());
+                    exercise_stats_dialog.show();
+                }
+            });
         }
 
         public void deleteExercise(int exercise_position_in_adapter)
@@ -272,6 +281,7 @@ public class ExerciseListActivity extends AppCompatActivity {
             final ImageButton delete_exercise_button;
             final ImageButton edit_exercise_button;
             final ImageButton exercise_history_button;
+            final ImageButton exercise_stats_button;
 
             ViewHolder(View view) {
                 super(view);
@@ -286,6 +296,7 @@ public class ExerciseListActivity extends AppCompatActivity {
                 this.delete_exercise_button = view.findViewById(R.id.delete_exercise_button);
                 this.edit_exercise_button = view.findViewById(R.id.edit_exercise_button);
                 this.exercise_history_button = view.findViewById(R.id.exercise_history_button);
+                this.exercise_stats_button = view.findViewById(R.id.exercise_stats_button);
             }
 
             @Override

@@ -23,8 +23,14 @@
         app:showAsAction="ifRoom">
     </item>
     <item
-        android:id="@+id/percent_max_menu_item"
+        android:id="@+id/exercise_stats_menu_item"
         android:orderInCategory="4"
+        android:title="@string/exercise_stats"
+        app:showAsAction="never">
+    </item>
+    <item
+        android:id="@+id/percent_max_menu_item"
+        android:orderInCategory="5"
         android:title="@string/calculate_percentage_of_max"
         app:showAsAction="never">
     </item>

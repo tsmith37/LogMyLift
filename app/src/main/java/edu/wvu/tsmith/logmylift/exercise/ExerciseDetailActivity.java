@@ -15,6 +15,7 @@ import java.util.concurrent.Callable;
 
 import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
+import edu.wvu.tsmith.logmylift.exercise.exercise_stats.ExerciseStatsDialog;
 
 /**
  * An activity representing a single Exercise detail screen. This
@@ -111,6 +112,11 @@ public class ExerciseDetailActivity extends AppCompatActivity
         {
             PercentMaxCalculatorDialog max_calculator_dialog = new PercentMaxCalculatorDialog(parent_view.getContext());
             max_calculator_dialog.show();
+        }
+        else if (id == R.id.exercise_stats_menu_item)
+        {
+            ExerciseStatsDialog exercise_stats_dialog = new ExerciseStatsDialog(parent_view.getContext(), new LiftDbHelper(parent_view.getContext()), exercise_detail_fragment.current_exercise.getExerciseId());
+            exercise_stats_dialog.show();
         }
 
         return super.onOptionsItemSelected(item);
