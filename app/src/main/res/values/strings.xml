@@ -84,6 +84,7 @@
     <string name="exercise_stats">Exercise Statistics</string>
     <string name="max_effort_trend">Max Effort Trend</string>
     <string name="weight_trend">Weight Trend</string>
+    <string name="max_weight_lift">Heaviest Lift</string>
     <string-array name="date_filter_array">
         <item>All Time</item>
         <item>This Year</item>

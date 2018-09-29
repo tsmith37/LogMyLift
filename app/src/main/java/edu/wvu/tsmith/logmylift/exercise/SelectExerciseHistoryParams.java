@@ -38,6 +38,14 @@ public class SelectExerciseHistoryParams
         this.to_date = to_date;
     }
 
+    public SelectExerciseHistoryParams(Exercise exercise, ExerciseListOrder order, Date from_date, Date to_date)
+    {
+        this.exercise = exercise;
+        this.order = order;
+        this.from_date = from_date;
+        this.to_date = to_date;
+    }
+
     public Exercise getExercise() {return this.exercise;}
     public ExerciseListOrder getOrder() {return this.order;}
     public Date getFromDate() {return this.from_date;}

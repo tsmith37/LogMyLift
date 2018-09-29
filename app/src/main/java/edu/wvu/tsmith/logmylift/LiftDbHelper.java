@@ -27,14 +27,17 @@ import edu.wvu.tsmith.logmylift.workout.Workout;
  */
 public class LiftDbHelper extends SQLiteOpenHelper {
     public static final String DATABASE_NAME = "LogMyLiftDb.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
 
     public static final String EXERCISE_TABLE_NAME = "Exercise";
     public static final String EXERCISE_COLUMN_EXERCISE_ID = "ExerciseId";
     public static final String EXERCISE_COLUMN_DESCRIPTION = "Description";
     public static final String EXERCISE_COLUMN_LAST_WORKOUT_ID = "LastWorkoutId";
-    public static final String EXERCISE_COLUMN_MAX_LIFT_ID = "MaxLiftId";
     public static final String EXERCISE_COLUMN_NAME = "Name";
+
+    // Depricated:
+    //public static final String EXERCISE_COLUMN_MAX_LIFT_ID = "MaxLiftId";
+
 
     public static final String LIFT_TABLE_NAME = "Lift";
     public static final String LIFT_COLUMN_LIFT_ID = "LiftId";
@@ -53,6 +56,14 @@ public class LiftDbHelper extends SQLiteOpenHelper {
     public static final String SELECTED_EXERCISE_TABLE_NAME = "SelectedExercise";
     public static final String SELECTED_EXERCISE_COLUMN_EXERCISE_ID = "ExerciseId";
     public static final String SELECTED_EXERCISE_COLUMN_DATE = "Date";
+
+    public static final String MAX_WEIGHT_TABLE_NAME = "MaxWeight";
+    public static final String MAX_WEIGHT_COLUMN_EXERCISE_ID = "ExerciseId";
+    public static final String MAX_WEIGHT_COLUMN_TRAINING_WEIGHT = "TrainingWeight";
+    public static final String MAX_WEIGHT_COLUMN_EFFORT_WEIGHT = "MaxEffortWeight";
+    public static final String MAX_WEIGHT_COLUMN_EFFORT_LIFT_ID = "MaxEffortLiftId";
+    public static final String MAX_WEIGHT_COLUMN_LIFT_WEIGHT = "MaxLiftWeight";
+    public static final String MAX_WEIGHT_COLUMN_LIFT_LIFT_ID = "MaxLiftLiftId";
 
     private static final String CREATE_TABLE_EXERCISE =
             "CREATE TABLE Exercise (" +
@@ -88,6 +99,18 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                     "Date INTEGER," +
                     "FOREIGN KEY(ExerciseId) REFERENCES Exercise(ExerciseId));";
 
+    private static final String CREATE_TABLE_MAX_WEIGHT =
+            "CREATE TABLE MaxWeight (" +
+                    "ExerciseId INTEGER PRIMARY KEY," +
+                    "TrainingWeight INTEGER," +
+                    "MaxEffortWeight INTEGER," +
+                    "MaxEffortLiftId INTEGER," +
+                    "MaxLiftWeight INTEGER," +
+                    "MaxLiftLiftId INTEGER," +
+                    "FOREIGN KEY(ExerciseId) REFERENCES Exercise(ExerciseId)," +
+                    "FOREIGN KEY(MaxEffortLiftId) REFERENCES Lift(LiftId)," +
+                    "FOREIGN KEY(MaxLiftLiftId) REFERENCES Lift(LiftId));";
+
     /**
      * Default constructor for the SQLiteOpenHelper class.
      *
@@ -109,6 +132,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_TABLE_LIFT);
         db.execSQL(CREATE_TABLE_EXERCISE);
         db.execSQL(CREATE_TABLE_SELECTED_EXERCISE);
+        db.execSQL(CREATE_TABLE_MAX_WEIGHT);
     }
 
     /**
@@ -121,10 +145,315 @@ public class LiftDbHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
     {
-        if (oldVersion == 1 && newVersion >= 2)
+        if (oldVersion < 2 && newVersion >= 2)
         {
             db.execSQL(CREATE_TABLE_SELECTED_EXERCISE);
         }
+
+        if (oldVersion < 3 && newVersion >= 3)
+        {
+            db.execSQL(CREATE_TABLE_MAX_WEIGHT);
+            this.populateMaxWeightTable(db);
+        }
+    }
+
+    private void populateMaxWeightTable(SQLiteDatabase db)
+    {
+        Cursor exerciseCursor = this.selectExercisesCursor("");
+
+        while(exerciseCursor.moveToNext())
+        {
+            long exercise_id = exerciseCursor.getLong(exerciseCursor.getColumnIndexOrThrow(EXERCISE_COLUMN_EXERCISE_ID));
+            this.updateMaxWeightRecordByExercise(exercise_id);
+        }
+    }
+
+    public void updateTrainingWeight(long exercise_id, int training_weight)
+    {
+        if (this.maxWeightRecordExistsByExercise(exercise_id))
+        {
+            this.updateFieldIntFromId(MAX_WEIGHT_TABLE_NAME, MAX_WEIGHT_COLUMN_EXERCISE_ID, exercise_id, MAX_WEIGHT_COLUMN_TRAINING_WEIGHT, training_weight);
+        }
+        else
+        {
+            SQLiteDatabase db = this.getWritableDatabase();
+            ContentValues insert_values = new ContentValues();
+            insert_values.put(MAX_WEIGHT_COLUMN_EXERCISE_ID, exercise_id);
+            insert_values.put(MAX_WEIGHT_COLUMN_TRAINING_WEIGHT, training_weight);
+            db.insert(MAX_WEIGHT_TABLE_NAME, null, insert_values);
+            db.close();
+        }
+    }
+
+    public int selectTrainingWeight(long exercise_id)
+    {
+        if (!this.maxWeightRecordExistsByExercise(exercise_id))
+        {
+            return -1;
+        }
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] RETURN_COLUMNS = {MAX_WEIGHT_COLUMN_EXERCISE_ID, MAX_WEIGHT_COLUMN_TRAINING_WEIGHT};
+        String WHERE = MAX_WEIGHT_COLUMN_EXERCISE_ID + " = ?";
+        String[] where_args = {Long.toString(exercise_id)};
+
+        Cursor select_cursor = db.query(
+                MAX_WEIGHT_TABLE_NAME,
+                RETURN_COLUMNS,
+                WHERE,
+                where_args,
+                null,
+                null,
+                null);
+
+        select_cursor.moveToFirst();
+        return select_cursor.getInt(select_cursor.getColumnIndexOrThrow(MAX_WEIGHT_COLUMN_TRAINING_WEIGHT));
+    }
+
+    public boolean liftContainsMaxWeight(Lift lift)
+    {
+        // Check if a row exists in the max weight table for the exercise and lift ID.
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] RETURN_COLUMNS = {MAX_WEIGHT_COLUMN_EXERCISE_ID};
+        String WHERE = MAX_WEIGHT_COLUMN_EXERCISE_ID + " = ? AND (" + MAX_WEIGHT_COLUMN_EFFORT_LIFT_ID + " = ? OR " + MAX_WEIGHT_COLUMN_LIFT_LIFT_ID + " = ?)";
+        long exercise_id = lift.getExercise().getExerciseId();
+        String[] where_args = {Long.toString(exercise_id), Long.toString(lift.getLiftId()), Long.toString(lift.getLiftId())};
+
+        Cursor select_cursor = db.query(
+                MAX_WEIGHT_TABLE_NAME,
+                RETURN_COLUMNS,
+                WHERE,
+                where_args,
+                null,
+                null,
+                null);
+
+        boolean id_in_db = select_cursor.moveToFirst();
+        return (id_in_db);
+    }
+
+    private boolean maxWeightRecordExistsByExercise(long exercise_id)
+    {
+        // Check if a row exists in the max weight table for the exercise.
+        SQLiteDatabase db = this.getWritableDatabase();
+        String[] RETURN_COLUMNS = {MAX_WEIGHT_COLUMN_EXERCISE_ID, MAX_WEIGHT_COLUMN_EFFORT_WEIGHT, MAX_WEIGHT_COLUMN_LIFT_WEIGHT};
+        String WHERE = MAX_WEIGHT_COLUMN_EXERCISE_ID + " = ?";
+        String[] where_args = {Long.toString(exercise_id)};
+
+        Cursor select_cursor = db.query(
+                MAX_WEIGHT_TABLE_NAME,
+                RETURN_COLUMNS,
+                WHERE,
+                where_args,
+                null,
+                null,
+                null);
+
+        boolean id_in_db = select_cursor.moveToFirst();
+
+        return id_in_db;
+    }
+
+    public Lift selectMaxEffortLiftByExercise(long exercise_id)
+    {
+        if (!this.maxWeightRecordExistsByExercise(exercise_id))
+        {
+            return null;
+        }
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] RETURN_COLUMNS = {MAX_WEIGHT_COLUMN_EXERCISE_ID, MAX_WEIGHT_COLUMN_EFFORT_LIFT_ID};
+        String WHERE = MAX_WEIGHT_COLUMN_EXERCISE_ID + " = ?";
+        String[] where_args = {Long.toString(exercise_id)};
+
+        Cursor select_cursor = db.query(
+                MAX_WEIGHT_TABLE_NAME,
+                RETURN_COLUMNS,
+                WHERE,
+                where_args,
+                null,
+                null,
+                null);
+
+        select_cursor.moveToFirst();
+        long max_lift_id = select_cursor.getInt(
+                select_cursor.getColumnIndexOrThrow(MAX_WEIGHT_COLUMN_EFFORT_LIFT_ID));
+
+        return this.selectLiftFromLiftId(max_lift_id);
+    }
+
+    private int getMaxEffortByExercise(long exercise_id)
+    {
+        if (!this.maxWeightRecordExistsByExercise(exercise_id))
+        {
+            return 0;
+        }
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] RETURN_COLUMNS = {MAX_WEIGHT_COLUMN_EXERCISE_ID, MAX_WEIGHT_COLUMN_EFFORT_WEIGHT};
+        String WHERE = MAX_WEIGHT_COLUMN_EXERCISE_ID + " = ?";
+        String[] where_args = {Long.toString(exercise_id)};
+
+        Cursor select_cursor = db.query(
+                MAX_WEIGHT_TABLE_NAME,
+                RETURN_COLUMNS,
+                WHERE,
+                where_args,
+                null,
+                null,
+                null);
+
+        select_cursor.moveToFirst();
+        return select_cursor.getInt(
+                select_cursor.getColumnIndexOrThrow(MAX_WEIGHT_COLUMN_EFFORT_WEIGHT));
+    }
+
+    public Lift selectHeaviestLiftByExercise(long exercise_id)
+    {
+        if (!this.maxWeightRecordExistsByExercise(exercise_id))
+        {
+            return null;
+        }
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] RETURN_COLUMNS = {MAX_WEIGHT_COLUMN_EXERCISE_ID, MAX_WEIGHT_COLUMN_LIFT_LIFT_ID};
+        String WHERE = MAX_WEIGHT_COLUMN_EXERCISE_ID + " = ?";
+        String[] where_args = {Long.toString(exercise_id)};
+
+        Cursor select_cursor = db.query(
+                MAX_WEIGHT_TABLE_NAME,
+                RETURN_COLUMNS,
+                WHERE,
+                where_args,
+                null,
+                null,
+                null);
+
+        select_cursor.moveToFirst();
+        long max_lift_id = select_cursor.getInt(
+                select_cursor.getColumnIndexOrThrow(MAX_WEIGHT_COLUMN_LIFT_LIFT_ID));
+
+        return this.selectLiftFromLiftId(max_lift_id);
+    }
+
+    private int getMaxWeightByExercise(long exercise_id)
+    {
+        if (!this.maxWeightRecordExistsByExercise(exercise_id))
+        {
+            return 0;
+        }
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] RETURN_COLUMNS = {MAX_WEIGHT_COLUMN_EXERCISE_ID, MAX_WEIGHT_COLUMN_LIFT_WEIGHT};
+        String WHERE = MAX_WEIGHT_COLUMN_EXERCISE_ID + " = ?";
+        String[] where_args = {Long.toString(exercise_id)};
+
+        Cursor select_cursor = db.query(
+                MAX_WEIGHT_TABLE_NAME,
+                RETURN_COLUMNS,
+                WHERE,
+                where_args,
+                null,
+                null,
+                null);
+
+        select_cursor.moveToFirst();
+        return select_cursor.getInt(
+                select_cursor.getColumnIndexOrThrow(MAX_WEIGHT_COLUMN_LIFT_WEIGHT));
+    }
+
+    public void updateMaxWeightTableWithLift(Lift new_lift)
+    {
+        // The row already exists, so update it if applicable.
+        long exercise_id = new_lift.getExercise().getExerciseId();
+        if (this.maxWeightRecordExistsByExercise(exercise_id))
+        {
+            // Update the max effort of the exercise if the max effort new lift is >= the max effort
+            // in the max weight table.
+            int current_max_effort_weight = this.getMaxEffortByExercise(exercise_id);
+            if (new_lift.calculateMaxEffort() >= current_max_effort_weight)
+            {
+                this.updateFieldLongFromId(MAX_WEIGHT_TABLE_NAME, MAX_WEIGHT_COLUMN_EXERCISE_ID, exercise_id, MAX_WEIGHT_COLUMN_EFFORT_LIFT_ID, new_lift.getLiftId());
+                this.updateFieldIntFromId(MAX_WEIGHT_TABLE_NAME, MAX_WEIGHT_COLUMN_EXERCISE_ID, exercise_id, MAX_WEIGHT_COLUMN_EFFORT_WEIGHT, new_lift.calculateMaxEffort());
+            }
+
+            // Update the max weight of the exercise if the weight of the new lift is >= the max weight
+            // in the max weight table.
+            int current_max_weight = this.getMaxWeightByExercise(exercise_id);
+            if (new_lift.getWeight() >= current_max_weight)
+            {
+                this.updateFieldLongFromId(MAX_WEIGHT_TABLE_NAME, MAX_WEIGHT_COLUMN_EXERCISE_ID, exercise_id, MAX_WEIGHT_COLUMN_LIFT_LIFT_ID, new_lift.getLiftId());
+                this.updateFieldIntFromId(MAX_WEIGHT_TABLE_NAME, MAX_WEIGHT_COLUMN_EXERCISE_ID, exercise_id, MAX_WEIGHT_COLUMN_LIFT_WEIGHT, new_lift.getWeight());
+            }
+        }
+        else
+        {
+            // Insert a new row because none exists.
+            this.createNewMaxWeightRecord(exercise_id, new_lift.getLiftId(), new_lift.calculateMaxEffort(), new_lift.getLiftId(), new_lift.getWeight());
+        }
+    }
+
+    public void updateMaxWeightRecordByExercise(long exercise_id)
+    {
+        // Check if the exercise has ever been done.
+        SelectExerciseHistoryParams.ExerciseListOrder by_max_effort = SelectExerciseHistoryParams.ExerciseListOrder.MAX_DESC;
+        SelectExerciseHistoryParams select_exercise_history_params = new SelectExerciseHistoryParams(this.selectExerciseFromExerciseId(exercise_id), by_max_effort);
+        ArrayList<Lift> exercise_history = this.selectExerciseHistoryLifts(select_exercise_history_params);
+
+        if (0 == exercise_history.size())
+        {
+            // Delete the max weight record, if it exists. The exercise has never been done.
+            this.deleteRowById(MAX_WEIGHT_TABLE_NAME, MAX_WEIGHT_COLUMN_EXERCISE_ID, exercise_id);
+            return;
+        }
+
+        // Calculate the max effort lift and the max weight lift.
+        Lift max_effort_lift = this.calculateMaxEffortLiftByExercise(exercise_id);
+        int max_effort_weight = 0;
+        if (max_effort_lift != null)
+        {
+            max_effort_weight = max_effort_lift.calculateMaxEffort();
+        }
+
+        Lift max_lift_lift = this.calculateHeaviestLiftByExercise(exercise_id);
+        int max_lift_weight = 0;
+        if (max_lift_lift != null)
+        {
+            max_lift_weight = max_lift_lift.getWeight();
+        }
+
+        // Check if a max weight record already exists.
+        if (this.maxWeightRecordExistsByExercise(exercise_id))
+        {
+            // Update the existing max weight record.
+            this.updateMaxWeightRecord(exercise_id, max_effort_lift.getLiftId(), max_effort_weight, max_lift_lift.getLiftId(), max_lift_weight);
+        }
+        else
+        {
+            // Create a new max weight record.
+            this.createNewMaxWeightRecord(exercise_id, max_effort_lift.getLiftId(), max_effort_weight, max_lift_lift.getLiftId(), max_lift_weight);
+        }
+    }
+
+    private void createNewMaxWeightRecord(long exercise_id, long max_effort_lift_id, int max_effort_weight, long max_weight_lift_id, int max_lift_weight)
+    {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues insert_values = new ContentValues();
+        insert_values.put(MAX_WEIGHT_COLUMN_EXERCISE_ID, exercise_id);
+        insert_values.put(MAX_WEIGHT_COLUMN_EFFORT_LIFT_ID, max_effort_lift_id);
+        insert_values.put(MAX_WEIGHT_COLUMN_EFFORT_WEIGHT, max_effort_weight);
+        insert_values.put(MAX_WEIGHT_COLUMN_LIFT_LIFT_ID, max_weight_lift_id);
+        insert_values.put(MAX_WEIGHT_COLUMN_LIFT_WEIGHT, max_lift_weight);
+        db.insert(MAX_WEIGHT_TABLE_NAME, null, insert_values);
+        db.close();
+    }
+
+    private void updateMaxWeightRecord(long exercise_id, long max_effort_lift_id, int max_effort_weight, long max_weight_lift_id, int max_lift_weight)
+    {
+        this.updateFieldLongFromId(MAX_WEIGHT_TABLE_NAME, MAX_WEIGHT_COLUMN_EXERCISE_ID, exercise_id, MAX_WEIGHT_COLUMN_EFFORT_LIFT_ID, max_effort_lift_id);
+        this.updateFieldIntFromId(MAX_WEIGHT_TABLE_NAME, MAX_WEIGHT_COLUMN_EXERCISE_ID, exercise_id, MAX_WEIGHT_COLUMN_EFFORT_WEIGHT, max_effort_weight);
+        this.updateFieldLongFromId(MAX_WEIGHT_TABLE_NAME, MAX_WEIGHT_COLUMN_EXERCISE_ID, exercise_id, MAX_WEIGHT_COLUMN_LIFT_LIFT_ID, max_weight_lift_id);
+        this.updateFieldIntFromId(MAX_WEIGHT_TABLE_NAME, MAX_WEIGHT_COLUMN_EXERCISE_ID, exercise_id, MAX_WEIGHT_COLUMN_LIFT_WEIGHT, max_lift_weight);
     }
 
     /**
@@ -264,7 +593,6 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         String[] RETURN_COLUMNS = {
                 EXERCISE_COLUMN_NAME,
                 EXERCISE_COLUMN_DESCRIPTION,
-                EXERCISE_COLUMN_MAX_LIFT_ID,
                 EXERCISE_COLUMN_LAST_WORKOUT_ID
         };
 
@@ -289,13 +617,11 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                 select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_NAME));
         String description = select_cursor.getString(
                 select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_DESCRIPTION));
-        long max_lift_id = select_cursor.getLong(
-                select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_MAX_LIFT_ID));
         long last_workout_id = select_cursor.getLong(
                 select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_LAST_WORKOUT_ID));
         select_cursor.close();
         db.close();
-        return new Exercise(exercise_id, name, description, max_lift_id, last_workout_id);
+        return new Exercise(exercise_id, name, description, last_workout_id);
     }
 
     public Exercise selectExerciseFromName(String exercise_name)
@@ -305,7 +631,6 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                 EXERCISE_COLUMN_EXERCISE_ID,
                 EXERCISE_COLUMN_NAME,
                 EXERCISE_COLUMN_DESCRIPTION,
-                EXERCISE_COLUMN_MAX_LIFT_ID,
                 EXERCISE_COLUMN_LAST_WORKOUT_ID
         };
 
@@ -332,13 +657,11 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                 select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_NAME));
         String description = select_cursor.getString(
                 select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_DESCRIPTION));
-        long max_lift_id = select_cursor.getLong(
-                select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_MAX_LIFT_ID));
         long last_workout_id = select_cursor.getLong(
                 select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_LAST_WORKOUT_ID));
         select_cursor.close();
         db.close();
-        return new Exercise(exercise_id, name, description, max_lift_id, last_workout_id);
+        return new Exercise(exercise_id, name, description, last_workout_id);
     }
 
     /**
@@ -367,7 +690,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
      */
     public ArrayList<Exercise> selectExerciseList(String filter) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String[] RETURN_COLUMNS =  { EXERCISE_COLUMN_EXERCISE_ID, EXERCISE_COLUMN_NAME, EXERCISE_COLUMN_DESCRIPTION, EXERCISE_COLUMN_LAST_WORKOUT_ID, EXERCISE_COLUMN_MAX_LIFT_ID };
+        String[] RETURN_COLUMNS =  { EXERCISE_COLUMN_EXERCISE_ID, EXERCISE_COLUMN_NAME, EXERCISE_COLUMN_DESCRIPTION, EXERCISE_COLUMN_LAST_WORKOUT_ID };
         String WHERE = EXERCISE_COLUMN_NAME + " LIKE ?";
         String[] where_args = { "%" + filter + "%" };
         Cursor select_cursor = db.query(
@@ -385,7 +708,6 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                     select_cursor.getLong(select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_EXERCISE_ID)),
                     select_cursor.getString(select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_NAME)),
                     select_cursor.getString(select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_DESCRIPTION)),
-                    select_cursor.getLong(select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_MAX_LIFT_ID)),
                     select_cursor.getLong(select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_LAST_WORKOUT_ID))));
         }
         select_cursor.close();
@@ -588,7 +910,6 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                         select_cursor.getLong(select_cursor.getColumnIndex(LIFT_COLUMN_EXERCISE_ID)),
                         select_cursor.getString(select_cursor.getColumnIndex(EXERCISE_COLUMN_NAME)),
                         select_cursor.getString(select_cursor.getColumnIndex(EXERCISE_COLUMN_DESCRIPTION)),
-                        select_cursor.getLong(select_cursor.getColumnIndex(EXERCISE_COLUMN_MAX_LIFT_ID)),
                         select_cursor.getLong(select_cursor.getColumnIndex(EXERCISE_COLUMN_LAST_WORKOUT_ID))),
                 select_cursor.getInt(select_cursor.getColumnIndex(LIFT_COLUMN_REPS)),
                 new Date(select_cursor.getLong(select_cursor.getColumnIndex(LIFT_COLUMN_START_DATE))),
@@ -746,6 +1067,37 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         db.close();
     }
 
+
+    /**
+     * Update an int field of a row based on its ID. Generic function in order to make the
+     * calling functions easier to generate.
+     * @param table_name            Table to update.
+     * @param id_column_name        Column name on which to identify the row to update.
+     * @param id                    ID to identify the row to update.
+     * @param field_column_name     Column name to update.
+     * @param field_int             Value to update.
+     */
+    private void updateFieldIntFromId(
+            String table_name,
+            String id_column_name,
+            long id,
+            String field_column_name,
+            int field_int) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues update_values = new ContentValues();
+        update_values.put(field_column_name, field_int);
+
+        String WHERE =  id_column_name + " = ?";
+        String[] where_args = { Long.toString(id)};
+        db.update(
+                table_name,
+                update_values,
+                WHERE,
+                where_args);
+        db.close();
+    }
+
     /**
      * Update a string field of a row based on its ID. Generic function in order to make the
      * calling functions easier to generate.
@@ -804,35 +1156,9 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                 exercise.getLastWorkoutId());
     }
 
-    /**
-     * Update the ID of the maximum effort lift of the exercise.
-     * @param exercise      Exercise to update.
-     */
-    public void updateMaxLiftIdOfExercise(Exercise exercise)
-    {
-        updateFieldLongFromId(
-                EXERCISE_TABLE_NAME,
-                EXERCISE_COLUMN_EXERCISE_ID,
-                exercise.getExerciseId(),
-                EXERCISE_COLUMN_MAX_LIFT_ID,
-                exercise.getMaxLiftId());
-    }
-
     public void updateMaxLiftIdOfExerciseToNull(Exercise exercise)
     {
-        SQLiteDatabase db = this.getWritableDatabase();
-
-        ContentValues update_values = new ContentValues();
-        update_values.putNull(EXERCISE_COLUMN_MAX_LIFT_ID);
-
-        String WHERE =  EXERCISE_COLUMN_EXERCISE_ID + " = ?";
-        String[] where_args = { Long.toString(exercise.getExerciseId())};
-        db.update(
-                EXERCISE_TABLE_NAME,
-                update_values,
-                WHERE,
-                where_args);
-        db.close();
+        this.deleteRowById(MAX_WEIGHT_TABLE_NAME, MAX_WEIGHT_COLUMN_EXERCISE_ID, exercise.getExerciseId());
     }
 
     /**
@@ -867,7 +1193,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                 where_args);
         db.close();
 
-        updateMaxLiftIdOfExercise(lift.getExercise());
+        this.updateMaxWeightTableWithLift(lift);
     }
 
     /**
@@ -969,7 +1295,6 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                 EXERCISE_COLUMN_EXERCISE_ID,
                 EXERCISE_COLUMN_NAME,
                 EXERCISE_COLUMN_DESCRIPTION,
-                EXERCISE_COLUMN_MAX_LIFT_ID,
                 EXERCISE_COLUMN_LAST_WORKOUT_ID
         };
 
@@ -995,13 +1320,11 @@ public class LiftDbHelper extends SQLiteOpenHelper {
                 select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_NAME));
         String description = select_cursor.getString(
                 select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_DESCRIPTION));
-        long max_lift_id = select_cursor.getLong(
-                select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_MAX_LIFT_ID));
         long last_workout_id = select_cursor.getLong(
                 select_cursor.getColumnIndexOrThrow(EXERCISE_COLUMN_LAST_WORKOUT_ID));
         select_cursor.close();
         db.close();
-        return new Exercise(exercise_id, name, description, max_lift_id, last_workout_id);
+        return new Exercise(exercise_id, name, description, last_workout_id);
     }
 
     public Map<Long, Integer> getSimilarExercises(Long exercise_id)
@@ -1092,7 +1415,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         return retArray;
     }
 
-    public Lift selectHeaviestLiftByExercise(long exercise_id)
+    private Lift calculateHeaviestLiftByExercise(long exercise_id)
     {
         SQLiteDatabase db = this.getReadableDatabase();
         String[] RETURN_COLUMNS =
@@ -1142,6 +1465,18 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         select_cursor.close();
         db.close();
         return new Lift(lift_id, exercise, reps, start_date, weight, workout_id, comment);
+    }
+
+    private Lift calculateMaxEffortLiftByExercise(long exercise_id)
+    {
+        SelectExerciseHistoryParams params = new SelectExerciseHistoryParams(this.selectExerciseFromExerciseId(exercise_id), SelectExerciseHistoryParams.ExerciseListOrder.MAX_DESC);
+        ArrayList<Lift> lifts = this.selectExerciseHistoryLifts(params);
+        if (lifts.isEmpty())
+        {
+            return null;
+        }
+
+        return lifts.get(0);
     }
 
     public int selectCountOfLiftsByExercise(long exercise_id)

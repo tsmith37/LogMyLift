@@ -36,10 +36,17 @@
                     android:layout_marginStart="6sp"
                     style="@style/ListMinorTextView" />
                 <TextView
-                    android:id="@+id/last_performed_text_view"
+                    android:id="@+id/max_weight_text_view"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_below="@id/max_effort_text_view"
+                    android:layout_marginStart="6sp"
+                    style="@style/ListMinorTextView" />
+                <TextView
+                    android:id="@+id/last_performed_text_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/max_weight_text_view"
                     android:layout_marginStart="6sp"
                     style="@style/ListMinorTextView" />
             </RelativeLayout>

@@ -60,7 +60,15 @@
                 android:layout_below="@id/comment_text_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
                 android:text="@string/max_effort_lift"
+                style="@style/ListMajorTextView"/>
+            <TextView
+                android:id="@+id/max_weight_text_view"
+                android:layout_below="@id/max_effort_text_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/max_weight_lift"
                 style="@style/ListMajorTextView"/>
         </RelativeLayout>
     </android.support.v7.widget.CardView>

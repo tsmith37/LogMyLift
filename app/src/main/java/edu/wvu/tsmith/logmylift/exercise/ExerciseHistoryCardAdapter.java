@@ -77,13 +77,24 @@ class ExerciseHistoryCardAdapter extends RecyclerView.Adapter<ExerciseHistoryCar
             holder.comment_text_view.setVisibility(View.VISIBLE);
         }
 
-        if (current_exercise.getMaxLiftId() != current_lift.getLiftId())
+        Lift max_effort_lift_for_exercise = lift_db_helper.selectMaxEffortLiftByExercise(current_exercise.getExerciseId());
+        if (max_effort_lift_for_exercise != null && max_effort_lift_for_exercise.getLiftId() == current_lift.getLiftId())
         {
-            holder.max_effort_text_view.setVisibility(View.GONE);
+            holder.max_effort_text_view.setVisibility(View.VISIBLE);
         }
         else
         {
-            holder.max_effort_text_view.setVisibility(View.VISIBLE);
+            holder.max_effort_text_view.setVisibility(View.GONE);
+        }
+
+        Lift heaviest_lift_for_exercise = lift_db_helper.selectHeaviestLiftByExercise(current_exercise.getExerciseId());
+        if (heaviest_lift_for_exercise != null && heaviest_lift_for_exercise.getLiftId() == current_lift.getLiftId())
+        {
+            holder.max_weight_text_view.setVisibility(View.VISIBLE);
+        }
+        else
+        {
+            holder.max_weight_text_view.setVisibility(View.GONE);
         }
     }
 
@@ -111,6 +122,7 @@ class ExerciseHistoryCardAdapter extends RecyclerView.Adapter<ExerciseHistoryCar
         final TextView reps_text_view;
         final TextView lift_time_text_view;
         final TextView comment_text_view;
+        final TextView max_weight_text_view;
         final TextView max_effort_text_view;
 
         /**
@@ -124,6 +136,7 @@ class ExerciseHistoryCardAdapter extends RecyclerView.Adapter<ExerciseHistoryCar
             this.reps_text_view = view.findViewById(R.id.reps_text_view);
             this.lift_time_text_view = view.findViewById(R.id.lift_time_text_view);
             this.comment_text_view = view.findViewById(R.id.comment_text_view);
+            this.max_weight_text_view = view.findViewById(R.id.max_weight_text_view);
             this.max_effort_text_view = view.findViewById(R.id.max_effort_text_view);
         }
     }

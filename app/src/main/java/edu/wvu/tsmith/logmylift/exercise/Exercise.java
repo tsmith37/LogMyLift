@@ -19,9 +19,12 @@ public class Exercise
 {
     private String description;
     private final long exercise_id;
-    private long max_lift_id;
     private String name;
     private long last_workout_id;
+
+    // Depricated:
+    //private long max_lift_id;
+
 
     /**
      * Constructor of a new exercise. Given the SQLite database helper, name, and description
@@ -52,22 +55,19 @@ public class Exercise
      * @param exercise_id       Unique exercise ID.
      * @param name              Name of the exercise.
      * @param description       Exercise description.
-     * @param max_lift_id       Lift of the maximum effort of the exercise.
      * @param last_workout_id   Most recent workout ID that the exercise was performed.
      */
-    public Exercise(long exercise_id, String name, String description, long max_lift_id, long last_workout_id)
+    public Exercise(long exercise_id, String name, String description, long last_workout_id)
     {
         this.exercise_id = exercise_id;
         this.name = name;
         this.description = description;
-        this.max_lift_id = max_lift_id;
         this.last_workout_id = last_workout_id;
     }
 
     // Public access to read-only members.
     public long getExerciseId() { return this.exercise_id; }
     public long getLastWorkoutId() { return this.last_workout_id; }
-    public long getMaxLiftId() { return this.max_lift_id; }
     public String getName() { return this.name; }
     public String getDescription() { return this.description; }
 
@@ -102,33 +102,12 @@ public class Exercise
     }
 
     /**
-     * Updates the ID of the maximum effort lift of the exercise.
-     * @param max_lift_id   The ID of the maximum effort lift.
-     */
-    public void setMaxLiftId(LiftDbHelper lift_db_helper, long max_lift_id)
-    {
-        this.max_lift_id = max_lift_id;
-        lift_db_helper.updateMaxLiftIdOfExercise(this);
-    }
-
-    /**
      * Deletes the exercise from the database.
      * @param lift_db_helper    The database helper.
      */
     void delete(LiftDbHelper lift_db_helper)
     {
         lift_db_helper.deleteExercise(this);
-    }
-
-    /**
-     * Clears the ID of the maximum effort lift. This should only happen if the only instance of a
-     * lift with this exercise is deleted.
-     * @param lift_db_helper    The database helper.
-     */
-    public void clearMaxLiftId(LiftDbHelper lift_db_helper)
-    {
-        this.max_lift_id = -1;
-        lift_db_helper.updateMaxLiftIdOfExerciseToNull(this);
     }
 
     class ExerciseAlreadyExistsException extends RuntimeException

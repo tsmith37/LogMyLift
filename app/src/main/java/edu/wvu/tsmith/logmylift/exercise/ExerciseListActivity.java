@@ -164,7 +164,7 @@ public class ExerciseListActivity extends AppCompatActivity {
             }
 
             // If the exercise has a max effort lift, display it.
-            Lift max_effort_lift = lift_db_helper.selectLiftFromLiftId(current_exercise.getMaxLiftId());
+            Lift max_effort_lift = lift_db_helper.selectMaxEffortLiftByExercise(current_exercise.getExerciseId());
             if (max_effort_lift != null)
             {
                 holder.max_effort_text_view.setText(getString(R.string.max_effort) + ": " + Integer.toString(max_effort_lift.getWeight()) + " for " + Integer.toString(max_effort_lift.getReps()) + " on " + max_effort_lift.getReadableStartDate());
@@ -173,6 +173,18 @@ public class ExerciseListActivity extends AppCompatActivity {
             else
             {
                 holder.max_effort_text_view.setVisibility(View.GONE);
+            }
+
+            // If the exercise has a max weight lift, display it.
+            Lift max_weight_lift = lift_db_helper.selectHeaviestLiftByExercise(current_exercise.getExerciseId());
+            if (max_weight_lift != null)
+            {
+                holder.max_weight_text_view.setText(getString(R.string.heaviest_lift) + ": " + Integer.toString(max_weight_lift.getWeight()) + " for " + Integer.toString(max_weight_lift.getReps()) + " on " + max_weight_lift.getReadableStartDate());
+                holder.max_weight_text_view.setVisibility(View.VISIBLE);
+            }
+            else
+            {
+                holder.max_weight_text_view.setVisibility(View.GONE);
             }
 
             // Display the last time the lift was performed if possible.
@@ -276,6 +288,7 @@ public class ExerciseListActivity extends AppCompatActivity {
             final TextView exercise_name_text_view;
             final TextView exercise_description_text_view;
             final TextView max_effort_text_view;
+            final TextView max_weight_text_view;
             final TextView last_performed_text_view;
 
             final ImageButton delete_exercise_button;
@@ -291,6 +304,7 @@ public class ExerciseListActivity extends AppCompatActivity {
                 this.exercise_name_text_view = view.findViewById(R.id.exercise_name_text_view);
                 this.exercise_description_text_view = view.findViewById(R.id.exercise_description_text_view);
                 this.max_effort_text_view = view.findViewById(R.id.max_effort_text_view);
+                this.max_weight_text_view = view.findViewById(R.id.max_weight_text_view);
                 this.last_performed_text_view = view.findViewById(R.id.last_performed_text_view);
 
                 this.delete_exercise_button = view.findViewById(R.id.delete_exercise_button);

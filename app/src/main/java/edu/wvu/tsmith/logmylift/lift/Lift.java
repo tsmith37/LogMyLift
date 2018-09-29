@@ -50,18 +50,7 @@ public class Lift
 
         this.exercise.setLastWorkoutId(lift_db_helper, this.workout_id);
 
-        Lift exercise_max_effort_lift = lift_db_helper.selectLiftFromLiftId(this.exercise.getMaxLiftId());
-        if (exercise_max_effort_lift != null) {
-            int exercise_current_max_effort = exercise_max_effort_lift.calculateMaxEffort();
-
-            if (calculateMaxEffort() > exercise_current_max_effort) {
-                this.exercise.setMaxLiftId(lift_db_helper, this.lift_id);
-            }
-        }
-        else
-        {
-            this.exercise.setMaxLiftId(lift_db_helper, this.lift_id);
-        }
+        lift_db_helper.updateMaxWeightTableWithLift(this);
     }
 
     /**
@@ -120,18 +109,12 @@ public class Lift
     public void delete(LiftDbHelper lift_db_helper)
     {
         lift_db_helper.deleteLift(this);
-        SelectExerciseHistoryParams.ExerciseListOrder by_max_effort = SelectExerciseHistoryParams.ExerciseListOrder.MAX_DESC;
-        SelectExerciseHistoryParams select_exercise_history_params = new SelectExerciseHistoryParams(this.exercise, by_max_effort);
-        ArrayList<Lift> exercise_history = lift_db_helper.selectExerciseHistoryLifts(select_exercise_history_params);
 
-        if (0 == exercise_history.size())
+        // Check if the lift was a maximum effort or maximum weight lift. Do this so that we don't
+        // calculate and update these values if it's not necessary.
+        if (lift_db_helper.liftContainsMaxWeight(this))
         {
-            this.exercise.clearMaxLiftId(lift_db_helper);
-        }
-        else
-        {
-            Lift max_effort_lift_found = exercise_history.get(0);
-            this.exercise.setMaxLiftId(lift_db_helper, max_effort_lift_found.getLiftId());
+            lift_db_helper.updateMaxWeightRecordByExercise(this.getExercise().getExerciseId());
         }
     }
 

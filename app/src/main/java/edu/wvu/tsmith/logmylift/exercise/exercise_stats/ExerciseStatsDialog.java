@@ -77,16 +77,22 @@ public class ExerciseStatsDialog
 
     private void setMaxEffortTextView(TextView max_effort_text_view)
     {
-        Lift max_lift = this.lift_db_helper.selectLiftFromLiftId(this.exercise.getMaxLiftId());
-        String max_effort_text = String.format("%s %d (%d for %d)", this.context.getString(R.string.max_effort), max_lift.calculateMaxEffort(), max_lift.getWeight(), max_lift.getReps());
-        max_effort_text_view.setText(max_effort_text);
+        Lift max_lift = this.lift_db_helper.selectMaxEffortLiftByExercise(this.exercise_id);
+        if (max_lift != null)
+        {
+            String max_effort_text = String.format("%s %d (%d for %d)", this.context.getString(R.string.max_effort), max_lift.calculateMaxEffort(), max_lift.getWeight(), max_lift.getReps());
+            max_effort_text_view.setText(max_effort_text);
+        }
     }
 
     private void setHeaviestLiftTextView(TextView heaviest_lift_text_view)
     {
         Lift heaviest_lift = this.lift_db_helper.selectHeaviestLiftByExercise(this.exercise_id);
-        String heaviest_lift_text = String.format("%s %d for %d", this.context.getString(R.string.heaviest_lift), heaviest_lift.getWeight(), heaviest_lift.getReps());
-        heaviest_lift_text_view.setText(heaviest_lift_text);
+        if (heaviest_lift != null)
+        {
+            String heaviest_lift_text = String.format("%s %d for %d", this.context.getString(R.string.heaviest_lift), heaviest_lift.getWeight(), heaviest_lift.getReps());
+            heaviest_lift_text_view.setText(heaviest_lift_text);
+        }
     }
 
     private void setLiftsPerformedTextView(TextView lifts_performed_text_view)

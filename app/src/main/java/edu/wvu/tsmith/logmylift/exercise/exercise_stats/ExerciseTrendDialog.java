@@ -115,10 +115,13 @@ public class ExerciseTrendDialog
 
         // set manual x bounds to have nice steps
         graph.getViewport().setXAxisBoundsManual(true);
-
-        graph.getViewport().setYAxisBoundsManual(true);
         graph.getViewport().setMinX(series.getLowestValueX());
         graph.getViewport().setMaxX(series.getHighestValueX());
+
+        graph.getViewport().setScalable(true);
+        graph.getViewport().setScrollable(true);
+        graph.getViewport().setScalableY(true);
+        graph.getViewport().setScrollableY(true);
 
         // as we use dates as labels, the human rounding to nice readable numbers
         // is not necessary
