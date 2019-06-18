@@ -4,6 +4,17 @@
     android:layout_width="wrap_content"
     android:layout_height="match_parent">
     <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center">
+        <Spinner
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/percent_max_type_spinner">
+        </Spinner>
+    </LinearLayout>
+    <LinearLayout
         android:id="@+id/weight_reps_horizontal_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

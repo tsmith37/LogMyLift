@@ -179,7 +179,7 @@ public class ExerciseListActivity extends AppCompatActivity {
             Lift max_weight_lift = lift_db_helper.selectHeaviestLiftByExercise(current_exercise.getExerciseId());
             if (max_weight_lift != null)
             {
-                holder.max_weight_text_view.setText(getString(R.string.heaviest_lift) + ": " + Integer.toString(max_weight_lift.getWeight()) + " for " + Integer.toString(max_weight_lift.getReps()) + " on " + max_weight_lift.getReadableStartDate());
+                holder.max_weight_text_view.setText(getString(R.string.heaviest_lift) + " " + Integer.toString(max_weight_lift.getWeight()) + " for " + Integer.toString(max_weight_lift.getReps()) + " on " + max_weight_lift.getReadableStartDate());
                 holder.max_weight_text_view.setVisibility(View.VISIBLE);
             }
             else

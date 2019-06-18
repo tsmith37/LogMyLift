@@ -16,6 +16,7 @@ import java.util.TreeMap;
 import edu.wvu.tsmith.logmylift.exercise.Exercise;
 import edu.wvu.tsmith.logmylift.lift.Lift;
 import edu.wvu.tsmith.logmylift.exercise.SelectExerciseHistoryParams;
+import edu.wvu.tsmith.logmylift.upgradability.MaxWeightPopulator;
 import edu.wvu.tsmith.logmylift.workout.LoadWorkoutHistoryListParams;
 import edu.wvu.tsmith.logmylift.workout.Workout;
 
@@ -159,13 +160,8 @@ public class LiftDbHelper extends SQLiteOpenHelper {
 
     private void populateMaxWeightTable(SQLiteDatabase db)
     {
-        Cursor exerciseCursor = this.selectExercisesCursor("");
-
-        while(exerciseCursor.moveToNext())
-        {
-            long exercise_id = exerciseCursor.getLong(exerciseCursor.getColumnIndexOrThrow(EXERCISE_COLUMN_EXERCISE_ID));
-            this.updateMaxWeightRecordByExercise(exercise_id);
-        }
+        MaxWeightPopulator populateMaxWeight = new MaxWeightPopulator(db);
+        populateMaxWeight.run();
     }
 
     public void updateTrainingWeight(long exercise_id, int training_weight)
