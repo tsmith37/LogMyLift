@@ -110,7 +110,7 @@ public class ExerciseDetailActivity extends AppCompatActivity
         }
         else if (id == R.id.percent_max_menu_item)
         {
-            PercentMaxCalculatorDialog max_calculator_dialog = new PercentMaxCalculatorDialog(parent_view.getContext());
+            PercentMaxCalculatorDialog max_calculator_dialog = new PercentMaxCalculatorDialog(parent_view.getContext(), exercise_detail_fragment.current_exercise);
             max_calculator_dialog.show();
         }
         else if (id == R.id.exercise_stats_menu_item)

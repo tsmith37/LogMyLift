@@ -15,6 +15,69 @@
         </Spinner>
     </LinearLayout>
     <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dialog_vertical_margin"
+        android:layout_marginBottom="@dimen/dialog_vertical_margin"
+        android:id="@+id/exercise_selector_layout"
+        android:orientation="horizontal">
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dialog_horizontal_margins"
+            android:layout_marginEnd="@dimen/dialog_start_and_end_horizontal_margins">
+            <AutoCompleteTextView
+                android:id="@+id/exercise_input"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/dialog_button_height"
+                android:background="@drawable/rounded_autocompletetextview"
+                android:textAlignment="center"
+                android:textSize="@dimen/dialog_text_size"
+                android:hint="@string/exercise_name"/>
+            <ImageButton
+                android:id="@+id/clear_exercise_button"
+                android:layout_gravity="end|center_vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:layout_marginEnd="@dimen/fab_margin"
+                android:src="@drawable/ic_clear_black_24dp"
+                android:contentDescription="@string/clear_exercise_filter"/>
+        </FrameLayout>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dialog_vertical_margin"
+        android:layout_marginBottom="@dimen/dialog_vertical_margin"
+        android:id="@+id/max_value_layout"
+        android:orientation="horizontal">
+        <EditText
+            android:id="@+id/training_weight_edit_text"
+            android:hint= "@string/weight"
+            android:inputType="number"
+            android:background="@drawable/rounded_autocompletetextview"
+            style="@style/Widget.AppCompat.EditText"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="@dimen/dialog_button_height"
+            android:layout_marginStart="@dimen/dialog_start_and_end_horizontal_margins"
+            android:layout_marginEnd="@dimen/dialog_horizontal_margins"
+            android:ellipsize="start"
+            android:gravity="center"
+            android:textSize="@dimen/dialog_text_size"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/dialog_button_height"
+            android:layout_marginStart="@dimen/dialog_start_and_end_horizontal_margins"
+            android:layout_marginEnd="@dimen/dialog_start_and_end_horizontal_margins"
+            android:layout_marginBottom="@dimen/dialog_vertical_margin"
+            android:text="@string/update_training_weight"
+            android:textColor="@android:color/white"
+            android:background="@drawable/rounded_button"
+            android:id="@+id/update_training_weight_button"/>
+    </LinearLayout>
+    <LinearLayout
         android:id="@+id/weight_reps_horizontal_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

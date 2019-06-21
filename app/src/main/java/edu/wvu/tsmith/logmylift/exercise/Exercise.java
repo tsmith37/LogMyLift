@@ -101,6 +101,26 @@ public class Exercise
         lift_db_helper.updateLastWorkoutIdOfExercise(this);
     }
 
+    public int getMaxEffort(LiftDbHelper lift_db_helper)
+    {
+        return lift_db_helper.getMaxEffortByExercise(this.exercise_id);
+    }
+
+    public int getMaxWeight(LiftDbHelper lift_db_helper)
+    {
+        return lift_db_helper.getMaxWeightByExercise(this.exercise_id);
+    }
+
+    public int getTrainingWeight(LiftDbHelper lift_db_helper)
+    {
+        return lift_db_helper.selectTrainingWeight(this.exercise_id);
+    }
+
+    public void updateTrainingWeight(LiftDbHelper lift_db_helper, int training_weight)
+    {
+        lift_db_helper.updateTrainingWeight(this.exercise_id, training_weight);
+    }
+
     /**
      * Deletes the exercise from the database.
      * @param lift_db_helper    The database helper.

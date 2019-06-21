@@ -29,10 +29,17 @@
                     android:layout_marginStart="6sp"
                     style="@style/ListMinorTextView" />
                 <TextView
-                    android:id="@+id/max_effort_text_view"
+                    android:id="@+id/training_weight_text_view"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_below="@id/exercise_description_text_view"
+                    android:layout_marginStart="6sp"
+                    style="@style/ListMinorTextView" />
+                <TextView
+                    android:id="@+id/max_effort_text_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/training_weight_text_view"
                     android:layout_marginStart="6sp"
                     style="@style/ListMinorTextView" />
                 <TextView

@@ -156,7 +156,7 @@ public class AddLift extends AppCompatActivity
         }
         else if (id == R.id.percent_max_menu_item)
         {
-            PercentMaxCalculatorDialog max_calculator_dialog = new PercentMaxCalculatorDialog(this);
+            PercentMaxCalculatorDialog max_calculator_dialog = new PercentMaxCalculatorDialog(this, new LiftDbHelper(this).selectMostRecentExercise());
             max_calculator_dialog.show();
         }
         return super.onOptionsItemSelected(item);

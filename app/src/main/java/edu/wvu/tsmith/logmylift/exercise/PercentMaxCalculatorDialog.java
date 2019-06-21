@@ -1,6 +1,7 @@
 package edu.wvu.tsmith.logmylift.exercise;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Typeface;
 import android.support.v7.app.AlertDialog;
 import android.view.Gravity;
@@ -8,8 +9,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.Button;
+import android.widget.CursorAdapter;
 import android.widget.EditText;
+import android.widget.FilterQueryProvider;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.NumberPicker;
+import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -28,12 +36,21 @@ import edu.wvu.tsmith.logmylift.lift.Lift;
 public class PercentMaxCalculatorDialog
 {
     private Context context;
+    private Exercise currentExercise;
     private Spinner maxTypeSpinner;
     private NumberPicker percentagePicker;
-    private EditText exerciseEditText;
+    private AutoCompleteTextView exerciseTextView;
+    private EditText exerciseWeightEditText;
     private EditText customWeightEditText;
     private EditText customRepsEditText;
     private TextView percentMaxTextView;
+    private LinearLayout exerciseSelectorLayout;
+    private LinearLayout maxValueLayout;
+    private LinearLayout weightRepsLayout;
+    private ImageButton clearExerciseButton;
+    private Button updateTrainingWeightButton;
+
+    private int one_rep_max = 0;
 
     private enum PercentMaxType
     {
@@ -43,6 +60,12 @@ public class PercentMaxCalculatorDialog
     public PercentMaxCalculatorDialog(Context context)
     {
         this.context = context;
+    }
+
+    public PercentMaxCalculatorDialog(Context context, Exercise currentExercise)
+    {
+        this.context = context;
+        this.currentExercise = currentExercise;
     }
 
     public void show()
@@ -88,6 +111,31 @@ public class PercentMaxCalculatorDialog
             this.initRepsEditText(this.customRepsEditText);
         }
 
+        this.exerciseTextView = percent_max_calculator_view.findViewById(R.id.exercise_input);
+        if (this.exerciseTextView != null)
+        {
+            this.populateExerciseNameTextView();
+            this.initExerciseNameTextView();
+        }
+
+        this.clearExerciseButton = percent_max_calculator_view.findViewById(R.id.clear_exercise_button);
+        if (this.clearExerciseButton != null)
+        {
+            this.initClearExerciseButton();
+        }
+
+        this.updateTrainingWeightButton = percent_max_calculator_view.findViewById(R.id.update_training_weight_button);
+        if (this.updateTrainingWeightButton != null)
+        {
+            this.initUpdateTrainingWeightButton();
+        }
+
+        this.exerciseSelectorLayout = percent_max_calculator_view.findViewById(R.id.exercise_selector_layout);
+        this.maxValueLayout = percent_max_calculator_view.findViewById(R.id.max_value_layout);
+        this.weightRepsLayout = percent_max_calculator_view.findViewById(R.id.weight_reps_horizontal_layout);
+
+        this.exerciseWeightEditText = percent_max_calculator_view.findViewById(R.id.training_weight_edit_text);
+
         AlertDialog percent_max_calculator_dialog = percent_max_calculator_dialog_builder.create();
         percent_max_calculator_dialog.show();
     }
@@ -111,8 +159,8 @@ public class PercentMaxCalculatorDialog
     {
         List<String> maxTypes = new ArrayList<>();
         maxTypes.add("Exercise Training Max");
-        maxTypes.add("Exercise Max Effort");
         maxTypes.add("Exercise Max Lift");
+        maxTypes.add("Exercise Max Effort");
         maxTypes.add("Custom Weight");
 
         // Creating adapter for spinner
@@ -202,25 +250,131 @@ public class PercentMaxCalculatorDialog
         int one_rep_max = 0;
         int percent = this.percentagePicker.getValue() * 5;
 
-        switch (findPercentMaxType())
+        try
         {
-            case CUSTOM:
-                one_rep_max = Lift.findMaxEffort(
-                        Integer.parseInt(customWeightEditText.getText().toString()),
-                        Integer.parseInt(customRepsEditText.getText().toString()));
-                break;
-            case MAX_EFFORT:
-                break;
-            case MAX_WEIGHT:
-                break;
-            case TRAINING_MAX:
-                break;
-                default:
+            switch (findPercentMaxType())
+            {
+                case MAX_EFFORT:
+                    this.showMaxWeightCalculationLayout();
+                    one_rep_max = currentExercise.getMaxEffort(new LiftDbHelper(this.context));
                     break;
+                case MAX_WEIGHT:
+                    this.showMaxWeightCalculationLayout();
+                    one_rep_max = currentExercise.getMaxWeight(new LiftDbHelper(this.context));
+                    break;
+                case TRAINING_MAX:
+                    this.showTrainingMaxCalculationLayout();
+                    one_rep_max = currentExercise.getTrainingWeight(new LiftDbHelper(this.context));
+                    break;
+                case CUSTOM:
+                default:
+                    this.showCustomCalculationLayout();
+                    one_rep_max = Lift.findMaxEffort(
+                            Integer.parseInt(customWeightEditText.getText().toString()),
+                            Integer.parseInt(customRepsEditText.getText().toString()));
+                    break;
+            }
 
+            this.populateExerciseWeight(one_rep_max);
+            Double percentage_of_max = one_rep_max * ((double) (percent / 100.00));
+            this.percentMaxTextView.setText(String.format("%.2f", percentage_of_max));
         }
+        catch (Exception ignored)
+        {}
+    }
 
-        Double percentage_of_max = one_rep_max * ((double) (percent / 100.00));
-        this.percentMaxTextView.setText(String.format("%.2f", percentage_of_max));
+    private void showCustomCalculationLayout()
+    {
+        this.exerciseSelectorLayout.setVisibility(View.GONE);
+        this.maxValueLayout.setVisibility(View.GONE);
+        this.weightRepsLayout.setVisibility(View.VISIBLE);
+    }
+
+    private void showTrainingMaxCalculationLayout()
+    {
+        this.exerciseSelectorLayout.setVisibility(View.VISIBLE);
+        this.maxValueLayout.setVisibility(View.VISIBLE);
+        this.weightRepsLayout.setVisibility(View.GONE);
+
+        this.exerciseWeightEditText.setEnabled(true);
+        this.updateTrainingWeightButton.setVisibility(View.VISIBLE);
+    }
+
+    private void showMaxWeightCalculationLayout()
+    {
+        this.exerciseSelectorLayout.setVisibility(View.VISIBLE);
+        this.maxValueLayout.setVisibility(View.VISIBLE);
+        this.weightRepsLayout.setVisibility(View.GONE);
+
+        this.exerciseWeightEditText.setEnabled(false);
+        this.updateTrainingWeightButton.setVisibility(View.GONE);
+    }
+
+    private void populateExerciseNameTextView()
+    {
+        if (this.currentExercise != null)
+        {
+            this.exerciseTextView.setText(this.currentExercise.getName());
+        }
+    }
+
+    private void initExerciseNameTextView()
+    {
+        SimpleCursorAdapter exercise_adapter = new SimpleCursorAdapter(
+                context,
+                android.R.layout.simple_list_item_1,
+                null,
+                new String[]{LiftDbHelper.EXERCISE_COLUMN_NAME},
+                new int[]{android.R.id.text1},
+                CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
+
+        exerciseTextView.setAdapter(exercise_adapter);
+
+        // When the exercise input is changed, query the database for potential matches. Assume that
+        // the no exercise is currently selected. If an exercise is defaulted, already selected, or
+        // selected from the input, then it will be corrected.
+        exercise_adapter.setFilterQueryProvider(constraint -> {
+            // Get the cursor limited by the current filter text.
+            return new LiftDbHelper(context).selectExercisesCursor(constraint.toString());
+        });
+
+        exercise_adapter.setCursorToStringConverter(cursor -> {
+            int column_index = cursor.getColumnIndex(LiftDbHelper.EXERCISE_COLUMN_NAME);
+            return cursor.getString(column_index);
+        });
+
+        // If an item is clicked for the exercise input, select that exercise.
+        exerciseTextView.setOnItemClickListener((parent, view, position, id) -> {
+            // An exercise was explicitly selected from the input.
+            currentExercise = new LiftDbHelper(context).selectExerciseFromExerciseId(id);
+            recalculatePercentMax();
+        });
+    }
+
+    private void populateExerciseWeight(int one_rep_max)
+    {
+        this.exerciseWeightEditText.setText(Integer.toString(one_rep_max));
+    }
+
+    private void initClearExerciseButton()
+    {
+        clearExerciseButton.setOnClickListener(v -> {
+            // Set the input text box to be blank.
+            exerciseTextView.setText("");
+        });
+    }
+
+    private void initUpdateTrainingWeightButton()
+    {
+        this.updateTrainingWeightButton.setOnClickListener(view -> {
+            try
+            {
+                int training_weight = Integer.parseInt(exerciseWeightEditText.getText().toString());
+                currentExercise.updateTrainingWeight(new LiftDbHelper(context), training_weight);
+                recalculatePercentMax();
+            }
+            catch (Exception ignored)
+            {}
+        });
     }
 }

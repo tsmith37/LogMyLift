@@ -278,7 +278,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         return this.selectLiftFromLiftId(max_lift_id);
     }
 
-    private int getMaxEffortByExercise(long exercise_id)
+    public int getMaxEffortByExercise(long exercise_id)
     {
         if (!this.maxWeightRecordExistsByExercise(exercise_id))
         {
@@ -332,7 +332,7 @@ public class LiftDbHelper extends SQLiteOpenHelper {
         return this.selectLiftFromLiftId(max_lift_id);
     }
 
-    private int getMaxWeightByExercise(long exercise_id)
+    public int getMaxWeightByExercise(long exercise_id)
     {
         if (!this.maxWeightRecordExistsByExercise(exercise_id))
         {

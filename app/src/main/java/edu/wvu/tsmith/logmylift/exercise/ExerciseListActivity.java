@@ -163,6 +163,18 @@ public class ExerciseListActivity extends AppCompatActivity {
                 holder.exercise_description_text_view.setVisibility(View.VISIBLE);
             }
 
+            // If the exercise has a training weight, display it.
+            int training_weight = current_exercise.getTrainingWeight(lift_db_helper);
+            if (training_weight > 0)
+            {
+                holder.training_weight_text_view.setText("Training Weight" + ": " + Integer.toString(training_weight));
+                holder.training_weight_text_view.setVisibility(View.VISIBLE);
+            }
+            else
+            {
+                holder.training_weight_text_view.setVisibility(View.GONE);
+            }
+
             // If the exercise has a max effort lift, display it.
             Lift max_effort_lift = lift_db_helper.selectMaxEffortLiftByExercise(current_exercise.getExerciseId());
             if (max_effort_lift != null)
@@ -287,6 +299,7 @@ public class ExerciseListActivity extends AppCompatActivity {
 
             final TextView exercise_name_text_view;
             final TextView exercise_description_text_view;
+            final TextView training_weight_text_view;
             final TextView max_effort_text_view;
             final TextView max_weight_text_view;
             final TextView last_performed_text_view;
@@ -303,6 +316,7 @@ public class ExerciseListActivity extends AppCompatActivity {
 
                 this.exercise_name_text_view = view.findViewById(R.id.exercise_name_text_view);
                 this.exercise_description_text_view = view.findViewById(R.id.exercise_description_text_view);
+                this.training_weight_text_view = view.findViewById(R.id.training_weight_text_view);
                 this.max_effort_text_view = view.findViewById(R.id.max_effort_text_view);
                 this.max_weight_text_view = view.findViewById(R.id.max_weight_text_view);
                 this.last_performed_text_view = view.findViewById(R.id.last_performed_text_view);
