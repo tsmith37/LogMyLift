@@ -58,10 +58,14 @@ public class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHisto
         this.lift_db_helper = lift_db_helper;
         this.recycler_view = recycler_view;
         this.current_workout = current_workout;
-        if (this.current_workout != null) {
+        if (this.current_workout != null)
+        {
+            this.current_workout.setLiftDbHelper(lift_db_helper);
             // Get the lifts in the current workout.
-            this.current_workout_lifts = this.current_workout.getLifts(lift_db_helper);
-        } else {
+            this.current_workout_lifts = this.current_workout.getLifts();
+        }
+        else
+        {
             // The current workout doesn't exist, so there are no lifts/
             this.current_workout_lifts = null;
         }
@@ -139,9 +143,7 @@ public class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHisto
                 // Start a new exercise detail activity with the exercise ID of the exercise done by the lift.
                 Lift lift_at_position = current_workout_lifts.get(position);
                 long exercise_id = lift_at_position.getExercise().getExerciseId();
-                Intent intent = new Intent(parent.getContext(), ExerciseDetailActivity.class);
-                intent.putExtra(ExerciseDetailFragment.exercise_id, exercise_id);
-                parent.getContext().startActivity(intent);
+                ExerciseDetailActivity.start(parent.getContext(), exercise_id);
             }
         }, enable_edit);
     }
@@ -358,7 +360,7 @@ public class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHisto
                 // Ie, don't delete it the user pressed undo.
                 if (Snackbar.Callback.DISMISS_EVENT_ACTION != event)
                 {
-                    lift_to_delete.delete(lift_db_helper);
+                    lift_to_delete.delete();
                 }
             }
         });
@@ -372,7 +374,7 @@ public class WorkoutHistoryCardAdapter extends RecyclerView.Adapter<WorkoutHisto
     void setWorkoutDescription(String description)
     {
         // Update the workout's description in the database.
-        current_workout.setDescription(lift_db_helper, description);
+        current_workout.setDescription(description);
 
         // Reload the description shown in the toolbar.
         reloadWorkoutDescription();

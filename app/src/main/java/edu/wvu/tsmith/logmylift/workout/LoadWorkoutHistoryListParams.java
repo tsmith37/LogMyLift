@@ -9,19 +9,21 @@ public class LoadWorkoutHistoryListParams
 {
     public enum WorkoutListOrder
     {
-        DATE_DESC, DATE_ASC, LENGTH_DESC, LENGTH_ASC, LIFT_COUNT_DESC, LIFT_COUNT_ASC;
+        DATE_DESC, DATE_ASC;
     }
 
     private String name_filter;
     private Date from_date;
     private Date to_date;
     private WorkoutListOrder workout_list_order;
+    private int workoutCount;
 
     public LoadWorkoutHistoryListParams()
     {
         this.clearNameFilter();
         this.clearDateFilter();
         this.workout_list_order = WorkoutListOrder.DATE_DESC;
+        this.workoutCount = 100;
     }
 
     public String getNameFilter()
@@ -43,6 +45,8 @@ public class LoadWorkoutHistoryListParams
     {
         return this.workout_list_order;
     }
+
+    public int getWorkoutCount() { return this.workoutCount; }
 
     public void filterName(String name_filter)
     {

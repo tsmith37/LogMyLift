@@ -17,57 +17,121 @@ import edu.wvu.tsmith.logmylift.LiftDbHelper;
 
 public class Exercise
 {
-    private String description;
-    private final long exercise_id;
+    private boolean toCreate;
     private String name;
-    private long last_workout_id;
+    private long exerciseId;
+    private String description;
+    private LiftDbHelper liftDbHelper;
+    private long lastWorkoutId;
 
     // Depricated:
     //private long max_lift_id;
 
-
-    /**
-     * Constructor of a new exercise. Given the SQLite database helper, name, and description
-     * of the exercise, the exercise is instantiated, added into the database, and the exercise
-     * ID is set.
-     * @param lift_db_helper    SQLite database helper.
-     * @param name              Name of the exercise.
-     * @param description       Exercise description.
-     */
-    public Exercise(LiftDbHelper lift_db_helper, String name, String description) throws ExerciseAlreadyExistsException
+    public static class Builder
     {
-        // Check if the exercise name already exists.
-        if (lift_db_helper.exerciseNameExists(name))
+        // Required:
+        private String name = "";
+
+        // Optional:
+        private long exerciseId;
+        private boolean toCreate = false;
+        private String description = "";
+        private LiftDbHelper liftDbHelper = null;
+        private long lastWorkoutId = -1;
+
+        public Builder() {}
+
+        public Builder name(String name)
         {
-            throw new ExerciseAlreadyExistsException(name + " already exists.");
+            this.name = name;
+            return this;
+        }
+
+        public Builder exerciseId(long exerciseId)
+        {
+            this.exerciseId = exerciseId;
+            return this;
+        }
+
+        public Builder toCreate(boolean toCreate)
+        {
+            this.toCreate = toCreate;
+            return this;
+        }
+
+        public Builder description(String value)
+        {
+            description = value;
+            return this;
+        }
+
+        public Builder liftDbHelper(LiftDbHelper value)
+        {
+            liftDbHelper = value;
+            return this;
+        }
+
+        public Builder lastWorkoutId(long value)
+        {
+            lastWorkoutId = value;
+            return this;
+        }
+
+        public Exercise build()
+        {
+            return new Exercise(this);
+        }
+    }
+
+    private Exercise(Builder builder)
+    {
+        if (builder.name == "")
+        {
+            throw new ExerciseNotCorrectlyInstantiated("Exercise not correctly instantiated.");
+        }
+
+        if (builder.exerciseId == -1 && !builder.toCreate)
+        {
+            throw new ExerciseNotCorrectlyInstantiated("Exercise not correctly instantiated.");
+        }
+
+        this.toCreate = builder.toCreate;
+        this.name = builder.name;
+        this.exerciseId = builder.exerciseId;
+        this.description = builder.description;
+        this.liftDbHelper = builder.liftDbHelper;
+        this.lastWorkoutId = builder.lastWorkoutId;
+
+        this.initExercise();
+    }
+
+    private void initExercise()
+    {
+        if (this.toCreate)
+        {
+            this.createExercise();
+        }
+    }
+
+    private void createExercise()
+    {
+        if (liftDbHelper != null)
+        {
+            if (liftDbHelper.exerciseNameExists(this.name))
+            {
+                throw new ExerciseAlreadyExistsException(name + " already exists.");
+            }
+            this.exerciseId = liftDbHelper.insertExercise(this);
         }
         else
         {
-            this.name = name;
-            this.description = description;
-            this.exercise_id = lift_db_helper.insertExercise(this);
+            throw new LiftDbHelperNotInstantiated("LiftDbHelper not instantiated.");
         }
     }
 
-    /**
-     * Construct a previously existing exercise from its pieces. In this instance, the exercise ID
-     * already exists in the database, so don't add it again.
-     * @param exercise_id       Unique exercise ID.
-     * @param name              Name of the exercise.
-     * @param description       Exercise description.
-     * @param last_workout_id   Most recent workout ID that the exercise was performed.
-     */
-    public Exercise(long exercise_id, String name, String description, long last_workout_id)
-    {
-        this.exercise_id = exercise_id;
-        this.name = name;
-        this.description = description;
-        this.last_workout_id = last_workout_id;
-    }
-
     // Public access to read-only members.
-    public long getExerciseId() { return this.exercise_id; }
-    public long getLastWorkoutId() { return this.last_workout_id; }
+    public long getExerciseId() { return this.exerciseId; }
+    public long getLastWorkoutId() { return this.lastWorkoutId; }
     public String getName() { return this.name; }
     public String getDescription() { return this.description; }
 
@@ -75,65 +139,125 @@ public class Exercise
      * Sets the name of this exercise.
      * @param name  The new name of the exercise.
      */
-    void setName(LiftDbHelper lift_db_helper, String name)
+    void setName(String name)
     {
         this.name = name;
-        lift_db_helper.updateNameOfExercise(this);
+
+        if (liftDbHelper != null)
+        {
+            this.liftDbHelper.updateNameOfExercise(this);
+        }
+        else
+        {
+            throw new LiftDbHelperNotInstantiated("LiftDbHelper not instantiated.");
+        }
     }
 
     /**
      * Updates the description of the exercise.
      * @param description   Updated description.
      */
-    void setDescription(LiftDbHelper lift_db_helper, String description)
+    void setDescription(String description)
     {
         this.description = description;
-        lift_db_helper.updateDescriptionOfExercise(this);
+
+        if (liftDbHelper != null)
+        {
+            this.liftDbHelper.updateDescriptionOfExercise(this);
+        }
+        else
+        {
+            throw new LiftDbHelperNotInstantiated("LiftDbHelper not instantiated.");
+        }
     }
 
     /**
      * Updates the most recent workout ID of the exercise.
-     * @param last_workout_id   Workout ID.
+     * @param lastWorkoutId   Workout ID.
      */
-    public void setLastWorkoutId(LiftDbHelper lift_db_helper, long last_workout_id)
+    public void setLastWorkoutId(long lastWorkoutId)
     {
-        this.last_workout_id = last_workout_id;
-        lift_db_helper.updateLastWorkoutIdOfExercise(this);
+        this.lastWorkoutId = lastWorkoutId;
+
+        if (liftDbHelper != null)
+        {
+            this.liftDbHelper.updateLastWorkoutIdOfExercise(this);
+        }
+        else
+        {
+            throw new LiftDbHelperNotInstantiated("LiftDbHelper not instantiated.");
+        }
     }
 
-    public int getMaxEffort(LiftDbHelper lift_db_helper)
+    public int getMaxEffort()
     {
-        return lift_db_helper.getMaxEffortByExercise(this.exercise_id);
+        if (liftDbHelper == null)
+        {
+            throw new LiftDbHelperNotInstantiated("LiftDbHelper not instantiated.");
+        }
+        return this.liftDbHelper.getMaxEffortByExercise(this.exerciseId);
     }
 
-    public int getMaxWeight(LiftDbHelper lift_db_helper)
+    public int getMaxWeight()
     {
-        return lift_db_helper.getMaxWeightByExercise(this.exercise_id);
+        if (liftDbHelper == null)
+        {
+            throw new LiftDbHelperNotInstantiated("LiftDbHelper not instantiated.");
+        }
+        return this.liftDbHelper.getMaxWeightByExercise(this.exerciseId);
     }
 
-    public int getTrainingWeight(LiftDbHelper lift_db_helper)
+    public int getTrainingWeight()
     {
-        return lift_db_helper.selectTrainingWeight(this.exercise_id);
+        if (liftDbHelper == null)
+        {
+            throw new LiftDbHelperNotInstantiated("LiftDbHelper not instantiated.");
+        }
+        return this.liftDbHelper.selectTrainingWeight(this.exerciseId);
     }
 
-    public void updateTrainingWeight(LiftDbHelper lift_db_helper, int training_weight)
+    public void updateTrainingWeight(int training_weight)
     {
-        lift_db_helper.updateTrainingWeight(this.exercise_id, training_weight);
+        if (liftDbHelper == null)
+        {
+            throw new LiftDbHelperNotInstantiated("LiftDbHelper not instantiated.");
+        }
+        this.liftDbHelper.updateTrainingWeight(this.exerciseId, training_weight);
     }
 
     /**
      * Deletes the exercise from the database.
-     * @param lift_db_helper    The database helper.
      */
-    void delete(LiftDbHelper lift_db_helper)
+    void delete()
     {
-        lift_db_helper.deleteExercise(this);
+        if (liftDbHelper == null)
+        {
+            throw new LiftDbHelperNotInstantiated("LiftDbHelper not instantiated.");
+        }
+        this.liftDbHelper.deleteExercise(this);
+    }
+
+    class ExerciseNotCorrectlyInstantiated extends RuntimeException
+    {
+        public ExerciseNotCorrectlyInstantiated(String message)
+        {
+            super(message);
+        }
     }
 
     class ExerciseAlreadyExistsException extends RuntimeException
     {
 
         public ExerciseAlreadyExistsException(String message)
+        {
+            super(message);
+        }
+    }
+
+    class LiftDbHelperNotInstantiated extends RuntimeException
+    {
+
+        public LiftDbHelperNotInstantiated(String message)
         {
             super(message);
         }

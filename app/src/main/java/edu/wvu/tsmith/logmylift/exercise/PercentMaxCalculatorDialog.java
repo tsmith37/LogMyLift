@@ -238,13 +238,6 @@ public class PercentMaxCalculatorDialog
         });
     }
 
-    private void calculatePercentMax(int weight, int reps, int percent, TextView percent_max_text_view)
-    {
-        int max_effort = Lift.findMaxEffort(weight, reps);
-        Double percentage_of_max = max_effort * percent / 100.00;
-        percent_max_text_view.setText(String.format("%.2f", percentage_of_max));
-    }
-
     private void recalculatePercentMax()
     {
         int one_rep_max = 0;
@@ -256,15 +249,15 @@ public class PercentMaxCalculatorDialog
             {
                 case MAX_EFFORT:
                     this.showMaxWeightCalculationLayout();
-                    one_rep_max = currentExercise.getMaxEffort(new LiftDbHelper(this.context));
+                    one_rep_max = currentExercise.getMaxEffort();
                     break;
                 case MAX_WEIGHT:
                     this.showMaxWeightCalculationLayout();
-                    one_rep_max = currentExercise.getMaxWeight(new LiftDbHelper(this.context));
+                    one_rep_max = currentExercise.getMaxWeight();
                     break;
                 case TRAINING_MAX:
                     this.showTrainingMaxCalculationLayout();
-                    one_rep_max = currentExercise.getTrainingWeight(new LiftDbHelper(this.context));
+                    one_rep_max = currentExercise.getTrainingWeight();
                     break;
                 case CUSTOM:
                 default:
@@ -370,7 +363,7 @@ public class PercentMaxCalculatorDialog
             try
             {
                 int training_weight = Integer.parseInt(exerciseWeightEditText.getText().toString());
-                currentExercise.updateTrainingWeight(new LiftDbHelper(context), training_weight);
+                currentExercise.updateTrainingWeight(training_weight);
                 recalculatePercentMax();
             }
             catch (Exception ignored)

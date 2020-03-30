@@ -77,9 +77,24 @@ public class WorkoutDetailFragment extends Fragment {
             // If no exercises are available, add three default ones.
             if (lift_db_helper.selectExerciseCount() == 0)
             {
-                new Exercise(lift_db_helper, getString(R.string.bench_press), getString(R.string.bench_press_description));
-                new Exercise(lift_db_helper, getString(R.string.squat), getString(R.string.squat_description));
-                new Exercise(lift_db_helper, getString(R.string.deadlift), getString(R.string.deadlift_description));
+                Exercise bench_press = new Exercise.Builder()
+                        .name(getString(R.string.bench_press))
+                        .description(getString(R.string.bench_press_description))
+                        .toCreate(true)
+                        .liftDbHelper(lift_db_helper)
+                        .build();
+                Exercise squat = new Exercise.Builder()
+                        .name(getString(R.string.squat))
+                        .description(getString(R.string.squat_description))
+                        .toCreate(true)
+                        .liftDbHelper(lift_db_helper)
+                        .build();
+                Exercise deadlift = new Exercise.Builder()
+                        .name(getString(R.string.deadlift))
+                        .description(getString(R.string.deadlift_description))
+                        .toCreate(true)
+                        .liftDbHelper(lift_db_helper)
+                        .build();
             }
 
             // Create a card adapter for the workout history.

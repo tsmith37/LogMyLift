@@ -21,10 +21,12 @@ import edu.wvu.tsmith.logmylift.LiftDbHelper;
 import edu.wvu.tsmith.logmylift.R;
 import edu.wvu.tsmith.logmylift.Start;
 import edu.wvu.tsmith.logmylift.exercise.AddExerciseDialog;
+import edu.wvu.tsmith.logmylift.exercise.Exercise;
 import edu.wvu.tsmith.logmylift.exercise.PercentMaxCalculatorDialog;
 import edu.wvu.tsmith.logmylift.workout.EditWorkoutDialog;
 import edu.wvu.tsmith.logmylift.workout.SuggestedExercisesDialog;
 import edu.wvu.tsmith.logmylift.workout.UndoEditWorkoutListener;
+import edu.wvu.tsmith.logmylift.workout.Workout;
 import edu.wvu.tsmith.logmylift.workout.WorkoutDetailFragment;
 import edu.wvu.tsmith.logmylift.workout.WorkoutStatsDialog;
 
@@ -40,6 +42,15 @@ import edu.wvu.tsmith.logmylift.workout.WorkoutStatsDialog;
 
 public class AddLift extends AppCompatActivity
 {
+    WorkoutDetailFragment fragment;
+
+    public static void start(Context context, Workout workout)
+    {
+        Intent starter = new Intent(context, AddLift.class);
+        starter.putExtra(WorkoutDetailFragment.workout_parcel, workout);
+        context.startActivity(starter);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -71,28 +82,31 @@ public class AddLift extends AppCompatActivity
             Bundle arguments = new Bundle();
             arguments.putParcelable(WorkoutDetailFragment.workout_parcel, getIntent().getParcelableExtra(WorkoutDetailFragment.workout_parcel));
             arguments.putBoolean(WorkoutDetailFragment.enable_edit_key, true);
-            final WorkoutDetailFragment fragment = new WorkoutDetailFragment();
-            fragment.setArguments(arguments);
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.workout_detail_container, fragment, "detail_fragment")
-                    .commit();
+            this.fragment = new WorkoutDetailFragment();
+            this.fragment.setArguments(arguments);
 
-            // If the FAB is clicked, show the add lift dialog.
-            final FloatingActionButton add_lift_button = findViewById(R.id.add_lift_button);
-            add_lift_button.setOnClickListener(new View.OnClickListener()
-            {
-                @Override
-                public void onClick(View v)
-                {
-                    // Check if an exercise is currently selected.
-                    LiftDbHelper lift_db_helper = new LiftDbHelper(v.getContext());
-                    long selected_exercise_id = lift_db_helper.getSelectedExercise();
-                    boolean any_exercise_selected = (selected_exercise_id != -1);
-                    AddLiftParams add_lift_params = (any_exercise_selected ? AddLiftParams.createFromExistingExercise(selected_exercise_id) : AddLiftParams.createBlank());
-                    fragment.showAddLiftDialog(lift_db_helper, add_lift_params);
-                }
-            });
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.workout_detail_container, this.fragment, "detail_fragment")
+                    .commit();
         }
+        else
+        {
+            this.fragment = (WorkoutDetailFragment) getSupportFragmentManager().getFragment(savedInstanceState, WorkoutDetailFragment.workout_parcel);
+        }
+
+        FloatingActionButton add_lift_button = findViewById(R.id.add_lift_button);
+        if (add_lift_button != null)
+        {
+            this.initAddLiftButton(add_lift_button, this.fragment);
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState)
+    {
+        super.onSaveInstanceState(outState);
+
+        getSupportFragmentManager().putFragment(outState, WorkoutDetailFragment.workout_parcel, this.fragment);
     }
 
     @Override
@@ -106,7 +120,7 @@ public class AddLift extends AppCompatActivity
             // This ID represents the Home or Up button. In the case of this
             // activity, the Up button is shown. For
             // more details, see the Navigation pattern on Android Design:
-            //
+            //`
             // http://developer.android.com/design/patterns/navigation.html#up-vs-back
             //
             navigateUpTo(new Intent(this, Start.class));
@@ -114,17 +128,14 @@ public class AddLift extends AppCompatActivity
         }
         else if (id == R.id.edit_workout_menu_item)
         {
-            final View snackbar_parent_view = findViewById(R.id.current_workout_list);
-            final EditWorkoutDialog edit_workout_dialog = new EditWorkoutDialog(this, workout_detail_fragment.current_workout, snackbar_parent_view);
-            edit_workout_dialog.show(new Callable<Integer>() {
-                @Override
-                public Integer call() throws Exception {
-                    Snackbar update_workout_snackbar = Snackbar.make(snackbar_parent_view, R.string.workout_updated, Snackbar.LENGTH_LONG);
-                    update_workout_snackbar.setAction(R.string.undo, new UndoEditWorkoutListener(edit_workout_dialog.workout_description_before_editing, workout_detail_fragment));
-                    update_workout_snackbar.show();
-                    workout_detail_fragment.setWorkoutDescription(edit_workout_dialog.workout_description_after_editing);
-                    return 0;
-                }
+            View snackbarParentView = findViewById(R.id.current_workout_list);
+            EditWorkoutDialog editWorkoutDialog = new EditWorkoutDialog(this, workout_detail_fragment.current_workout);
+            editWorkoutDialog.show(() -> {
+                Snackbar update_workout_snackbar = Snackbar.make(snackbarParentView, R.string.workout_updated, Snackbar.LENGTH_LONG);
+                update_workout_snackbar.setAction(R.string.undo, new UndoEditWorkoutListener(editWorkoutDialog.workoutDescriptionBeforeEditing, workout_detail_fragment));
+                update_workout_snackbar.show();
+                workout_detail_fragment.setWorkoutDescription(editWorkoutDialog.workoutDescriptionAfterEditing);
+                return 0;
             });
         }
         else if (id == R.id.workout_stats_menu_item)
@@ -156,7 +167,9 @@ public class AddLift extends AppCompatActivity
         }
         else if (id == R.id.percent_max_menu_item)
         {
-            PercentMaxCalculatorDialog max_calculator_dialog = new PercentMaxCalculatorDialog(this, new LiftDbHelper(this).selectMostRecentExercise());
+            LiftDbHelper liftDbHelper = new LiftDbHelper(this);
+            Exercise mostRecentExercise = liftDbHelper.selectExerciseFromExerciseId(liftDbHelper.getSelectedExercise());
+            PercentMaxCalculatorDialog max_calculator_dialog = new PercentMaxCalculatorDialog(this, mostRecentExercise);
             max_calculator_dialog.show();
         }
         return super.onOptionsItemSelected(item);
@@ -167,5 +180,25 @@ public class AddLift extends AppCompatActivity
     {
         getMenuInflater().inflate(R.menu.add_lift_menu, menu);
         return true;
+    }
+
+    private void initAddLiftButton(FloatingActionButton add_lift_button, WorkoutDetailFragment fragment)
+    {
+        add_lift_button.setOnClickListener(this.addLift(fragment));
+    }
+
+    private View.OnClickListener addLift(WorkoutDetailFragment fragment)
+    {
+        View.OnClickListener addLiftListener = v ->
+        {
+            // Check if an exercise is currently selected.
+            LiftDbHelper lift_db_helper = new LiftDbHelper(v.getContext());
+            long selected_exercise_id = lift_db_helper.getSelectedExercise();
+            boolean any_exercise_selected = (selected_exercise_id != -1);
+            AddLiftParams add_lift_params = (any_exercise_selected ? AddLiftParams.createFromExistingExercise(selected_exercise_id) : AddLiftParams.createBlank());
+            fragment.showAddLiftDialog(lift_db_helper, add_lift_params);
+        };
+
+        return addLiftListener;
     }
 }

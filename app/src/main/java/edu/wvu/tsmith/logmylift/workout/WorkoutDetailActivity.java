@@ -1,5 +1,6 @@
 package edu.wvu.tsmith.logmylift.workout;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
@@ -22,6 +23,13 @@ import edu.wvu.tsmith.logmylift.R;
  */
 public class WorkoutDetailActivity extends AppCompatActivity
 {
+    public static void start(Context context, Workout workout)
+    {
+        Intent starter = new Intent(context, WorkoutDetailActivity.class);
+        starter.putExtra(WorkoutDetailFragment.workout_parcel, workout);
+        context.startActivity(starter);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -87,14 +95,10 @@ public class WorkoutDetailActivity extends AppCompatActivity
         }
         else if (id == R.id.edit_workout_menu_item)
         {
-            final View snackbar_parent_view = findViewById(R.id.current_workout_list);
-            final EditWorkoutDialog edit_workout_dialog = new EditWorkoutDialog(this, workout_detail_fragment.current_workout, snackbar_parent_view);
-            edit_workout_dialog.show(new Callable<Integer>() {
-                @Override
-                public Integer call() throws Exception {
-                    workout_detail_fragment.setWorkoutDescription(edit_workout_dialog.workout_description_after_editing);
-                    return 0;
-                }
+            final EditWorkoutDialog editWorkoutDialog = new EditWorkoutDialog(this, workout_detail_fragment.current_workout);
+            editWorkoutDialog.show(() -> {
+                workout_detail_fragment.setWorkoutDescription(editWorkoutDialog.workoutDescriptionAfterEditing);
+                return 0;
             });
         }
         else if (id == R.id.workout_stats_menu_item)

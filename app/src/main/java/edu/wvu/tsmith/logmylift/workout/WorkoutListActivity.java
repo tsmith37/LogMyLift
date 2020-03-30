@@ -55,6 +55,12 @@ public class WorkoutListActivity extends AppCompatActivity
 
     private RecyclerView recycler_view;
 
+    public static void start(Context context)
+    {
+        Intent starter = new Intent(context, WorkoutListActivity.class);
+        context.startActivity(starter);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -69,13 +75,9 @@ public class WorkoutListActivity extends AppCompatActivity
 
         // Set up the new workout button.
         FloatingActionButton add_workout_button = findViewById(R.id.add_workout_button);
-        add_workout_button.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view) {
-                NewWorkoutDialog new_workout_dialog = new NewWorkoutDialog(view.getContext(), lift_db_helper);
-                new_workout_dialog.show();
-            }
+        add_workout_button.setOnClickListener(view -> {
+            NewWorkoutDialog new_workout_dialog = new NewWorkoutDialog(view.getContext(), lift_db_helper);
+            new_workout_dialog.show();
         });
 
         // Show the Up button in the action bar.
@@ -348,14 +350,6 @@ public class WorkoutListActivity extends AppCompatActivity
             holder.workout = workout_list.get(position);
             holder.workout_description_text_view.setText(workout_list.get(position).getDescription());
             holder.workout_date_text_view.setText(workout_list.get(position).getReadableStartDate());
-            String duration = String.format(
-                    "Duration: %s",
-                    workout_list.get(position).getReadableDuration(lift_db_helper));
-            holder.workout_duration_text_view.setText(duration);
-            String set_count = String.format(
-                    "Lift Count: %d",
-                    workout_list.get(position).getLiftsPerformedCount());
-            holder.workout_set_count_text_view.setText(set_count);
 
             // On a click, go to the workout details.
             holder.workout_list_view.setOnClickListener(new View.OnClickListener()
@@ -367,11 +361,14 @@ public class WorkoutListActivity extends AppCompatActivity
                 @Override
                 public void onClick(View v)
                 {
+                    Workout workoutToOpen = holder.workout;
+                    workoutToOpen.initExistingLifts();
+
                     if (mTwoPane)
                     {
                         // Opens a workout detail fragment with the workout.
                         Bundle arguments = new Bundle();
-                        arguments.putParcelable(WorkoutDetailFragment.workout_parcel, holder.workout);
+                        arguments.putParcelable(WorkoutDetailFragment.workout_parcel, workoutToOpen);
                         WorkoutDetailFragment fragment = new WorkoutDetailFragment();
                         fragment.setArguments(arguments);
                         getSupportFragmentManager().beginTransaction()
@@ -381,10 +378,7 @@ public class WorkoutListActivity extends AppCompatActivity
                     else
                     {
                         // Open a workout detail activity with the workout.
-                        Context context = v.getContext();
-                        Intent intent = new Intent(context, WorkoutDetailActivity.class);
-                        intent.putExtra(WorkoutDetailFragment.workout_parcel, holder.workout);
-                        context.startActivity(intent);
+                        WorkoutDetailActivity.start(v.getContext(), workoutToOpen);
                     }
                 }
             });
@@ -400,23 +394,20 @@ public class WorkoutListActivity extends AppCompatActivity
                 @Override
                 public boolean onLongClick(final View v)
                 {
-                    final EditWorkoutDialog edit_workout_dialog = new EditWorkoutDialog(v.getContext(), holder.workout, v);
-                    edit_workout_dialog.show(new Callable<Integer>() {
-                        @Override
-                        public Integer call() throws Exception {
-                            // Set the description of the workout.
-                            holder.workout.setDescription(lift_db_helper, edit_workout_dialog.workout_description_after_editing);
+                    final EditWorkoutDialog editWorkoutDialog = new EditWorkoutDialog(v.getContext(), holder.workout);
+                    editWorkoutDialog.show(() -> {
+                        // Set the description of the workout.
+                        holder.workout.setDescription(editWorkoutDialog.workoutDescriptionAfterEditing);
 
-                            // Notify the user that the workout was updated.
-                            Snackbar.make(v, "Workout updated.", Snackbar.LENGTH_LONG).show();
-                            RecyclerView recyclerView = findViewById(R.id.workout_list);
+                        // Notify the user that the workout was updated.
+                        Snackbar.make(v, "Workout updated.", Snackbar.LENGTH_LONG).show();
+                        RecyclerView recyclerView = findViewById(R.id.workout_list);
 
-                            // Notify the recycler view adapter that a member has changed. This forces the recycler
-                            // view to redraw the description of the workout.
-                            WorkoutHistoryRecyclerViewAdapter recycler_view_adapter = (WorkoutHistoryRecyclerViewAdapter) recyclerView.getAdapter();
-                            recycler_view_adapter.notifyDataSetChanged();
-                            return null;
-                        }
+                        // Notify the recycler view adapter that a member has changed. This forces the recycler
+                        // view to redraw the description of the workout.
+                        WorkoutHistoryRecyclerViewAdapter recycler_view_adapter = (WorkoutHistoryRecyclerViewAdapter) recyclerView.getAdapter();
+                        recycler_view_adapter.notifyDataSetChanged();
+                        return null;
                     });
                     return false;
                 }
@@ -443,8 +434,6 @@ public class WorkoutListActivity extends AppCompatActivity
             // The text views for the workout.
             final TextView workout_description_text_view;
             final TextView workout_date_text_view;
-            final TextView workout_duration_text_view;
-            final TextView workout_set_count_text_view;
 
             // The workout in the view holder.
             public Workout workout;
@@ -459,8 +448,6 @@ public class WorkoutListActivity extends AppCompatActivity
                 this.workout_list_view = view;
                 this.workout_description_text_view = view.findViewById(R.id.workout_description_text_view);
                 this.workout_date_text_view = view.findViewById(R.id.workout_date_text_view);
-                this.workout_duration_text_view = view.findViewById(R.id.workout_duration_text_view);
-                this.workout_set_count_text_view = view.findViewById(R.id.workout_set_count_text_view);
             }
 
             /**

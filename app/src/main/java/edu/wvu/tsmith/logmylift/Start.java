@@ -65,22 +65,10 @@ public class Start extends AppCompatActivity
         });
 
         Button workout_history_button = this.findViewById(R.id.workout_history_button);
-        workout_history_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v)
-            {
-                showWorkoutHistory();
-            }
-        });
+        workout_history_button.setOnClickListener(v -> WorkoutListActivity.start(current_context));
 
         Button exercise_history_button = this.findViewById(R.id.exercise_button);
-        exercise_history_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v)
-            {
-                showExerciseHistory();
-            }
-        });
+        exercise_history_button.setOnClickListener(v -> ExerciseListActivity.start(current_context));
 
         ImageButton settings_button = this.findViewById(R.id.settings_button);
         settings_button.setOnClickListener(new View.OnClickListener() {
@@ -131,9 +119,7 @@ public class Start extends AppCompatActivity
         Workout last_workout = lift_db_helper.selectLastWorkout();
         if (last_workout != null)
         {
-            Intent workout_intent = new Intent(current_context, AddLift.class);
-            workout_intent.putExtra(WorkoutDetailFragment.workout_parcel, last_workout);
-            startActivity(workout_intent);
+            AddLift.start(current_context, last_workout);
         }
         else
         {
@@ -143,31 +129,12 @@ public class Start extends AppCompatActivity
                 @Override
                 public void onClick(View v)
                 {
-
                     NewWorkoutDialog new_workout_dialog = new NewWorkoutDialog(v.getContext(), lift_db_helper);
                     new_workout_dialog.show();
                 }
             });
             no_previous_workouts.show();
         }
-    }
-
-    /**
-     * Show the ExerciseListActivity.
-     */
-    private void showExerciseHistory()
-    {
-        Intent exercise_list_intent = new Intent(current_context, ExerciseListActivity.class);
-        startActivity(exercise_list_intent);
-    }
-
-    /**
-     * Show the WorkoutListActivity.
-     */
-    private void showWorkoutHistory()
-    {
-        Intent workout_list_intent = new Intent(current_context, WorkoutListActivity.class);
-        startActivity(workout_list_intent);
     }
 
     private void exportDatabase()

@@ -1,5 +1,6 @@
 package edu.wvu.tsmith.logmylift.exercise;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -26,6 +27,13 @@ import edu.wvu.tsmith.logmylift.exercise.exercise_stats.ExerciseStatsDialog;
 public class ExerciseDetailActivity extends AppCompatActivity
 {
     ExerciseDetailFragment exercise_detail_fragment;
+
+    public static void start(Context context, long exerciseId)
+    {
+        Intent starter = new Intent(context, ExerciseDetailActivity.class);
+        starter.putExtra(ExerciseDetailFragment.exercise_id, exerciseId);
+        context.startActivity(starter);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState)

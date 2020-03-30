@@ -17,75 +17,159 @@ import edu.wvu.tsmith.logmylift.exercise.SelectExerciseHistoryParams;
 
 public class Lift
 {
+    private boolean toCreate;
+    private long liftId;
+    private Exercise exercise;
     private String comment;
-    private final Exercise exercise;
-    private final long lift_id;
     private int reps;
-    private final Date start_date;
     private int weight;
-    private final long workout_id;
-    private final String readable_start_date;
-    private final String readable_start_time;
-    private static final java.text.SimpleDateFormat date_format = new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US);
-    private static final java.text.SimpleDateFormat time_format = new java.text.SimpleDateFormat("hh:mm aa", Locale.US);
+    private Date startDate;
+    private long workoutId;
+    private String readableStartDate;
+    private String readableStartTime;
+    private LiftDbHelper liftDbHelper;
 
-    /**
-     * Construct a lift. A lift should have all members at construction.
-     * @param exercise          Exercise that is done during the lift.
-     * @param reps              Number of reps of the lift.
-     * @param weight            Weight of the lift.
-     * @param workout_id        ID of the workout that the lift occured during.
-     */
-    public Lift(LiftDbHelper lift_db_helper, Exercise exercise, int reps, int weight, long workout_id, String comment) {
-        this.comment = comment;
-        this.exercise = exercise;
-        this.reps = reps;
-        this.start_date = new Date();
-        this.readable_start_date = date_format.format(start_date);
-        this.readable_start_time = time_format.format(start_date);
+    private static java.text.SimpleDateFormat date_format = new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US);
+    private static java.text.SimpleDateFormat time_format = new java.text.SimpleDateFormat("hh:mm aa", Locale.US);
 
-        this.weight = weight;
-        this.workout_id = workout_id;
-        this.lift_id = lift_db_helper.insertLift(this);
+    public static class Builder
+    {
+        // Required:
+        private Exercise exercise = null;
+        private int reps = -1;
+        private int weight = -1;
+        private long workoutId = -1;
 
-        this.exercise.setLastWorkoutId(lift_db_helper, this.workout_id);
+        // Optional:
+        private boolean toCreate = false;
+        private long liftId = -1;
+        private LiftDbHelper liftDbHelper;
+        private String comment = "";
+        private Date startDate = new Date();
 
-        lift_db_helper.updateMaxWeightTableWithLift(this);
+        public Builder() {}
+
+        public Builder exercise(Exercise value)
+        {
+            exercise = value;
+            return this;
+        }
+
+        public Builder reps(int value)
+        {
+            reps = value;
+            return this;
+        }
+
+        public Builder weight(int value)
+        {
+            weight = value;
+            return this;
+        }
+
+        public Builder workoutId(long value)
+        {
+            workoutId = value;
+            return this;
+        }
+
+        public Builder toCreate(boolean value)
+        {
+            toCreate = value;
+            return this;
+        }
+
+        public Builder liftId(long value)
+        {
+            liftId = value;
+            return this;
+        }
+
+        public Builder liftDbHelper(LiftDbHelper value)
+        {
+            liftDbHelper = value;
+            return this;
+        }
+
+        public Builder comment(String value)
+        {
+            comment = value;
+            return this;
+        }
+
+        public Builder startDate(Date value)
+        {
+            startDate = value;
+            return this;
+        }
+
+        public Lift build()
+        {
+            return new Lift(this);
+        }
     }
 
-    /**
-     * Construct an already existing lift from parts.
-     * @param lift_id           Unique ID of the lift used to identify it in the database.
-     * @param exercise          The exercise that was done during the lift.
-     * @param reps              The number of reps done during the lift.
-     * @param start_date        The datetime that the lift was done.
-     * @param weight            The weight which was lifted.
-     * @param workout_id        The unique ID of the workout during which the lift was done.
-     * @param comment           User-specified comment of the lift.
-     */
-    public Lift(long lift_id, Exercise exercise, int reps, Date start_date, int weight, long workout_id, String comment) {
-        this.comment = comment;
-        this.lift_id = lift_id;
-        this.exercise = exercise;
-        this.reps = reps;
-        this.start_date = start_date;
-        this.readable_start_date = date_format.format(start_date);
-        this.readable_start_time = time_format.format(start_date);
+    private Lift(Builder builder)
+    {
+        if (builder.exercise == null || builder.reps == -1 || builder.weight == -1 || builder.workoutId == -1)
+        {
+            throw new LiftNotCorrectlyInstantiated("Lift not correctly instantiated");
+        }
 
-        this.weight = weight;
-        this.workout_id = workout_id;
+        this.toCreate = builder.toCreate;
+        this.liftId = builder.liftId;
+        this.exercise = builder.exercise;
+        this.comment = builder.comment;
+        this.reps = builder.reps;
+        this.weight = builder.weight;
+        this.startDate = builder.startDate;
+        this.workoutId = builder.workoutId;
+        this.readableStartDate = date_format.format(startDate);
+        this.readableStartTime = time_format.format(startDate);
+        this.liftDbHelper = builder.liftDbHelper;
+
+        this.initLift();
+    }
+
+    private void initLift()
+    {
+        if (this.toCreate)
+        {
+            this.createLift();
+        }
+        else
+        {
+            if (this.liftId == -1)
+            {
+                throw new LiftNotCorrectlyInstantiated("Lift not correctly instantiated.");
+            }
+        }
+    }
+
+    private void createLift()
+    {
+        if (liftDbHelper != null)
+        {
+            this.liftId = liftDbHelper.insertLift(this);
+            this.exercise.setLastWorkoutId(this.workoutId);
+            liftDbHelper.updateMaxWeightTableWithLift(this);
+        }
+        else
+        {
+            throw new LiftDbHelperNotInstantiated("LiftDbHelper not instantiated.");
+        }
     }
 
     // Read-only access to members.
     public String getComment() { return this.comment; }
     public Exercise getExercise() { return this.exercise; }
-    public long getLiftId() { return this.lift_id; }
-    public String getReadableStartDate() { return this.readable_start_date; }
-    public String getReadableStartTime() { return this.readable_start_time; }
+    public long getLiftId() { return this.liftId; }
+    public String getReadableStartDate() { return this.readableStartDate; }
+    public String getReadableStartTime() { return this.readableStartTime; }
     public int getReps() { return this.reps; }
-    public Date getStartDate() { return this.start_date; }
+    public Date getStartDate() { return this.startDate; }
     public int getWeight() { return this.weight; }
-    public long getWorkoutId() { return this.workout_id; }
+    public long getWorkoutId() { return this.workoutId; }
 
     /**
      * Calculate the maximum effort of this lift.
@@ -106,24 +190,49 @@ public class Lift
     /**
      * Delete the lift. This removes it from the database, and recalculates the maximum effort lift.
      */
-    public void delete(LiftDbHelper lift_db_helper)
+    public void delete()
     {
-        lift_db_helper.deleteLift(this);
+        if (this.liftDbHelper == null)
+        {
+            throw new LiftDbHelperNotInstantiated("LiftDbHelper not instantiated.");
+        }
+
+        this.liftDbHelper.deleteLift(this);
 
         // Check if the lift was a maximum effort or maximum weight lift. Do this so that we don't
         // calculate and update these values if it's not necessary.
-        if (lift_db_helper.liftContainsMaxWeight(this))
+        if (this.liftDbHelper.liftContainsMaxWeight(this))
         {
-            lift_db_helper.updateMaxWeightRecordByExercise(this.getExercise().getExerciseId());
+            liftDbHelper.updateMaxWeightRecordByExercise(this.getExercise().getExerciseId());
         }
     }
 
-    public void update(LiftDbHelper lift_db_helper, int weight, int reps, String comment)
+    public void update(int weight, int reps, String comment)
     {
+        if (this.liftDbHelper == null)
+        {
+            throw new LiftDbHelperNotInstantiated("LiftDbHelper not instantiated.");
+        }
         this.weight = weight;
         this.reps = reps;
         this.comment = comment;
-        lift_db_helper.updateLift(this);
+        this.liftDbHelper.updateLift(this);
+    }
+
+    class LiftNotCorrectlyInstantiated extends RuntimeException
+    {
+        public LiftNotCorrectlyInstantiated(String message)
+        {
+            super(message);
+        }
+    }
+
+    class LiftDbHelperNotInstantiated extends RuntimeException
+    {
+        public LiftDbHelperNotInstantiated(String message)
+    {
+        super(message);
+    }
     }
 }
 

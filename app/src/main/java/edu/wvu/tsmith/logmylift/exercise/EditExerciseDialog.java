@@ -25,87 +25,112 @@ import edu.wvu.tsmith.logmylift.R;
 public class EditExerciseDialog
 {
     private Context context;
-    private View snackbar_parent_view;
+    private View snackbarParentView;
     private Exercise exercise;
-    private LiftDbHelper lift_db_helper;
 
     /**
      * Constructor for the dialog.
      * @param context               - The context in which to display the dialog.
-     * @param snackbar_parent_view  - The parent view to show any needed snackbars.
+     * @param snackbarParentView  - The parent view to show any needed snackbars.
      * @param exercise              - The exercise to edit.
      */
     public EditExerciseDialog
     (
             Context context,
-            View snackbar_parent_view,
+            View snackbarParentView,
             Exercise exercise)
     {
         this.context = context;
-        this.snackbar_parent_view = snackbar_parent_view;
+        this.snackbarParentView = snackbarParentView;
         this.exercise = exercise;
-        this.lift_db_helper = new LiftDbHelper(this.context);
     }
 
     /**
      * Show the dialog to the user.
      */
-    public void show(final Callable<Integer> post_edit_function)
+    public void show(final Callable<Integer> postEditFunction)
     {
         LayoutInflater li = LayoutInflater.from(this.context);
 
         // Re-use the add exercise dialog. It contains the same fields we want to use here.
-        View edit_exercise_dialog_view = li.inflate(R.layout.add_exercise_dialog, null);
-        AlertDialog.Builder edit_exercise_dialog_builder = new AlertDialog.Builder(this.context);
+        View editExerciseDialogView = li.inflate(R.layout.add_exercise_dialog, null);
+        AlertDialog.Builder editExerciseDialogBuilder = new AlertDialog.Builder(this.context);
 
+        // Set the dialog to reflect the current exercise details.
+        this.initTitle(editExerciseDialogBuilder);
+        editExerciseDialogBuilder.setView(editExerciseDialogView);
+
+        EditText exerciseNameEditText = editExerciseDialogView.findViewById(R.id.exercise_name_edit_text);
+        this.setExerciseNameEditText(exerciseNameEditText);
+
+        EditText exerciseDescriptionText = editExerciseDialogView.findViewById(R.id.exercise_description_edit_text);
+        this.setExerciseDescriptionEditText(exerciseDescriptionText);
+
+        AlertDialog editExerciseDialog = editExerciseDialogBuilder.create();
+
+        Button editExerciseButton = editExerciseDialogView.findViewById(R.id.add_exercise_button);
+        editExerciseButton.setText(this.context.getString(R.string.edit_exercise));
+        this.initEditExerciseButton(editExerciseButton, editExerciseDialog, exerciseNameEditText, exerciseDescriptionText, postEditFunction);
+
+        editExerciseDialog.show();
+    }
+
+    private void setExerciseNameEditText(EditText exerciseNameEditText)
+    {
+        if (exerciseNameEditText != null)
+        {
+            exerciseNameEditText.setText(this.exercise.getName());
+        }
+    }
+
+    private void setExerciseDescriptionEditText(EditText exerciseDescriptionEditText)
+    {
+        if (exerciseDescriptionEditText != null)
+        {
+            exerciseDescriptionEditText.setText(this.exercise.getDescription());
+        }
+    }
+
+    private void initTitle(AlertDialog.Builder editExerciseDialogBuilder)
+    {
         TextView title = new TextView(this.context);
         title.setText(this.context.getString(R.string.edit_exercise));
         title.setAllCaps(true);
         title.setTypeface(null, Typeface.BOLD);
         title.setTextSize(20);
         title.setGravity(Gravity.CENTER);
-        edit_exercise_dialog_builder.setCustomTitle(title);
+        editExerciseDialogBuilder.setCustomTitle(title);
+    }
 
-        // Set the dialog to reflect the current exercise details.
-        edit_exercise_dialog_builder.setView(edit_exercise_dialog_view);
-
-        final EditText exercise_name_text = edit_exercise_dialog_view.findViewById(R.id.exercise_name_edit_text);
-        exercise_name_text.setText(this.exercise.getName());
-        final EditText exercise_description_text = edit_exercise_dialog_view.findViewById(R.id.exercise_description_edit_text);
-        exercise_description_text.setText(this.exercise.getDescription());
-
-        final AlertDialog edit_exercise_dialog = edit_exercise_dialog_builder.create();
-
-        Button edit_exercise_button = edit_exercise_dialog_view.findViewById(R.id.add_exercise_button);
-        if (edit_exercise_button != null)
+    private void initEditExerciseButton(Button editExerciseButton, AlertDialog editExerciseDialog, EditText exerciseNameEditText, EditText exerciseDescriptionEditText, Callable<Integer> postEditFunction)
+    {
+        if (editExerciseButton != null && editExerciseDialog != null && exerciseNameEditText != null && exerciseDescriptionEditText != null)
         {
-            edit_exercise_button.setText(R.string.edit_exercise);
-            edit_exercise_button.setOnClickListener(new View.OnClickListener()
-            {
-                @Override
-                public void onClick(View v)
-                {
-                    if (exercise_name_text.getText().toString().isEmpty())
-                    {
-                        Snackbar.make(snackbar_parent_view, "Exercise name not valid.", Snackbar.LENGTH_LONG).show();
-                    }
-                    else
-                    {
-                        exercise.setName(lift_db_helper, exercise_name_text.getText().toString());
-                        exercise.setDescription(lift_db_helper, exercise_description_text.getText().toString());
-                        Snackbar.make(snackbar_parent_view, "Exercise updated.", Snackbar.LENGTH_LONG).show();
-
-                        try {
-                            post_edit_function.call();
-                        } catch (Exception ignored) {
-                        }
-                    }
-
-                    edit_exercise_dialog.cancel();
-                }
-            });
+            editExerciseButton.setOnClickListener(this.editExercise(editExerciseDialog, exerciseNameEditText, exerciseDescriptionEditText, postEditFunction));
         }
+    }
 
-        edit_exercise_dialog.show();
+    private View.OnClickListener editExercise(AlertDialog editExerciseDialog, EditText exerciseNameEditText, EditText exerciseDescriptionEditText, Callable<Integer> postEditFunction)
+    {
+        return v -> {
+            if (exerciseNameEditText.getText().toString().isEmpty())
+            {
+                Snackbar.make(snackbarParentView, "Exercise name not valid.", Snackbar.LENGTH_LONG).show();
+            }
+            else
+            {
+                exercise.setName(exerciseNameEditText.getText().toString());
+                exercise.setDescription(exerciseDescriptionEditText.getText().toString());
+                Snackbar.make(snackbarParentView, "Exercise updated.", Snackbar.LENGTH_LONG).show();
+
+                try
+                {
+                    postEditFunction.call();
+                }
+                catch (Exception ignored) {}
+            }
+
+            editExerciseDialog.cancel();
+        };
     }
 }

@@ -68,7 +68,7 @@ public class WorkoutStatsDialog
         final String workout_duration = String.format(
                 "%s %s",
                 this.workout_duration_text,
-                workout_detail_fragment.current_workout.getReadableDuration(this.lift_db_helper));
+                workout_detail_fragment.current_workout.getReadableDuration());
         final TextView workout_duration_text_view = workout_stats_dialog_view.findViewById(R.id.workout_duration_text_view);
         workout_duration_text_view.setText(workout_duration);
 
@@ -84,7 +84,7 @@ public class WorkoutStatsDialog
         final String time_per_lift = String.format(
                 "%s %s",
                 this.time_per_lift_text,
-                workout_detail_fragment.current_workout.getReadableTimePerSet(lift_db_helper));
+                workout_detail_fragment.current_workout.getReadableTimePerSet());
         final TextView time_per_lift_text_view = workout_stats_dialog_view.findViewById(R.id.average_time_per_lift_text_view);
         time_per_lift_text_view.setText(time_per_lift);
 

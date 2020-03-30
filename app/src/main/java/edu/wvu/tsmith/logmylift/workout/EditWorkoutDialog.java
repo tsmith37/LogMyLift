@@ -24,75 +24,89 @@ import edu.wvu.tsmith.logmylift.R;
 public class EditWorkoutDialog
 {
     private Context context;
-    private int edit_workout_dialog_resource;
     private Workout workout;
-    private String edit_workout_text;
-    private View snackbar_parent_view;
-    public String workout_description_before_editing;
-    public String workout_description_after_editing;
+    public String workoutDescriptionBeforeEditing;
+    public String workoutDescriptionAfterEditing;
 
     /**
      * Constructor for the dialog.
      * @param context                   The context in which to show the dialog.
      * @param workout                   The workout to edit.
-     * @param snackbar_parent_view      The parent view used to show the snackbar.
      */
-    public EditWorkoutDialog(Context context, Workout workout, View snackbar_parent_view)
+    public EditWorkoutDialog(Context context, Workout workout)
     {
         this.context = context;
-        this.edit_workout_dialog_resource = R.layout.edit_workout_dialog;
         this.workout = workout;
-        this.edit_workout_text = this.context.getString(R.string.edit_workout);
-        this.snackbar_parent_view = snackbar_parent_view;
     }
 
     /**
      * Show the dialog.
      */
-    public void show(final Callable<Integer> post_edit_function)
+    public void show(Callable<Integer> postEditFunction)
     {
         LayoutInflater li = LayoutInflater.from(this.context);
-        View edit_workout_dialog_view = li.inflate(this.edit_workout_dialog_resource, null);
-        AlertDialog.Builder edit_workout_dialog_builder = new AlertDialog.Builder(context);
+        View editWorkoutDialogView = li.inflate(R.layout.edit_workout_dialog, null);
+        AlertDialog.Builder editWorkoutDialogBuilder = new AlertDialog.Builder(context);
 
+        this.initTitle(editWorkoutDialogBuilder);
+
+        // Set the edit workout dialog to reflect the current workout details.
+        editWorkoutDialogBuilder.setView(editWorkoutDialogView);
+        EditText workoutDescriptionEditText = editWorkoutDialogView.findViewById(R.id.workout_description_edit_text);
+        this.workoutDescriptionBeforeEditing = workout.getDescription();
+        this.setWorkoutDescriptionEditText(workoutDescriptionEditText);
+
+        AlertDialog editWorkoutDialog = editWorkoutDialogBuilder.create();
+
+        Button editWorkoutButton = editWorkoutDialogView.findViewById(R.id.edit_workout_button);
+        this.initEditWorkoutButton(editWorkoutButton, workoutDescriptionEditText, editWorkoutDialog, postEditFunction);
+
+        editWorkoutDialog.getWindow().setBackgroundDrawableResource(R.color.lightGray);
+        editWorkoutDialog.show();
+    }
+
+    private void initTitle(AlertDialog.Builder editWorkoutDialogBuilder)
+    {
         TextView title = new TextView(this.context);
         String edit_workout_title = String.format(
                 "%s: %s",
-                this.edit_workout_text,
+                this.context.getString(R.string.edit_workout),
                 this.workout.getReadableStartDate());
         title.setText(edit_workout_title);
         title.setAllCaps(true);
         title.setTypeface(null, Typeface.BOLD);
         title.setTextSize(20);
         title.setGravity(Gravity.CENTER);
-        edit_workout_dialog_builder.setCustomTitle(title);
+        editWorkoutDialogBuilder.setCustomTitle(title);
+    }
 
-        // Set the edit workout dialog to reflect the current workout details.
-        edit_workout_dialog_builder.setView(edit_workout_dialog_view);
-        final EditText workout_description_text = edit_workout_dialog_view.findViewById(R.id.workout_description_edit_text);
-        this.workout_description_before_editing = workout.getDescription();
-        workout_description_text.setText(this.workout_description_before_editing);
-
-        final AlertDialog edit_workout_dialog = edit_workout_dialog_builder.create();
-
-        Button edit_workout_button = edit_workout_dialog_view.findViewById(R.id.edit_workout_button);
-        edit_workout_button.setOnClickListener(new View.OnClickListener()
+    private void setWorkoutDescriptionEditText(EditText workoutDescriptionEditText)
+    {
+        if (workoutDescriptionEditText != null)
         {
-            @Override
-            public void onClick(View v)
+            workoutDescriptionEditText.setText(this.workoutDescriptionBeforeEditing);
+        }
+    }
+
+    private void initEditWorkoutButton(Button editWorkoutButton, EditText workoutDescriptionEditText, AlertDialog editWorkoutDialog, Callable<Integer> postEditFunction)
+    {
+        if (editWorkoutButton != null && workoutDescriptionEditText != null && editWorkoutDialog != null)
+        {
+            editWorkoutButton.setOnClickListener(this.editWorkout(workoutDescriptionEditText, editWorkoutDialog, postEditFunction));
+        }
+    }
+
+    private View.OnClickListener editWorkout(EditText workoutDescriptionEditText, AlertDialog editWorkoutDialog, Callable<Integer> postEditFunction)
+    {
+        return v -> {
+            workoutDescriptionAfterEditing = workoutDescriptionEditText.getText().toString();
+            try
             {
-                workout_description_after_editing = workout_description_text.getText().toString();
-                try
-                {
-                    post_edit_function.call();
-                }
-                catch (Exception ignored) {};
-
-                edit_workout_dialog.cancel();
+                postEditFunction.call();
             }
-        });
+            catch (Exception ignored) {};
 
-        edit_workout_dialog.getWindow().setBackgroundDrawableResource(R.color.lightGray);
-        edit_workout_dialog.show();
+            editWorkoutDialog.cancel();
+        };
     }
 }

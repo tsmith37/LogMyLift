@@ -49,6 +49,16 @@ public class AddLiftDialog
     private boolean exercise_currently_selected;
     private Exercise current_exercise;
 
+    private AutoCompleteTextView exercise_text_view;
+    private ImageButton clear_exercise_button;
+    private ImageButton suggested_exercises_button;
+
+    private EditText weight_edit_text;
+    private EditText reps_edit_text;
+    private EditText comment_edit_text;
+
+    private Button add_lift_button;
+
     /**
      * Constructor for the dialog.
      * @param context                   The context in which to show the dialog.
@@ -83,23 +93,68 @@ public class AddLiftDialog
     {
         // Create the dialog to add a new lift.
         LayoutInflater li = LayoutInflater.from(context);
-        final View add_lift_dialog_view = li.inflate(this.add_lift_dialog_resource, null);
-        final AlertDialog.Builder add_lift_dialog_builder = new AlertDialog.Builder(context);
+        View add_lift_dialog_view = li.inflate(this.add_lift_dialog_resource, null);
+        AlertDialog.Builder add_lift_dialog_builder = new AlertDialog.Builder(context);
 
+        add_lift_dialog_builder.setCustomTitle(this.initTitle());
+
+        add_lift_dialog_builder.setView(add_lift_dialog_view);
+
+        final AlertDialog add_lift_dialog = add_lift_dialog_builder.create();
+
+        // Find the exercise text input.
+        this.exercise_text_view = add_lift_dialog_view.findViewById(R.id.exercise_input);
+        if (this.exercise_text_view != null)
+        {
+            this.initExerciseTextView();
+        }
+
+        // Set the clear exercise button to clear the exercise input.
+        this.clear_exercise_button = add_lift_dialog_view.findViewById(R.id.clear_exercise_button);
+        if (this.clear_exercise_button != null)
+        {
+            this.initClearExerciseButton();
+        }
+
+        this.weight_edit_text = add_lift_dialog_view.findViewById(R.id.weight_edit_text);
+        this.reps_edit_text = add_lift_dialog_view.findViewById(R.id.reps_edit_text);
+        this.comment_edit_text = add_lift_dialog_view.findViewById(R.id.comment_edit_text);
+
+        this.initDefaultInputs();
+
+        // Set up the suggested exercises dialog.
+        this.suggested_exercises_button = add_lift_dialog_view.findViewById(R.id.suggested_exercises_button);
+        if (suggested_exercises_button != null)
+        {
+            this.initSuggestedExercisesButton();
+        }
+
+        // Set up the add lift button press.
+        add_lift_button = add_lift_dialog_view.findViewById(R.id.add_lift_button);
+        if (add_lift_button != null)
+        {
+            this.initAddLiftButton(add_lift_dialog);
+        }
+
+        // Show the dialog.
+        add_lift_dialog.getWindow().setBackgroundDrawableResource(R.color.lightGray);
+        add_lift_dialog.show();
+    }
+
+    private TextView initTitle()
+    {
         TextView title = new TextView(this.context);
         title.setText(this.context.getString(R.string.add_lift));
         title.setAllCaps(true);
         title.setTypeface(null, Typeface.BOLD);
         title.setTextSize(20);
         title.setGravity(Gravity.CENTER);
-        add_lift_dialog_builder.setCustomTitle(title);
+        return title;
+    }
 
-        add_lift_dialog_builder.setView(add_lift_dialog_view);
-
-        final AlertDialog add_lift_dialog = add_lift_dialog_builder.create();
-
-        // Set up the exercise adapter, with nothing in it.
-        final SimpleCursorAdapter exercise_adapter = new SimpleCursorAdapter(
+    private void initExerciseTextView()
+    {
+        SimpleCursorAdapter exercise_text_view_adapter = new SimpleCursorAdapter(
                 context,
                 android.R.layout.simple_list_item_1,
                 null,
@@ -107,52 +162,50 @@ public class AddLiftDialog
                 new int[]{android.R.id.text1},
                 CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
 
-        // Find the exercise text input.
-        final AutoCompleteTextView exercise_input = add_lift_dialog_view.findViewById(R.id.exercise_input);
-        exercise_input.setAdapter(exercise_adapter);
-
-        // Find the weight text input.
-        final EditText weight_text = add_lift_dialog_view.findViewById(R.id.weight_edit_text);
-
-        // Find the reps text input.
-        final EditText reps_text = add_lift_dialog_view.findViewById(R.id.reps_edit_text);
-
-        // Find the comment text input.
-        final EditText comment_text = add_lift_dialog_view.findViewById(R.id.comment_edit_text);
-
         // When the exercise input is changed, query the database for potential matches. Assume that
         // the no exercise is currently selected. If an exercise is defaulted, already selected, or
         // selected from the input, then it will be corrected.
-        exercise_adapter.setFilterQueryProvider(new FilterQueryProvider()
-        {
-            @Override
-            public Cursor runQuery(CharSequence constraint)
-            {
-                // The user typed something. Any previously selected exercise is now invalid.
-                exercise_currently_selected = false;
+        exercise_text_view_adapter.setFilterQueryProvider(constraint -> {
+            // The user typed something. Any previously selected exercise is now invalid.
+            exercise_currently_selected = false;
 
-                // Get the cursor limited by the current filter text.
-                return lift_db_helper.selectExercisesCursor(constraint.toString());
-            }
+            // Get the cursor limited by the current filter text.
+            return lift_db_helper.selectExercisesCursor(constraint.toString());
         });
 
-        exercise_adapter.setCursorToStringConverter(new SimpleCursorAdapter.CursorToStringConverter()
-        {
-            @Override
-            public CharSequence convertToString(Cursor cursor)
-            {
-                int column_index = cursor.getColumnIndex(LiftDbHelper.EXERCISE_COLUMN_NAME);
-                return cursor.getString(column_index);
-            }
+        exercise_text_view_adapter.setCursorToStringConverter(cursor -> {
+            int column_index = cursor.getColumnIndex(LiftDbHelper.EXERCISE_COLUMN_NAME);
+            return cursor.getString(column_index);
         });
 
+        // If an item is clicked for the exercise input, select that exercise.
+        exercise_text_view.setOnItemClickListener((parent, view, position, id) -> {
+            // An exercise was explicitly selected from the input.
+            changeCurrentExercise(id);
+            exercise_currently_selected = true;
+        });
+
+        exercise_text_view.setAdapter(exercise_text_view_adapter);
+    }
+
+    private void initClearExerciseButton()
+    {
+        clear_exercise_button.setOnClickListener(v -> {
+            // Set the input text box to be blank.
+            exercise_text_view.setText("");
+            exercise_currently_selected = false;
+        });
+    }
+
+    private void initDefaultInputs()
+    {
         // If default inputs are selected, place them into the dialog now.
         if (this.add_lift_params.set_all_fields)
         {
-            exercise_input.setText(this.add_lift_params.default_exercise_name);
-            weight_text.setText(Integer.toString(this.add_lift_params.default_weight));
-            reps_text.setText(Integer.toString(this.add_lift_params.default_reps));
-            comment_text.setText(this.add_lift_params.default_comment);
+            exercise_text_view.setText(this.add_lift_params.default_exercise_name);
+            weight_edit_text.setText(Integer.toString(this.add_lift_params.default_weight));
+            reps_edit_text.setText(Integer.toString(this.add_lift_params.default_reps));
+            comment_edit_text.setText(this.add_lift_params.default_comment);
 
             // Even though the exercise name is there, the exercise itself is not selected.
             exercise_currently_selected = false;
@@ -160,7 +213,7 @@ public class AddLiftDialog
             // Don't focus on the exercise input.
             try
             {
-                weight_text.requestFocus();
+                weight_edit_text.requestFocus();
             }
             catch (Throwable ignored) {}
 
@@ -170,14 +223,22 @@ public class AddLiftDialog
             // The caller of the dialog indicated that an exercise should already be selected. Select
             // that exercise.
             this.changeCurrentExercise(this.add_lift_params.selected_exercise_id);
-            exercise_input.setText(current_exercise.getName());
 
-            exercise_currently_selected = true;
+            if (this.current_exercise != null)
+            {
+                exercise_text_view.setText(current_exercise.getName());
+
+                exercise_currently_selected = true;
+            }
+            else
+            {
+                exercise_currently_selected = false;
+            }
 
             // Don't focus on the exercise input.
             try
             {
-                weight_text.requestFocus();
+                weight_edit_text.requestFocus();
             }
             catch (Throwable ignored) {}
 
@@ -187,146 +248,96 @@ public class AddLiftDialog
             // Don't set any fields by default and don't select an exercise.
             exercise_currently_selected = false;
         }
+    }
 
-        // Set the clear exercise button to clear the exercise input.
-        ImageButton clear_exercise_input = add_lift_dialog_view.findViewById(R.id.clear_exercise_button);
-        clear_exercise_input.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View v)
+    private void initSuggestedExercisesButton()
+    {
+        this.suggested_exercises_button.setOnClickListener(v -> {
+            SuggestedExercisesDialog suggested_exercises_dialog = new SuggestedExercisesDialog(
+                    context,
+                    lift_db_helper,
+                    current_workout,
+                    exercise_text_view);
+            suggested_exercises_dialog.show();
+        });
+    }
+
+    private void initAddLiftButton(AlertDialog this_dialog)
+    {
+        add_lift_button.setOnClickListener(v -> {
+            // Check if the exercise input currently contains an actual exercise.
+            if (!exercise_currently_selected)
             {
-                // Set the input text box to be blank.
-                exercise_input.setText("");
-                exercise_currently_selected = false;
+                // Check if the inputted text actually does match an exercise.
+                Exercise potential_exercise_from_input = lift_db_helper.selectExerciseFromName(exercise_text_view.getText().toString());
+                if (potential_exercise_from_input != null)
+                {
+                    current_exercise = potential_exercise_from_input;
+                    exercise_currently_selected = true;
+                }
+                else
+                {
+                    // Offer to the user via Snackbar to add an exercise named the same as the
+                    // input to the add lift dialog.
+                    Snackbar exercise_name_invalid = Snackbar.make(recycler_view, R.string.exercise_name_not_valid, Snackbar.LENGTH_LONG);
+                    exercise_name_invalid.setAction(R.string.add_exercise, v1 -> {
+                        AddExerciseDialog add_exercise_dialog = new AddExerciseDialog(
+                                context,
+                                lift_db_helper,
+                                recycler_view,
+                                exercise_text_view.getText().toString());
+                        add_exercise_dialog.show(() -> {
+                            AddLiftDialog add_lift_dialog = new AddLiftDialog(context, recycler_view, lift_db_helper, current_workout, current_workout_lifts, AddLiftParams.createFromExistingExercise(lift_db_helper.getSelectedExercise()));
+                            add_lift_dialog.show();
+                            return null;
+                        });
+                    });
+                    exercise_name_invalid.show();
+                    this_dialog.cancel();
+                    return;
+                }
+            }
+
+            // An exercise is currently selected, so update the currently selected exercise in
+            // the database. That way, if the user entered an invalid weight or amount of reps,
+            // their exercise selection will be retained.
+            lift_db_helper.updateSelectedExercise(current_exercise.getExerciseId());
+
+            // Check that the weight and reps are valid for the new lift.
+            int weight = -1;
+            try
+            {
+                weight = Integer.parseInt(weight_edit_text.getText().toString());
+            }
+            catch (Throwable ignored) {}
+            int reps = -1;
+            try
+            {
+                reps = Integer.parseInt(reps_edit_text.getText().toString());
+            }
+            catch (Throwable ignored) {}
+
+            if ((weight > 0) && (reps > 0))
+            {
+                // Add the lift.
+                String comment = comment_edit_text.getText().toString();
+                current_workout_lifts.add(0, current_workout.addLift(current_exercise, reps, weight, comment));
+                recycler_view.getAdapter().notifyItemInserted(0);
+
+                this_dialog.cancel();
+
+                // Go to the top of the recycler view.
+                RecyclerView.LayoutManager layout_manager = recycler_view.getLayoutManager();
+                layout_manager.smoothScrollToPosition(recycler_view, new RecyclerView.State(), 0);
+            }
+            else
+            {
+                this_dialog.cancel();
+                Snackbar.make(recycler_view, R.string.lift_not_valid, Snackbar.LENGTH_LONG).show();
             }
         });
 
-        // If an item is clicked for the exercise input, select that exercise.
-        exercise_input.setOnItemClickListener(new AdapterView.OnItemClickListener()
-        {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id)
-            {
-                // An exercise was explicitly selected from the input.
-                changeCurrentExercise(id);
-                exercise_currently_selected = true;
-            }
-        });
-
-        // Set up the suggested exercises dialog.
-        final ImageButton suggested_exercises_button = add_lift_dialog_view.findViewById(R.id.suggested_exercises_button);
-        if (suggested_exercises_button != null)
-        {
-            suggested_exercises_button.setOnClickListener(new View.OnClickListener()
-            {
-                @Override
-                public void onClick(View v)
-                {
-                    SuggestedExercisesDialog suggested_exercises_dialog = new SuggestedExercisesDialog(
-                            context,
-                            lift_db_helper,
-                            current_workout,
-                            exercise_input);
-                    suggested_exercises_dialog.show();
-                }
-            });
-        }
-
-        // Set up the add lift button press.
-        final Button add_lift_button = add_lift_dialog_view.findViewById(R.id.add_lift_button);
-        if (add_lift_button != null)
-        {
-            add_lift_button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v)
-                {
-                    // Check if the exercise input currently contains an actual exercise.
-                    if (!exercise_currently_selected)
-                    {
-                        // Check if the inputted text actually does match an exercise.
-                        Exercise potential_exercise_from_input = lift_db_helper.selectExerciseFromName(exercise_input.getText().toString());
-                        if (potential_exercise_from_input != null)
-                        {
-                            current_exercise = potential_exercise_from_input;
-                            exercise_currently_selected = true;
-                        }
-                        else
-                        {
-                            // Offer to the user via Snackbar to add an exercise named the same as the
-                            // input to the add lift dialog.
-                            Snackbar exercise_name_invalid = Snackbar.make(recycler_view, R.string.exercise_name_not_valid, Snackbar.LENGTH_LONG);
-                            exercise_name_invalid.setAction(R.string.add_exercise, new View.OnClickListener()
-                            {
-                                @Override
-                                public void onClick(View v)
-                                {
-                                    AddExerciseDialog add_exercise_dialog = new AddExerciseDialog(
-                                            context,
-                                            lift_db_helper,
-                                            recycler_view,
-                                            exercise_input.getText().toString());
-                                    add_exercise_dialog.show(new Callable<Integer>() {
-                                        @Override
-                                        public Integer call() throws Exception {
-                                            AddLiftDialog add_lift_dialog = new AddLiftDialog(context, recycler_view, lift_db_helper, current_workout, current_workout_lifts, AddLiftParams.createFromExistingExercise(lift_db_helper.getSelectedExercise()));
-                                            add_lift_dialog.show();
-                                            return null;
-                                        }
-                                    });
-                                }
-                            });
-                            exercise_name_invalid.show();
-                            add_lift_dialog.cancel();
-                            return;
-                        }
-                    }
-
-                    // An exercise is currently selected, so update the currently selected exercise in
-                    // the database. That way, if the user entered an invalid weight or amount of reps,
-                    // their exercise selection will be retained.
-                    lift_db_helper.updateSelectedExercise(current_exercise.getExerciseId());
-
-                    // Check that the weight and reps are valid for the new lift.
-                    int weight = -1;
-                    try
-                    {
-                        weight = Integer.parseInt(weight_text.getText().toString());
-                    }
-                    catch (Throwable ignored) {}
-                    int reps = -1;
-                    try
-                    {
-                        reps = Integer.parseInt(reps_text.getText().toString());
-                    }
-                    catch (Throwable ignored) {}
-
-                    if ((weight > 0) && (reps > 0))
-                    {
-                        // Add the lift.
-                        String comment = comment_text.getText().toString();
-                        current_workout_lifts.add(0, current_workout.addLift(lift_db_helper, current_exercise, reps, weight, comment));
-                        recycler_view.getAdapter().notifyItemInserted(0);
-
-                        add_lift_dialog.cancel();
-
-                        // Go to the top of the recycler view.
-                        RecyclerView.LayoutManager layout_manager = recycler_view.getLayoutManager();
-                        layout_manager.smoothScrollToPosition(recycler_view, new RecyclerView.State(), 0);
-                    }
-                    else
-                    {
-                        add_lift_dialog.cancel();
-                        Snackbar.make(recycler_view, R.string.lift_not_valid, Snackbar.LENGTH_LONG).show();
-                    }
-                }
-            });
-
-            add_lift_dialog.cancel();
-        }
-
-        // Show the dialog.
-        add_lift_dialog.getWindow().setBackgroundDrawableResource(R.color.lightGray);
-        add_lift_dialog.show();
+        this_dialog.cancel();
     }
 
     /**

@@ -41,6 +41,12 @@ public class ExerciseListActivity extends AppCompatActivity {
     private static final java.text.SimpleDateFormat date_format = new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US);
     private LiftDbHelper lift_db_helper;
 
+    public static void start(Context context)
+    {
+        Intent starter = new Intent(context, ExerciseListActivity.class);
+        context.startActivity(starter);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -164,7 +170,7 @@ public class ExerciseListActivity extends AppCompatActivity {
             }
 
             // If the exercise has a training weight, display it.
-            int training_weight = current_exercise.getTrainingWeight(lift_db_helper);
+            int training_weight = current_exercise.getTrainingWeight();
             if (training_weight > 0)
             {
                 holder.training_weight_text_view.setText("Training Weight" + ": " + Integer.toString(training_weight));
@@ -233,7 +239,7 @@ public class ExerciseListActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     RecyclerView recycler_view = findViewById(R.id.exercise_list);
-                    DeleteExerciseDialog delete_exercise_dialog = new DeleteExerciseDialog(v.getContext(), recycler_view, lift_db_helper, v, position, current_exercise);
+                    DeleteExerciseDialog delete_exercise_dialog = new DeleteExerciseDialog(v.getContext(), recycler_view, v, position, current_exercise);
                     delete_exercise_dialog.show();
                     holder.view_flipper.setDisplayedChild(0);
                 }
@@ -260,8 +266,9 @@ public class ExerciseListActivity extends AppCompatActivity {
 
             holder.exercise_history_button.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(View v) {
-                    goToExerciseHistory(v.getContext(), current_exercise.getExerciseId());
+                public void onClick(View v)
+                {
+                    ExerciseDetailActivity.start(v.getContext(), current_exercise.getExerciseId());
                 }
             });
 
@@ -342,13 +349,5 @@ public class ExerciseListActivity extends AppCompatActivity {
         RecyclerView recycler_view = (RecyclerView) view;
         recycler_view.setAdapter(new ExerciseListCardAdapter(lift_db_helper.selectExerciseList(filter)));
         return 1;
-    }
-
-    private void goToExerciseHistory(Context context, long exercise_id)
-    {
-        Intent intent = new Intent(context, ExerciseDetailActivity.class);
-        intent.putExtra(ExerciseDetailFragment.exercise_id, exercise_id);
-
-        context.startActivity(intent);
     }
 }

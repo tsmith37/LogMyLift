@@ -59,102 +59,135 @@ public class EditLiftDialog
     {
         // Create the dialog to edit the lift.
         LayoutInflater li = LayoutInflater.from(this.context);
-        final View edit_lift_dialog_view = li.inflate(R.layout.edit_lift_dialog, null);
-        AlertDialog.Builder edit_lift_dialog_builder = new AlertDialog.Builder(this.context);
+        View editLiftDialogView = li.inflate(R.layout.edit_lift_dialog, null);
+        AlertDialog.Builder editLiftDialogBuilder = new AlertDialog.Builder(this.context);
+        this.initTitle(editLiftDialogBuilder);
 
         // Reflect the current lift's properties in the edit lift dialog.
+        editLiftDialogBuilder.setView(editLiftDialogView);
+
+        TextView exerciseNameTextView = editLiftDialogView.findViewById(R.id.exercise_text_view);
+        this.initExerciseNameTextView(exerciseNameTextView);
+
+        EditText weightEditText = editLiftDialogView.findViewById(R.id.weight_edit_text);
+        this.setWeightEditText(weightEditText);
+
+        EditText repsEditText = editLiftDialogView.findViewById(R.id.reps_edit_text);
+        this.setRepsEditText(repsEditText);
+
+        EditText commentEditText = editLiftDialogView.findViewById(R.id.comment_edit_text);
+        this.setCommentEditText(commentEditText);
+
+        AlertDialog editDialog = editLiftDialogBuilder.create();
+
+        Button editLiftButton = editLiftDialogView.findViewById(R.id.edit_lift_button);
+
+        this.initEditLiftButton(editDialog, editLiftDialogView, editLiftButton, weightEditText, repsEditText, commentEditText);
+
+        editDialog.show();
+    }
+
+    private void initTitle(AlertDialog.Builder editLiftDialogBuilder)
+    {
         TextView title = new TextView(this.context);
         title.setText(this.context.getString(R.string.edit_lift));
         title.setAllCaps(true);
         title.setTypeface(null, Typeface.BOLD);
         title.setTextSize(20);
         title.setGravity(Gravity.CENTER);
-        edit_lift_dialog_builder.setCustomTitle(title);
-        edit_lift_dialog_builder.setView(edit_lift_dialog_view);
+        editLiftDialogBuilder.setCustomTitle(title);
+    }
 
-        final TextView exercise_name_text = edit_lift_dialog_view.findViewById(R.id.exercise_text_view);
-        exercise_name_text.setText(lift_to_edit.getExercise().getName());
-
-        final EditText weight_text = edit_lift_dialog_view.findViewById(R.id.weight_edit_text);
-        final EditText reps_text = edit_lift_dialog_view.findViewById(R.id.reps_edit_text);
-        final EditText comment_text = edit_lift_dialog_view.findViewById(R.id.comment_edit_text);
-
-        // Make sure the weight is an integer.
-        String weight = "";
-        try
+    private void initExerciseNameTextView(TextView exerciseNameTextView)
+    {
+        if (exerciseNameTextView != null)
         {
-            weight = Integer.toString(lift_to_edit.getWeight());
+            exerciseNameTextView.setText(lift_to_edit.getExercise().getName());
         }
-        catch (Exception ignored) {}
-        weight_text.setText(weight);
+    }
 
-        // Make sure the number of reps is an integer.
-        String reps = "";
-        try
+    private void setWeightEditText(EditText weightEditText)
+    {
+        if (weightEditText != null)
         {
-            reps = Integer.toString(lift_to_edit.getReps());
+            String weight = Integer.toString(lift_to_edit.getWeight());
+            weightEditText.setText(weight);
         }
-        catch (Exception ignored) {}
-        reps_text.setText(reps);
+    }
 
-        // Set the comment.
-        comment_text.setText(lift_to_edit.getComment());
-
-        final AlertDialog edit_dialog = edit_lift_dialog_builder.create();
-
-        Button edit_lift_button = edit_lift_dialog_view.findViewById(R.id.edit_lift_button);
-        edit_lift_button.setOnClickListener(new View.OnClickListener()
+    private void setRepsEditText(EditText repsEditText)
+    {
+        if (repsEditText != null)
         {
-            @Override
-            public void onClick(View v)
+            String reps = Integer.toString(lift_to_edit.getReps());
+            repsEditText.setText(reps);
+        }
+    }
+
+    private void setCommentEditText(EditText commentEditText)
+    {
+        if (commentEditText != null)
+        {
+            String comment = lift_to_edit.getComment();
+            commentEditText.setText(comment);
+        }
+    }
+
+    private void initEditLiftButton(AlertDialog editDialog, View editLiftDialogView, Button editLiftButton, EditText weightEditText, EditText repsEditText, EditText commentEditText)
+    {
+        if (editLiftButton != null && editDialog != null && editLiftDialogView != null && weightEditText != null & repsEditText != null && commentEditText != null)
+        {
+            editLiftButton.setOnClickListener(this.editLift(editDialog, editLiftDialogView, weightEditText, repsEditText, commentEditText));
+        }
+    }
+
+    private View.OnClickListener editLift(AlertDialog editDialog, View editLiftDialogView, EditText weightEditText, EditText repsEditText, EditText commentEditText)
+    {
+        return v -> {
+            // Check that the weight is valid (i.e., an integer).
+            int weight = -1;
+            try
             {
-                // Check that the weight is valid (i.e., an integer).
-                int weight = -1;
-                try
-                {
-                    weight = Integer.parseInt(weight_text.getText().toString());
-                }
-                catch (Throwable ignored) {}
-
-                // Check that the reps are valid.
-                int reps = -1;
-                try
-                {
-                    reps = Integer.parseInt(reps_text.getText().toString());
-                }
-                catch (Throwable ignored) {}
-
-                // The weight and the reps must be greater than 0.
-                if ((weight > 0) && (reps > 0))
-                {
-                    // Create the parameters to edit the lift.
-                    EditLiftParams edit_lift_params = new EditLiftParams(
-                            current_workout_lifts.get(lift_position_in_adapter),
-                            weight,
-                            reps,
-                            comment_text.getText().toString(),
-                            recycler_view,
-                            lift_position_in_adapter,
-                            true,
-                            snackbar_parent_view);
-                    // Start the edit lift operation in the background.
-                    new EditLiftOperation().execute(edit_lift_params);
-                    edit_dialog.cancel();
-                }
-                else
-                {
-                    // The lift isn't valid.
-                    edit_dialog.cancel();
-                    Snackbar.make(snackbar_parent_view, R.string.lift_not_valid, Snackbar.LENGTH_LONG).show();
-                }
-
-                // Hide the keyboard.
-                InputMethodManager input_method_manager = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
-                input_method_manager.hideSoftInputFromWindow(edit_lift_dialog_view.getWindowToken(), 0);
+                weight = Integer.parseInt(weightEditText.getText().toString());
             }
-        });
+            catch (Throwable ignored) {}
 
-        edit_dialog.show();
+            // Check that the reps are valid.
+            int reps = -1;
+            try
+            {
+                reps = Integer.parseInt(repsEditText.getText().toString());
+            }
+            catch (Throwable ignored) {}
+
+            // The weight and the reps must be greater than 0.
+            if ((weight > 0) && (reps > 0))
+            {
+                // Create the parameters to edit the lift.
+                EditLiftParams edit_lift_params = new EditLiftParams(
+                        current_workout_lifts.get(lift_position_in_adapter),
+                        weight,
+                        reps,
+                        commentEditText.getText().toString(),
+                        recycler_view,
+                        lift_position_in_adapter,
+                        true,
+                        snackbar_parent_view);
+                // Start the edit lift operation in the background.
+                new EditLiftOperation().execute(edit_lift_params);
+                editDialog.cancel();
+            }
+            else
+            {
+                // The lift isn't valid.
+                editDialog.cancel();
+                Snackbar.make(snackbar_parent_view, R.string.lift_not_valid, Snackbar.LENGTH_LONG).show();
+            }
+
+            // Hide the keyboard.
+            InputMethodManager input_method_manager = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
+            input_method_manager.hideSoftInputFromWindow(editLiftDialogView.getWindowToken(), 0);
+        };
     }
 
     /**
@@ -191,7 +224,7 @@ public class EditLiftDialog
             old_lift_comment = params[0].lift.getComment();
             allow_undo = params[0].allow_undo;
             snackbar_parent_view = params[0].snackbar_parent_view;
-            params[0].lift.update(lift_db_helper, params[0].weight, params[0].reps, params[0].comment);
+            params[0].lift.update(params[0].weight, params[0].reps, params[0].comment);
             return true;
         }
 

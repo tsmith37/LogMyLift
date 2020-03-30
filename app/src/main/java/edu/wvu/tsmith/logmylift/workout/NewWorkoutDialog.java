@@ -53,24 +53,22 @@ public class NewWorkoutDialog
         final EditText workout_description_text = add_workout_dialog_view.findViewById(R.id.workout_description_edit_text);
 
         Button add_workout_button = add_workout_dialog_view.findViewById(R.id.add_workout_button);
-        add_workout_button.setOnClickListener(new View.OnClickListener()
+        add_workout_button.setOnClickListener(v ->
         {
-            @Override
-            public void onClick(View v)
-            {
-                // Clear the last exercise that was performed.
-                lift_db_helper.removeSelectedExercise();
+            // Clear the last exercise that was performed.
+            lift_db_helper.removeSelectedExercise();
 
-                // Create the new workout.
-                Workout new_workout = new Workout(lift_db_helper, workout_description_text.getText().toString());
+            // Create the new workout.
+            Workout new_workout = new Workout.Builder()
+                    .liftDbHelper(lift_db_helper)
+                    .description(workout_description_text.getText().toString())
+                    .toCreate(true)
+                    .build();
 
-                // Start the new activity with the ability to add a lift to a workout.
-                Intent workout_intent = new Intent(context, AddLift.class);
-                workout_intent.putExtra(WorkoutDetailFragment.workout_parcel, new_workout);
-                context.startActivity(workout_intent);
+            // Start the new activity with the ability to add a lift to a workout.
+            AddLift.start(context, new_workout);
 
-                add_workout_dialog.cancel();
-            }
+            add_workout_dialog.cancel();
         });
 
         add_workout_dialog.getWindow().setBackgroundDrawableResource(R.color.lightGray);
